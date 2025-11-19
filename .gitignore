@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+ui-visualizer/node_modules/
+
+# Build outputs
+ui-visualizer/dist/
+ui-visualizer/build/
+
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+

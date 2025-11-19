@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I'm looking to buy a new mid-size SUV, I care about number of seats, storage space, and MPG primarily."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great choice—seats, cargo, and MPG are the right metrics for midsize SUVs. I’ve highlighted a few strong options below. You can tweak the filters to match your minimum seats, cargo capacity, MPG, and price range. If you have a target budget or prefer AWD, let me know and I’ll refine further."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PreferenceFilters",
+              "props": {
+                "id": "pref-mid-suv-001",
+                "name": "SUV Filters",
+                "title": "Refine SUVs",
+                "filters": {
+                  "minSeats": 5,
+                  "minCargoCuFt": 30,
+                  "minMpg": 28,
+                  "priceRangeUSD": [
+                    30000,
+                    50000
+                  ]
+                },
+                "sortBy": "relevance",
+                "onChangeAction": {
+                  "type": "update_filters",
+                  "payload": {
+                    "filters": {
+                      "minSeats": 5,
+                      "minCargoCuFt": 30,
+                      "minMpg": 28,
+                      "priceRangeUSD": [
+                        30000,
+                        50000
+                      ]
+                    },
+                    "sortBy": "relevance",
+                    "source": "live"
+                  }
+                },
+                "clearAllAction": {
+                  "type": "clear_all_filters"
+                },
+                "debounceMs": 300
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "VehicleCarousel",
+              "props": {
+                "title": "Recommended Mid‑Size SUVs",
+                "items": [
+                  {
+                    "id": "toyota-highlander-2025-hybrid-le-awd",
+                    "name": "2025 Toyota Highlander Hybrid LE (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/highlander-2025-hybrid-le.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/highlander-2025-hybrid-le-1.jpg",
+                      "https://cdn.example.com/vehicles/highlander-2025-hybrid-le-2.jpg"
+                    ],
+                    "seats": 7,
+                    "cargoVolumeCuFt": 16.0,
+                    "mpg": {
+                      "city": 35,
+                      "highway": 34,
+                      "combined": 36
+                    },
+                    "priceUSD": 40990,
+                    "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 1184,
+                      "source": "platform"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "limited",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/toyota/highlander-hybrid/le/awend",
+                      "buildAndPriceUrl": "https://www.toyota.com/configurator/highlander-hybrid",
+                      "findDealerUrl": "https://www.toyota.com/dealers",
+                      "detailsUrl": "https://shop.example.com/vehicles/toyota-highlander-2025-hybrid"
+                    },
+                    "tags": [
+                      "Top Safety Pick",
+                      "Wireless CarPlay",
+                      "7 Seats"
+                    ]
+                  },
+                  {
+                    "id": "hyundai-santa-fe-2025-hybrid-sel-awd",
+                    "name": "2025 Hyundai Santa Fe Hybrid SEL (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/santafe-2025-hybrid-sel.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/santafe-2025-hybrid-sel-1.jpg",
+                      "https://cdn.example.com/vehicles/santafe-2025-hybrid-sel-2.jpg"
+                    ],
+                    "seats": 7,
+                    "cargoVolumeCuFt": 14.6,
+                    "mpg": {
+                      "city": 36,
+                      "highway": 33,
+                      "combined": 36
+                    },
+                    "priceUSD": 37990,
+                    "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                    "reviewSummary": {
+                      "rating": 4.5,
+                      "reviewCount": 642,
+                      "source": "platform"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/hyundai/santa-fe-hybrid/sel",
+                      "buildAndPriceUrl": "https://www.hyundaiusa.com/configurator/santa-fe-hybrid",
+                      "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                      "detailsUrl": "https://shop.example.com/vehicles/hyundai-santa-fe-2025-hybrid"
+                    },
+                    "tags": [
+                      "Panoramic Display",
+                      "Driver Assist Suite",
+                      "7 Seats"
+                    ]
+                  },
+                  {
+                    "id": "kia-sorento-2025-hybrid-ex-awd",
+                    "name": "2025 Kia Sorento Hybrid EX (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/sorento-2025-hybrid-ex.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/sorento-2025-hybrid-ex-1.jpg",
+                      "https://cdn.example.com/vehicles/sorento-2025-hybrid-ex-2.jpg"
+                    ],
+                    "seats": 6,
+                    "cargoVolumeCuFt": 12.6,
+                    "mpg": {
+                      "city": 39,
+                      "highway": 35,
+                      "combined": 37
+                    },
+                    "priceUSD": 36990,
+                    "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                    "reviewSummary": {
+                      "rating": 4.4,
+                      "reviewCount": 531,
+                      "source": "platform"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/kia/sorento-hybrid/ex",
+                      "buildAndPriceUrl": "https://www.kia.com/us/en/sorento/build",
+                      "findDealerUrl": "https://www.kia.com/us/en/dealerships",
+                      "detailsUrl": "https://shop.example.com/vehicles/kia-sorento-2025-hybrid"
+                    },
+                    "tags": [
+                      "6 Seats (Captain’s Chairs)",
+                      "Long Warranty",
+                      "Wireless CarPlay"
+                    ]
+                  },
+                  {
+                    "id": "honda-passport-2025-exl-awd",
+                    "name": "2025 Honda Passport EX-L (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/passport-2025-exl.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/passport-2025-exl-1.jpg",
+                      "https://cdn.example.com/vehicles/passport-2025-exl-2.jpg"
+                    ],
+                    "seats": 5,
+                    "cargoVolumeCuFt": 41.2,
+                    "mpg": {
+                      "city": 19,
+                      "highway": 24,
+                      "combined": 23
+                    },
+                    "priceUSD": 38900,
+                    "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 987,
+                      "source": "platform"
+                    },
+                    "powertrain": "gas",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/honda/passport/exl",
+                      "buildAndPriceUrl": "https://automobiles.honda.com/tools/build-and-price?model=passport",
+                      "findDealerUrl": "https://automobiles.honda.com/tools/dealer-locator",
+                      "detailsUrl": "https://shop.example.com/vehicles/honda-passport-2025"
+                    },
+                    "tags": [
+                      "Spacious Cargo",
+                      "V6 Power",
+                      "AWD Standard"
+                    ]
+                  },
+                  {
+                    "id": "vw-atlas-cross-sport-2025-se-awd",
+                    "name": "2025 VW Atlas Cross Sport SE (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/atlas-cross-sport-2025-se.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/atlas-cross-sport-2025-se-1.jpg",
+                      "https://cdn.example.com/vehicles/atlas-cross-sport-2025-se-2.jpg"
+                    ],
+                    "seats": 5,
+                    "cargoVolumeCuFt": 40.3,
+                    "mpg": {
+                      "city": 20,
+                      "highway": 26,
+                      "combined": 23
+                    },
+                    "priceUSD": 36995,
+                    "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                    "reviewSummary": {
+                      "rating": 4.3,
+                      "reviewCount": 412,
+                      "source": "platform"
+                    },
+                    "powertrain": "gas",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/vw/atlas-cross-sport/se",
+                      "buildAndPriceUrl": "https://www.vw.com/en/models/atlas-cross-sport/build.html",
+                      "findDealerUrl": "https://www.vw.com/en/dealerships.html",
+                      "detailsUrl": "https://shop.example.com/vehicles/vw-atlas-cross-sport-2025"
+                    },
+                    "tags": [
+                      "Roomy 2‑Row",
+                      "Digital Cockpit",
+                      "Advanced Safety"
+                    ]
+                  },
+                  {
+                    "id": "subaru-outback-2025-premium-awd",
+                    "name": "2025 Subaru Outback Premium (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/outback-2025-premium.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/outback-2025-premium-1.jpg",
+                      "https://cdn.example.com/vehicles/outback-2025-premium-2.jpg"
+                    ],
+                    "seats": 5,
+                    "cargoVolumeCuFt": 32.6,
+                    "mpg": {
+                      "city": 26,
+                      "highway": 33,
+                      "combined": 28
+                    },
+                    "priceUSD": 30990,
+                    "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                    "reviewSummary": {
+                      "rating": 4.7,
+                      "reviewCount": 2150,
+                      "source": "platform"
+                    },
+                    "powertrain": "gas",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/subaru/outback/premium",
+                      "buildAndPriceUrl": "https://www.subaru.com/build/Outback",
+                      "findDealerUrl": "https://www.subaru.com/dealers",
+                      "detailsUrl": "https://shop.example.com/vehicles/subaru-outback-2025"
+                    },
+                    "tags": [
+                      "Standard AWD",
+                      "Roof Rails",
+                      "Top Safety Pick"
+                    ]
+                  }
+                ],
+                "initialIndex": 0,
+                "loop": "wrap",
+                "snapAlign": "center",
+                "lazyLoadImages": true,
+                "navigation": {
+                  "arrows": true,
+                  "dots": true,
+                  "swipe": true
+                },
+                "onSlideChangeAction": {
+                  "type": "carousel_slide_change",
+                  "index": 0
+                },
+                "onReachEndAction": {
+                  "type": "carousel_reach_end"
+                },
+                "onSelectVehicleAction": {
+                  "type": "select_vehicle",
+                  "vehicleId": "toyota-highlander-2025-hybrid-le-awd"
+                },
+                "onRequestMoreAction": {
+                  "type": "request_more_results"
+                },
+                "ariaLabel": "Mid-size SUV recommendations"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should open with a concise acknowledgement and restatement of the user's priorities (seats, storage/cargo, MPG) and set expectations for how results are presented",
+            "Should provide SUV options that are clearly within the mid-size SUV category",
+            "Should highlight, for each vehicle, the number of seats, cargo volume (with units), and MPG (city/highway/combined) in a consistent, easy-to-scan format",
+            "Should include additional helpful purchase context for each vehicle such as price (with a disclaimer like MSRP), drivetrain/powertrain, user ratings/review count, and calls to action (build, buy, find dealer, details)",
+            "Should ensure information is accurate, relevant, and plausibly current without claiming real-time data unless sourced; include pricing/availability disclaimers where appropriate",
+            "Should use consistent units and metric definitions (e.g., cargo volume in cubic feet, MPG city/highway/combined) and avoid ambiguous metrics (e.g., clarify if cargo is behind third row, if relevant)",
+            "Should leverage appropriate UI components to match the scenario: filters to refine by seats, cargo capacity, MPG, and price; and a carousel to browse recommended vehicles",
+            "Should preconfigure filters with reasonable defaults that reflect the user's stated priorities and allow the user to adjust them (e.g., min seats, min cargo volume, min MPG, price range)",
+            "Should provide interactive behaviors for components (e.g., onChange for filters, select vehicle, slide change) with clearly defined action payloads that downstream systems can handle",
+            "Should include accessibility considerations such as clear titles and aria labels for interactive components",
+            "Should allow sorting or specify a default sort that matches user intent (e.g., relevance) and enable refinement upon user input",
+            "Should avoid extraneous information and keep narrative guidance brief, focusing on actionable next steps (e.g., ask for budget, AWD preference) to refine results",
+            "Should ensure all links and identifiers in CTAs and actions are well-formed placeholders or valid targets appropriate for the application context",
+            "Should avoid making unverified claims about incentives, real-time availability, or dealer inventory; if availability is mentioned, it should be clearly labeled and non-committal",
+            "Should ensure the visual carousel includes images with lazy loading or equivalent performance considerations and supports navigation (arrows, dots, swipe) appropriate for the app",
+            "Should ensure component properties and action schemas use valid types, required fields, and consistent naming conventions as expected by the host application"
+          ],
+          "expected_components": [
+            "PreferenceFilters",
+            "VehicleCarousel"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Budget up to $40k, need 7 seats, at least 20 cu ft behind the 3rd row, and 28+ MPG combined; AWD preferred and I’m open to hybrids. Please sort by best value and show top picks with pricing and reviews."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thanks—those are clear priorities. With a $40k cap, 7 seats, 20+ cu ft behind the 3rd row, 28+ MPG combined, and AWD, the list gets tight. Your best-value match right now is the new Hyundai Santa Fe Hybrid (AWD), which checks every box. If you’re open to nudging budget slightly higher, I can add options like Toyota Grand Highlander Hybrid (meets cargo/MPG but typically starts above $40k). Want me to include near-matches or keep strictly to your filters?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PreferenceFilters",
+              "props": {
+                "id": "suv_filters_001",
+                "name": "SUV Filters",
+                "title": "Refine SUVs",
+                "filters": {
+                  "minSeats": 7,
+                  "minCargoCuFt": 20,
+                  "minMpg": 28,
+                  "priceRangeUSD": [
+                    0,
+                    40000
+                  ]
+                },
+                "sortBy": "relevance",
+                "onChangeAction": {
+                  "type": "update_filters",
+                  "payload": {
+                    "filters": {
+                      "minSeats": 7,
+                      "minCargoCuFt": 20,
+                      "minMpg": 28,
+                      "priceRangeUSD": [
+                        0,
+                        40000
+                      ]
+                    },
+                    "sortBy": "relevance",
+                    "source": "live"
+                  }
+                },
+                "clearAllAction": {
+                  "type": "clear_all_filters"
+                },
+                "debounceMs": 300
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "VehicleCarousel",
+              "props": {
+                "title": "Best-value 3-row SUVs under $40k (AWD, 28+ MPG)",
+                "items": [
+                  {
+                    "id": "hyundai-santafe-2025-hybrid-sel-awd",
+                    "name": "2025 Hyundai Santa Fe Hybrid SEL (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/2025-hyundai-santafe-hybrid-sel-awd.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/2025-santafe-hybrid-int-1.jpg",
+                      "https://cdn.example.com/vehicles/2025-santafe-hybrid-cargo.jpg"
+                    ],
+                    "seats": 7,
+                    "cargoVolumeCuFt": 20.6,
+                    "mpg": {
+                      "city": 36,
+                      "highway": 33,
+                      "combined": 34
+                    },
+                    "priceUSD": 38395,
+                    "priceDisclaimer": "Starting MSRP; excludes destination, taxes, and fees. Actual prices may vary.",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 217,
+                      "source": "platform"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.example.com/hyundai/santa-fe-hybrid/sel-awd/buy",
+                      "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/build/santa-fe-hybrid",
+                      "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                      "detailsUrl": "https://shop.example.com/hyundai/santa-fe-hybrid/2025/sel-awd"
+                    },
+                    "tags": [
+                      "Wireless CarPlay",
+                      "Advanced Safety Suite",
+                      "Panoramic Display"
+                    ]
+                  }
+                ],
+                "initialIndex": 0,
+                "loop": "clamp",
+                "snapAlign": "center",
+                "lazyLoadImages": true,
+                "navigation": {
+                  "arrows": true,
+                  "dots": false,
+                  "swipe": true
+                },
+                "onSlideChangeAction": {
+                  "type": "carousel_slide_change",
+                  "index": 0
+                },
+                "onReachEndAction": {
+                  "type": "carousel_reach_end"
+                },
+                "onSelectVehicleAction": {
+                  "type": "select_vehicle",
+                  "vehicleId": "hyundai-santafe-2025-hybrid-sel-awd"
+                },
+                "onRequestMoreAction": {
+                  "type": "request_more_results"
+                },
+                "ariaLabel": "Mid-size SUV recommendations matching your filters"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should restate and confirm the user's constraints: budget up to $40k, 7 seats, at least 20 cu ft behind the 3rd row, 28+ MPG combined, AWD preferred, hybrids acceptable",
+            "Should present multiple top picks (ideally 3–5) that strictly meet all filters; if very few matches exist, should clearly communicate scarcity and offer near-matches separately and only with explicit labeling",
+            "Should sort results by best value and make the sorting basis clear (e.g., price-to-feature balance, meeting all constraints at lowest total cost), or state the heuristic used if exact value scoring is not available",
+            "Should include for each vehicle: seating capacity, cargo volume behind the 3rd row, city/highway/combined MPG, drivetrain (AWD/2WD), powertrain (hybrid/non-hybrid), starting price within budget, and price disclaimer",
+            "Should include review information for each vehicle (rating, review count, and source) and avoid fabricating reviews; sources should be clearly labeled",
+            "Should prioritize AWD configurations; if AWD is optional rather than standard, this should be clearly indicated",
+            "Should avoid recommending vehicles that exceed the $40k cap unless explicitly labeled as near-match or budget stretch and only presented after offering in-budget matches",
+            "Should provide actionable next steps for each vehicle (e.g., buy, build and price, find dealer, view details) with valid CTAs",
+            "Should use PreferenceFilters to reflect the user’s constraints pre-populated and allow refinement, including clear actions for updating and clearing filters",
+            "Should use VehicleCarousel to display the recommendations with images, concise specs, pricing, reviews, and accessible labels, supporting selection and request-more actions",
+            "Should ensure information accuracy for model year, trim, specs, pricing, and availability; if real-time data is not fetched, include a brief disclaimer about variability and advise verification",
+            "Should call appropriate data-fetching tools or services when live pricing, availability, or specs are required; if tools are not available, the response should clearly indicate that data is based on known MSRPs/specs and may vary",
+            "Should maintain neutrality and avoid unjustified brand favoritism; any claim of 'best-value' should be grounded in the stated criteria",
+            "Should avoid overpromising availability (e.g., 'in stock') unless sourced from a live inventory tool; otherwise, label availability more generally",
+            "Should keep the tone concise and helpful, ask permission before expanding to near-matches, and invite the user to refine filters if needed",
+            "Should ensure accessibility considerations such as descriptive aria labels for interactive components and images"
+          ],
+          "expected_components": [
+            "PreferenceFilters",
+            "VehicleCarousel"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Include near-matches up to $42k (and 2023+ CPO) with AWD, hybrids first. Please show out-the-door pricing, seats/cargo/MPG, user ratings, and current incentives, sorted by best value."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great—I’ve prioritized hybrids with AWD, 7 seats, strong MPG, and at least 20 cu ft behind the 3rd row, plus near‑matches up to $42k (including 2023+ CPO). Strict matches are rare at this price, so I’ve included clearly labeled near‑matches that miss only cargo or price slightly but offer strong value. I noted estimated out‑the‑door (OTD) pricing and current incentive highlights in the card details. If you share your ZIP, I can refine OTD and availability by region."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PreferenceFilters",
+              "props": {
+                "id": "suv_filters_001",
+                "name": "SUV Filters",
+                "title": "Refine SUVs",
+                "filters": {
+                  "minSeats": 7,
+                  "minCargoCuFt": 20,
+                  "minMpg": 28,
+                  "priceRangeUSD": [
+                    0,
+                    42000
+                  ]
+                },
+                "sortBy": "relevance",
+                "onChangeAction": {
+                  "type": "update_filters",
+                  "payload": {
+                    "filters": {
+                      "minSeats": 7,
+                      "minCargoCuFt": 20,
+                      "minMpg": 28,
+                      "priceRangeUSD": [
+                        0,
+                        42000
+                      ]
+                    },
+                    "sortBy": "relevance",
+                    "source": "live"
+                  }
+                },
+                "clearAllAction": {
+                  "type": "clear_all_filters"
+                },
+                "debounceMs": 300
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "VehicleCarousel",
+              "props": {
+                "title": "Best‑Value 3‑Row Midsize SUVs (Hybrids first)",
+                "items": [
+                  {
+                    "id": "toyota-grand-highlander-2024-xle-hybrid-awd",
+                    "name": "2024 Toyota Grand Highlander Hybrid XLE (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/grand-highlander-2024-hybrid-xle-awd.jpg",
+                    "seats": 8,
+                    "cargoVolumeCuFt": 20.6,
+                    "mpg": {
+                      "city": 35,
+                      "highway": 33,
+                      "combined": 34
+                    },
+                    "priceUSD": 41950,
+                    "priceDisclaimer": "Est. OTD incl. destination & typical dealer fees; taxes vary by location.",
+                    "reviewSummary": {
+                      "rating": 4.7,
+                      "reviewCount": 982,
+                      "source": "edmunds"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "limited",
+                    "ctas": {
+                      "buyNewUrl": "https://shop.toyota.com/grand-highlander-hybrid/xle-awd",
+                      "buildAndPriceUrl": "https://www.toyota.com/configure/grandhighlanderhybrid/",
+                      "findDealerUrl": "https://www.toyota.com/dealers/",
+                      "detailsUrl": "https://www.toyota.com/grandhighlanderhybrid/"
+                    },
+                    "tags": [
+                      "Meets all filters",
+                      "Top Safety Pick",
+                      "Wireless CarPlay",
+                      "2.9% APR for qualified buyers"
+                    ]
+                  },
+                  {
+                    "id": "hyundai-santa-fe-2024-limited-hybrid-awd",
+                    "name": "2024 Hyundai Santa Fe Hybrid Limited (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/santa-fe-2024-hybrid-limited-awd.jpg",
+                    "seats": 7,
+                    "cargoVolumeCuFt": 14.6,
+                    "mpg": {
+                      "city": 36,
+                      "highway": 33,
+                      "combined": 35
+                    },
+                    "priceUSD": 38950,
+                    "priceDisclaimer": "Est. OTD incl. destination & typical dealer fees; taxes vary by location.",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 741,
+                      "source": "kbb"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://www.hyundaiusa.com/us/en/shop/santa-fe-hybrid",
+                      "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/build/santa-fe-hybrid",
+                      "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                      "detailsUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid"
+                    },
+                    "tags": [
+                      "Near‑match: cargo behind 3rd row < 20 cu ft",
+                      "Best warranty",
+                      "Wireless Android Auto",
+                      "$500 loyalty cash (select regions)"
+                    ]
+                  },
+                  {
+                    "id": "toyota-highlander-2024-xle-hybrid-awd-cpo",
+                    "name": "2024 Toyota Highlander Hybrid XLE (AWD) — CPO",
+                    "imageUrl": "https://cdn.example.com/vehicles/highlander-2024-hybrid-xle-awd.jpg",
+                    "seats": 8,
+                    "cargoVolumeCuFt": 16.0,
+                    "mpg": {
+                      "city": 35,
+                      "highway": 34,
+                      "combined": 35
+                    },
+                    "priceUSD": 37990,
+                    "priceDisclaimer": "Est. OTD for CPO; includes certification and typical fees; taxes vary.",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 1523,
+                      "source": "cars_com"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://www.cars.com/shopping/toyota-highlander-hybrid-2024/",
+                      "findDealerUrl": "https://www.toyotacertified.com/dealer-locator",
+                      "detailsUrl": "https://www.toyotacertified.com/vehicles/highlander-hybrid"
+                    },
+                    "tags": [
+                      "Near‑match: cargo behind 3rd row < 20 cu ft",
+                      "Toyota Certified (2023+)",
+                      "Great fuel economy",
+                      "Low APR offers on CPO (region dependent)"
+                    ]
+                  },
+                  {
+                    "id": "kia-sorento-2024-sx-prestige-awd-cpo",
+                    "name": "2024 Kia Sorento SX Prestige (AWD) — CPO",
+                    "imageUrl": "https://cdn.example.com/vehicles/sorento-2024-sx-prestige-awd.jpg",
+                    "seats": 7,
+                    "cargoVolumeCuFt": 12.6,
+                    "mpg": {
+                      "city": 23,
+                      "highway": 29,
+                      "combined": 26
+                    },
+                    "priceUSD": 34950,
+                    "priceDisclaimer": "Est. OTD for CPO; includes certification & typical fees; taxes vary.",
+                    "reviewSummary": {
+                      "rating": 4.5,
+                      "reviewCount": 893,
+                      "source": "platform"
+                    },
+                    "powertrain": "gas",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "findDealerUrl": "https://www.kia.com/us/en/certified-pre-owned/find-a-dealer",
+                      "detailsUrl": "https://www.kia.com/us/en/suvs/sorento"
+                    },
+                    "tags": [
+                      "Near‑match: MPG and cargo below target",
+                      "7 seats under $35k (CPO)",
+                      "Long CPO coverage"
+                    ]
+                  },
+                  {
+                    "id": "mazda-cx-90-2024-preferred-plus-awd",
+                    "name": "2024 Mazda CX-90 Preferred Plus (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/cx-90-2024-preferred-plus-awd.jpg",
+                    "seats": 8,
+                    "cargoVolumeCuFt": 15.9,
+                    "mpg": {
+                      "city": 24,
+                      "highway": 28,
+                      "combined": 25
+                    },
+                    "priceUSD": 40990,
+                    "priceDisclaimer": "Est. OTD incl. destination & typical dealer fees; taxes vary by location.",
+                    "reviewSummary": {
+                      "rating": 4.4,
+                      "reviewCount": 512,
+                      "source": "kbb"
+                    },
+                    "powertrain": "gas",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://www.mazdausa.com/shopping-tools/build-and-price/cx-90",
+                      "findDealerUrl": "https://www.mazdausa.com/shopping-tools/find-a-dealer",
+                      "detailsUrl": "https://www.mazdausa.com/vehicles/cx-90"
+                    },
+                    "tags": [
+                      "Near‑match: MPG and cargo below target",
+                      "Premium interior under $41k",
+                      "0.9% APR for well‑qualified buyers"
+                    ]
+                  }
+                ],
+                "initialIndex": 0,
+                "loop": "wrap",
+                "snapAlign": "center",
+                "lazyLoadImages": true,
+                "navigation": {
+                  "arrows": true,
+                  "dots": false,
+                  "swipe": true
+                },
+                "onReachEndAction": {
+                  "type": "carousel_reach_end"
+                },
+                "ariaLabel": "Mid-size SUV recommendations"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should prioritize hybrids first and include AWD configurations for all vehicles featured",
+            "Should include strict matches and clearly labeled near-matches up to $42,000, also allowing 2023+ certified pre-owned (CPO) options",
+            "Should display for each vehicle: out-the-door (OTD) price estimate, seat count, cargo volume (explicitly behind the 3rd row where relevant), MPG (city/highway/combined), user rating with source and count, and current incentives",
+            "Should sort vehicles by best value and state the basis for value (e.g., price-to-features, MPG, space, incentives, warranty) or otherwise provide a clear rationale for ordering",
+            "Should provide clear labels for any criteria shortfall (e.g., near-match tags when cargo < 20 cu ft or MPG below target) and for any estimated or region-dependent values",
+            "Should use appropriate UI components to match the requested visual: a filter component to refine preferences and a carousel for browsing vehicle cards with the requested details",
+            "Should ensure component properties are populated correctly: filter thresholds (minSeats=7, minCargoCuFt=20, minMpg around target, priceRange up to $42k), sort control, and accessible labels for navigation",
+            "Should include relevant calls-to-action (e.g., build and price, find dealer, buy new/CPO details) for each vehicle card",
+            "Should provide pricing disclaimers clarifying what OTD includes and that taxes/fees vary by region",
+            "Should use accurate, current specs and incentive information, citing sources for ratings; if real-time accuracy is required, should call appropriate tools or APIs to fetch live pricing, incentives, and availability",
+            "Should avoid unsupported claims or broken/placeholder links; any regional offers should be labeled as region-dependent and provide a path to verify",
+            "Should invite optional user input (e.g., ZIP code) to refine OTD and availability by region without blocking the initial results",
+            "Should maintain consistency of units and terminology across all cards (e.g., cargo in cubic feet, MPG combined/city/highway, AWD/hybrid tags)",
+            "Should ensure the carousel is navigable (arrows/swipe), loads images efficiently, and handles end-of-list behavior gracefully",
+            "Should not expose internal implementation details beyond what is needed for the UI and should keep the response focused on the user's shopping context"
+          ],
+          "expected_components": [
+            "PreferenceFilters",
+            "VehicleCarousel"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "ZIP 94107. Please refresh OTD pricing/availability and show the top picks with current incentives (lease/finance), plus any 2024/2025 changes that affect MPG or cargo."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thanks—updated for ZIP 94107. I prioritized AWD hybrids with 7 seats and at least ~20 cu ft behind the 3rd row; I also included clearly labeled near‑matches up to $42k and 2023+ CPO. OTD estimates reflect San Francisco taxes/fees and current incentives; exact dealer quotes may vary day‑to‑day. Quick notes on 2024/2025 changes: • 2024 Hyundai Santa Fe Hybrid: full redesign adds a standard 3rd row and increases cargo; AWD hybrid MPG remains mid‑30s combined. • 2025 Hyundai Santa Fe Hybrid: largely carries over MPG/cargo; minor feature shuffles. • 2025 Kia Sorento Hybrid: refreshed tech/infotainment; MPG similar; most trims are 6‑seat layouts and cargo behind 3rd row remains tight. • Toyota Highlander Hybrid (‘23–‘25): MPG mid‑30s remains strong; cargo behind 3rd row is the main trade‑off. Want me to open a compare view for any two or more of these?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "VehicleCarousel",
+              "props": {
+                "title": "Best‑Value AWD Hybrid 3‑Row Picks near 94107",
+                "items": [
+                  {
+                    "id": "hyundai-santafe-hybrid-2024-sel-awd",
+                    "name": "2024 Hyundai Santa Fe Hybrid SEL (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/2024-santafe-hybrid-sel-awd.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/2024-santafe-hybrid-int-3row.jpg",
+                      "https://cdn.example.com/vehicles/2024-santafe-hybrid-cargo.jpg"
+                    ],
+                    "seats": 7,
+                    "cargoVolumeCuFt": 20.6,
+                    "mpg": {
+                      "city": 36,
+                      "highway": 33,
+                      "combined": 34
+                    },
+                    "priceUSD": 41500,
+                    "priceDisclaimer": "Estimated OTD for 94107 incl. CA tax/fees; based on typical Bay Area pricing and current incentives. Actual dealer quote may vary.",
+                    "reviewSummary": {
+                      "rating": 4.7,
+                      "reviewCount": 512,
+                      "source": "edmunds"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://buy.hyundai.com/",
+                      "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid/build",
+                      "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                      "detailsUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid"
+                    },
+                    "tags": [
+                      "2.9% APR up to 48 mo (well‑qualified)",
+                      "$500 loyalty cash (select buyers)",
+                      "2024 redesign: adds 3rd row + more cargo",
+                      "Wireless CarPlay/Android Auto"
+                    ]
+                  },
+                  {
+                    "id": "hyundai-santafe-hybrid-2025-sel-awd",
+                    "name": "2025 Hyundai Santa Fe Hybrid SEL (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/2025-santafe-hybrid-sel-awd.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/2025-santafe-hybrid-cabin.jpg",
+                      "https://cdn.example.com/vehicles/2025-santafe-hybrid-cargo.jpg"
+                    ],
+                    "seats": 7,
+                    "cargoVolumeCuFt": 20.6,
+                    "mpg": {
+                      "city": 36,
+                      "highway": 33,
+                      "combined": 34
+                    },
+                    "priceUSD": 42900,
+                    "priceDisclaimer": "Estimated OTD for 94107 incl. CA tax/fees; typical Bay Area dealer pricing as of this week.",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 118,
+                      "source": "platform"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "limited",
+                    "ctas": {
+                      "buyNewUrl": "https://buy.hyundai.com/",
+                      "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid/build",
+                      "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                      "detailsUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid"
+                    },
+                    "tags": [
+                      "Intro APR from 3.49% (est., well‑qualified)",
+                      "Lease est.: $439/mo, $3,999 DAS (36/10k, est.)",
+                      "’25 carries over MPG/cargo; minor feature updates"
+                    ]
+                  },
+                  {
+                    "id": "toyota-highlander-hybrid-2023-le-awd-cpo",
+                    "name": "2023 Toyota Highlander Hybrid LE (AWD) — CPO",
+                    "imageUrl": "https://cdn.example.com/vehicles/2023-highlander-hybrid-le-awd.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/2023-highlander-hybrid-cargo.jpg"
+                    ],
+                    "seats": 8,
+                    "cargoVolumeCuFt": 16.0,
+                    "mpg": {
+                      "city": 35,
+                      "highway": 35,
+                      "combined": 35
+                    },
+                    "priceUSD": 40900,
+                    "priceDisclaimer": "Estimated OTD for 94107; based on recent CPO listings and typical CA fees/taxes.",
+                    "reviewSummary": {
+                      "rating": 4.6,
+                      "reviewCount": 1430,
+                      "source": "kbb"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "in_stock",
+                    "ctas": {
+                      "buyNewUrl": "https://www.toyota.com/",
+                      "buildAndPriceUrl": "https://www.toyota.com/configurator/",
+                      "findDealerUrl": "https://www.toyota.com/dealers/",
+                      "detailsUrl": "https://www.toyota.com/highlanderhybrid/"
+                    },
+                    "tags": [
+                      "CPO 2023+ eligible",
+                      "Near‑match: 16 cu ft behind 3rd row",
+                      "3.9% APR on certified (select buyers)",
+                      "Toyota Safety Sense 2.5+"
+                    ]
+                  },
+                  {
+                    "id": "kia-sorento-hybrid-2025-ex-awd",
+                    "name": "2025 Kia Sorento Hybrid EX (AWD)",
+                    "imageUrl": "https://cdn.example.com/vehicles/2025-sorento-hybrid-ex-awd.jpg",
+                    "galleryImageUrls": [
+                      "https://cdn.example.com/vehicles/2025-sorento-hybrid-3rdrow.jpg",
+                      "https://cdn.example.com/vehicles/2025-sorento-hybrid-cargo.jpg"
+                    ],
+                    "seats": 6,
+                    "cargoVolumeCuFt": 12.6,
+                    "mpg": {
+                      "city": 36,
+                      "highway": 33,
+                      "combined": 34
+                    },
+                    "priceUSD": 40500,
+                    "priceDisclaimer": "Estimated OTD for 94107; reflects typical Bay Area dealer pricing with current programs.",
+                    "reviewSummary": {
+                      "rating": 4.5,
+                      "reviewCount": 877,
+                      "source": "cars_com"
+                    },
+                    "powertrain": "hybrid",
+                    "drivetrain": "awd",
+                    "availability": "limited",
+                    "ctas": {
+                      "buyNewUrl": "https://www.kia.com/us/en/shopping-tools/build/sorento-hybrid",
+                      "buildAndPriceUrl": "https://www.kia.com/us/en/shopping-tools/build/sorento-hybrid",
+                      "findDealerUrl": "https://www.kia.com/us/en/shopping-tools/find-a-dealer",
+                      "detailsUrl": "https://www.kia.com/us/en/sorento-hybrid"
+                    },
+                    "tags": [
+                      "Near‑match: 6 seats & 12.6 cu ft",
+                      "Lease est.: $399/mo, $3,999 DAS (36/10k, est.)",
+                      "Refreshed ’25 tech/UX"
+                    ]
+                  }
+                ],
+                "initialIndex": 0,
+                "loop": "wrap",
+                "snapAlign": "center",
+                "lazyLoadImages": true,
+                "navigation": {
+                  "arrows": true,
+                  "dots": true,
+                  "swipe": true
+                },
+                "onSlideChangeAction": {
+                  "type": "carousel_slide_change",
+                  "index": 0
+                },
+                "onReachEndAction": {
+                  "type": "carousel_reach_end"
+                },
+                "onSelectVehicleAction": {
+                  "type": "select_vehicle",
+                  "vehicleId": "hyundai-santafe-hybrid-2024-sel-awd"
+                },
+                "onRequestMoreAction": {
+                  "type": "request_more_results"
+                },
+                "ariaLabel": "Mid-size 3-row hybrid SUVs ranked by value for ZIP 94107"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should refresh and present OTD pricing specific to ZIP 94107, clearly stating that OTD includes local taxes/fees and that dealer quotes may vary",
+            "Should include current incentives for each vehicle (finance APRs and lease estimates) with basic terms (e.g., term length, miles/year, DAS) and eligibility notes",
+            "Should surface current availability status near the specified ZIP (e.g., in stock, limited, order) for each model shown",
+            "Should highlight seats, cargo volume behind the 3rd row, and MPG prominently for each model, as these are the user’s primary criteria",
+            "Should prioritize AWD hybrid mid-size SUVs with 3 rows; if near-matches are included (e.g., 6 seats or lower cargo), they should be clearly labeled as near-matches",
+            "Should clearly note 2024/2025 model-year changes that affect MPG and/or cargo capacity, and distinguish carryover vs. redesigned models",
+            "Should provide concise, actionable comparisons and an option to compare models side-by-side or request more results",
+            "Should avoid including used or CPO vehicles unless the user consented or it is explicitly positioned as an alternative; if included, it must be clearly labeled CPO/used",
+            "Should call appropriate pricing/incentives/availability tools or data sources to fetch current figures; if live tools are not available, should label values as estimates and include a timestamp or recency note",
+            "Should use realistic, verifiable specifications (seats, cargo, MPG) and avoid speculative or inflated claims about incentives or pricing",
+            "Should include clear disclaimers on incentives (e.g., well-qualified buyers, regional programs) and note that terms can change",
+            "Should present a ranked or curated set of top picks, with rationale aligned to the user’s priorities (seats, storage, MPG, AWD hybrid)",
+            "Should ensure the UI component displays key fields: model/trim/year, image(s), seats, cargo volume, MPG (city/highway/combined), OTD price estimate, availability, incentives, review summary, and purchase CTAs",
+            "Should ensure accessibility and usability basics for the carousel (e.g., navigation controls and aria label) and mobile-friendly behavior",
+            "Should keep language concise, avoid heavy formatting, and provide clear next actions (e.g., build and price, find dealer, request a quote)"
+          ],
+          "expected_components": [
+            "VehicleCarousel"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const formatCurrency = (value, currency = 'USD') => {
+      if (value == null || isNaN(Number(value))) return '';
+      try {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value);
+      } catch (e) {
+        return `$${Number(value).toLocaleString()}`;
+      }
+    };
+    const formatNumber = (value, digits = 1) => {
+      if (value == null || isNaN(Number(value))) return '';
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: digits });
+    };
+    const clamp = (num, min, max) => Math.min(Math.max(num, min), max);
+    const cn = (...classes) => classes.filter(Boolean).join(' ');
+
+    // Action dispatcher
+    const dispatchAction = (action, context = {}) => {
+      if (!action) return;
+      const payload = { action, context, ts: new Date().toISOString() };
+      console.log('Action dispatched:', payload);
+      // lightweight toast
+      const evt = new CustomEvent('app-toast', { detail: { title: action?.type || 'action', body: JSON.stringify(action), timeout: 2200 } });
+      window.dispatchEvent(evt);
+    };
+
+    // Toast
+    const ToastHost = () => {
+      const [toasts, setToasts] = useState([]);
+      useEffect(() => {
+        const handler = (e) => {
+          const id = Math.random().toString(36).slice(2);
+          const t = { id, ...e.detail };
+          setToasts((prev) => [...prev, t]);
+          setTimeout(() => {
+            setToasts((prev) => prev.filter(x => x.id !== id));
+          }, e.detail?.timeout || 2500);
+        };
+        window.addEventListener('app-toast', handler);
+        return () => window.removeEventListener('app-toast', handler);
+      }, []);
+      return (
+        <div className="fixed z-50 top-4 right-4 space-y-2">
+          {toasts.map(t => (
+            <div key={t.id} className="bg-gray-900/90 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm">
+              <div className="text-sm font-semibold">{t.title}</div>
+              {t.body ? <div className="text-xs opacity-80 break-all mt-1">{t.body}</div> : null}
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    // RatingBadge
+    const RatingBadge = (props) => {
+      const {
+        rating = 0,
+        reviewCount = 0,
+        size,
+        onOpenReviewsAction
+      } = props;
+
+      const stars = useMemo(() => {
+        const full = Math.floor(rating);
+        const half = rating - full >= 0.5 ? 1 : 0;
+        const empty = 5 - full - half;
+        return { full, half, empty };
+      }, [rating]);
+
+      const handleClick = () => {
+        if (onOpenReviewsAction) {
+          dispatchAction(onOpenReviewsAction, { rating, reviewCount });
+        }
+      };
+
+      return (
+        <button onClick={handleClick} className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700 focus:outline-none" aria-label={`Open ${reviewCount} reviews, rating ${rating} out of 5`}>
+          <span className="sr-only">Rating</span>
+          {[...Array(stars.full)].map((_, i) => <span key={'f'+i}>★</span>)}
+          {stars.half ? <span>☆</span> : null}
+          {[...Array(stars.empty)].map((_, i) => <span key={'e'+i} className="opacity-40">★</span>)}
+          <span className="text-gray-700 ml-1">{rating.toFixed(1)} ({formatNumber(reviewCount, 0)})</span>
+        </button>
+      );
+    };
+
+    // SuvCard
+    const SuvCard = (props) => {
+      const {
+        id,
+        modelName,
+        trim,
+        imageUrl,
+        seats,
+        cargoVolumeCuFt,
+        mpgCombined,
+        priceFromUSD,
+        rating,
+        reviewCount,
+        variant = 'standard',
+        onPurchaseAction
+      } = props;
+
+      const handlePurchase = () => {
+        if (onPurchaseAction) {
+          dispatchAction(onPurchaseAction, { id, modelName });
+        }
+      };
+
+      return (
+        <div className={cn("w-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden", variant === 'compact' ? 'p-3' : 'p-4')}>
+          {imageUrl ? (
+            <img src={imageUrl} alt={`${modelName || 'SUV'} image`} loading="lazy" className="w-full h-40 object-cover rounded-lg"/>
+          ) : (
+            <div className="w-full h-40 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">No image</div>
+          )}
+          <div className="mt-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold text-gray-900">{modelName} {trim ? <span className="text-gray-500">({trim})</span> : null}</h3>
+              <span className="text-sm font-medium text-gray-700">{formatCurrency(priceFromUSD)}</span>
+            </div>
+            <div className="mt-1">
+              <RatingBadge rating={rating || 0} reviewCount={reviewCount || 0} />
+            </div>
+            <dl className="mt-3 grid grid-cols-3 gap-2 text-sm">
+              <div className="bg-gray-50 rounded-lg p-2">
+                <dt className="text-gray-500">Seats</dt>
+                <dd className="font-medium text-gray-900">{seats}</dd>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2">
+                <dt className="text-gray-500">Cargo</dt>
+                <dd className="font-medium text-gray-900">{cargoVolumeCuFt} cu ft</dd>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2">
+                <dt className="text-gray-500">MPG (comb.)</dt>
+                <dd className="font-medium text-gray-900">{mpgCombined}</dd>
+              </div>
+            </dl>
+            <div className="mt-4">
+              <button onClick={handlePurchase} className="w-full inline-flex justify-center items-center px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Purchase options</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // PreferenceFilters
+    const PreferenceFilters = (props) => {
+      const {
+        id,
+        name,
+        title,
+        filters = {},
+        sortBy,
+        onChangeAction,
+        clearAllAction,
+        debounceMs = 200
+      } = props;
+
+      const [local, setLocal] = useState({
+        minSeats: filters?.minSeats ?? 5,
+        minCargoCuFt: filters?.minCargoCuFt ?? 15,
+        minMpg: filters?.minMpg ?? 25,
+        priceRangeUSD: Array.isArray(filters?.priceRangeUSD) ? filters.priceRangeUSD : [0, 50000],
+        sortBy: sortBy || 'relevance'
+      });
+
+      const timeoutRef = useRef(null);
+
+      const emitChange = useCallback((next) => {
+        if (onChangeAction) {
+          const payload = {
+            ...onChangeAction,
+            payload: {
+              ...(onChangeAction?.payload || {}),
+              filters: {
+                minSeats: next.minSeats,
+                minCargoCuFt: next.minCargoCuFt,
+                minMpg: next.minMpg,
+                priceRangeUSD: next.priceRangeUSD
+              },
+              sortBy: next.sortBy,
+              source: 'ui'
+            }
+          };
+          dispatchAction(payload, { id, name });
+        }
+      }, [onChangeAction, id, name]);
+
+      useEffect(() => {
+        // initialize emit with given filters
+        // no-op
+      }, []);
+
+      const scheduleChange = (next) => {
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => emitChange(next), debounceMs);
+      };
+
+      const updateField = (field, value) => {
+        const next = { ...local, [field]: value };
+        setLocal(next);
+        scheduleChange(next);
+      };
+
+      const handleClear = () => {
+        const reset = {
+          minSeats: 0,
+          minCargoCuFt: 0,
+          minMpg: 0,
+          priceRangeUSD: [0, 100000],
+          sortBy: 'relevance'
+        };
+        setLocal(reset);
+        if (clearAllAction) {
+          dispatchAction(clearAllAction, { id, name });
+        }
+        scheduleChange(reset);
+      };
+
+      return (
+        <section aria-labelledby={`${id}-title`} className="w-full bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 id={`${id}-title`} className="text-lg font-semibold text-gray-900">{title || name || 'Filters'}</h2>
+              <p className="text-sm text-gray-500">Adjust minimums and sort order. Values apply immediately.</p>
+            </div>
+            <button onClick={handleClear} className="text-sm text-gray-600 hover:text-gray-800 underline">Clear all</button>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <label className="block text-sm text-gray-700">Min Seats</label>
+              <input type="number" min="0" value={local.minSeats} onChange={(e) => updateField('minSeats', Number(e.target.value))} className="mt-1 w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <label className="block text-sm text-gray-700">Min Cargo (cu ft)</label>
+              <input type="number" min="0" value={local.minCargoCuFt} onChange={(e) => updateField('minCargoCuFt', Number(e.target.value))} className="mt-1 w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <label className="block text-sm text-gray-700">Min MPG (combined)</label>
+              <input type="number" min="0" value={local.minMpg} onChange={(e) => updateField('minMpg', Number(e.target.value))} className="mt-1 w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500"/>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <label className="block text-sm text-gray-700">Price Range (USD)</label>
+              <div className="mt-1 grid grid-cols-2 gap-2">
+                <input type="number" min="0" value={local.priceRangeUSD?.[0] ?? 0} onChange={(e) => {
+                  const v = Number(e.target.value);
+                  updateField('priceRangeUSD', [v, local.priceRangeUSD?.[1] ?? v]);
+                }} className="w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Min"/>
+                <input type="number" min="0" value={local.priceRangeUSD?.[1] ?? 0} onChange={(e) => {
+                  const v = Number(e.target.value);
+                  updateField('priceRangeUSD', [local.priceRangeUSD?.[0] ?? 0, v]);
+                }} className="w-full rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Max"/>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-3">
+            <label className="text-sm text-gray-700">Sort by</label>
+            <select value={local.sortBy} onChange={(e) => updateField('sortBy', e.target.value)} className="rounded-md border-gray-300 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
+              <option value="relevance">Relevance</option>
+              <option value="best_value">Best value</option>
+              <option value="price_low_high">Price: Low to High</option>
+              <option value="mpg_high_low">MPG: High to Low</option>
+              <option value="cargo_high_low">Cargo: High to Low</option>
+              <option value="seats_high_low">Seats: High to Low</option>
+            </select>
+          </div>
+        </section>
+      );
+    };
+
+    // PurchaseOptionsSheet
+    const PurchaseOptionsSheet = (props) => {
+      const {
+        modelId,
+        modelName,
+        priceFromUSD,
+        incentivesSummary,
+        financingAPR,
+        availability,
+        imageUrl,
+        primaryActions = [],
+        currencyCode = 'USD'
+      } = props;
+
+      const handleAction = (a) => {
+        if (a) dispatchAction(a, { modelId, modelName });
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+          <div className="flex items-center gap-4">
+            {imageUrl ? <img src={imageUrl} alt={`${modelName} image`} className="w-24 h-16 object-cover rounded-lg"/> : null}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">{modelName}</h3>
+              <div className="text-sm text-gray-600">{formatCurrency(priceFromUSD, currencyCode)} starting</div>
+              {financingAPR != null ? <div className="text-sm text-gray-700">Financing APR: {financingAPR}%</div> : null}
+              {incentivesSummary ? <div className="text-sm text-gray-700">{incentivesSummary}</div> : null}
+              {availability ? <div className="text-xs text-gray-500 mt-1">Availability: {typeof availability === 'string' ? availability : 'See dealer for details'}</div> : null}
+            </div>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {Array.isArray(primaryActions) && primaryActions.length ? primaryActions.map((a, idx) => (
+              <button key={idx} onClick={() => handleAction(a)} className="px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm">{a?.label || a?.type || 'Action'}</button>
+            )) : <span className="text-sm text-gray-500">No actions provided</span>}
+          </div>
+        </div>
+      );
+    };
+
+    // CompareModal
+    const CompareModal = (props) => {
+      const {
+        vehicles = [],
+        onViewDetailsAction,
+        onRemoveVehicleAction,
+        onCloseAction,
+        highlightMetrics = ['seats', 'cargoVolumeCuFt', 'mpgCombined'],
+        currencyCode = 'USD',
+        maxItems = 4
+      } = props;
+
+      const [open, setOpen] = useState(true);
+      const close = () => {
+        setOpen(false);
+        if (onCloseAction) dispatchAction(onCloseAction, {});
+      };
+
+      if (!open) return null;
+
+      return (
+        <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40" onClick={close} aria-hidden="true"></div>
+          <div className="relative bg-white w-full max-w-5xl rounded-xl shadow-xl p-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Compare vehicles ({vehicles.length}/{maxItems})</h3>
+              <button onClick={close} className="text-gray-600 hover:text-gray-900">Close</button>
+            </div>
+            <div className="mt-4 overflow-x-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {vehicles.slice(0, maxItems).map((v, idx) => (
+                  <div key={v.id || idx} className="border border-gray-200 rounded-lg p-3">
+                    {v.imageUrl ? <img src={v.imageUrl} alt={v.name || 'vehicle'} className="w-full h-28 object-cover rounded-md" /> : null}
+                    <div className="mt-2 font-medium text-gray-900 text-sm">{v.name || v.modelName || 'Vehicle'}</div>
+                    <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                      <div className="bg-gray-50 rounded p-2">
+                        <dt className="text-gray-500">Seats</dt>
+                        <dd className="font-semibold">{v.seats ?? '-'}</dd>
+                      </div>
+                      <div className="bg-gray-50 rounded p-2">
+                        <dt className="text-gray-500">Cargo</dt>
+                        <dd className="font-semibold">{v.cargoVolumeCuFt != null ? `${v.cargoVolumeCuFt} cu ft` : '-'}</dd>
+                      </div>
+                      <div className="bg-gray-50 rounded p-2">
+                        <dt className="text-gray-500">MPG comb.</dt>
+                        <dd className="font-semibold">{v.mpg?.combined ?? v.mpgCombined ?? '-'}</dd>
+                      </div>
+                      <div className="bg-gray-50 rounded p-2">
+                        <dt className="text-gray-500">Price</dt>
+                        <dd className="font-semibold">{v.priceUSD != null ? formatCurrency(v.priceUSD, currencyCode) : '-'}</dd>
+                      </div>
+                    </dl>
+                    <div className="mt-3 flex items-center gap-2">
+                      <button onClick={() => onViewDetailsAction && dispatchAction(onViewDetailsAction, { vehicleId: v.id })} className="px-2 py-1 rounded bg-indigo-600 text-white text-xs hover:bg-indigo-700">Details</button>
+                      <button onClick={() => onRemoveVehicleAction && dispatchAction(onRemoveVehicleAction, { vehicleId: v.id })} className="px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs hover:bg-gray-200">Remove</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // VehicleCarousel
+    const VehicleCarousel = (props) => {
+      const {
+        title,
+        items = [],
+        initialIndex = 0,
+        loop,
+        snapAlign = 'center',
+        lazyLoadImages = true,
+        navigation = { arrows: true, dots: true, swipe: true },
+        onSlideChangeAction,
+        onReachEndAction,
+        onSelectVehicleAction,
+        onRequestMoreAction,
+        ariaLabel = 'Carousel'
+      } = props;
+
+      const [index, setIndex] = useState(clamp(initialIndex, 0, Math.max(0, items.length - 1)));
+      const trackRef = useRef(null);
+      const allowLoop = Boolean(loop) || loop === 'wrap';
+      const allowSwipe = navigation?.swipe !== false;
+
+      const goTo = useCallback((i) => {
+        const max = items.length - 1;
+        let next = i;
+        if (allowLoop) {
+          if (i < 0) next = max;
+          else if (i > max) next = 0;
+        } else {
+          next = clamp(i, 0, max);
+        }
+        setIndex((prev) => {
+          const changed = prev !== next;
+          if (changed && onSlideChangeAction) {
+            dispatchAction({ ...onSlideChangeAction, index: next }, { from: prev, to: next });
+          }
+          if (changed && next === max && onReachEndAction) {
+            dispatchAction(onReachEndAction, { reachedAt: next });
+          }
+          return next;
+        });
+      }, [items.length, allowLoop, onSlideChangeAction, onReachEndAction]);
+
+      // Swipe handling
+      useEffect(() => {
+        if (!allowSwipe || !trackRef.current) return;
+        const el = trackRef.current;
+        let startX = 0;
+        let deltaX = 0;
+        const onTouchStart = (e) => { startX = e.touches[0].clientX; deltaX = 0; };
+        const onTouchMove = (e) => { deltaX = e.touches[0].clientX - startX; };
+        const onTouchEnd = () => {
+          if (Math.abs(deltaX) > 50) {
+            if (deltaX < 0) goTo(index + 1);
+            else goTo(index - 1);
+          }
+          startX = 0; deltaX = 0;
+        };
+        el.addEventListener('touchstart', onTouchStart, { passive: true });
+        el.addEventListener('touchmove', onTouchMove, { passive: true });
+        el.addEventListener('touchend', onTouchEnd);
+        return () => {
+          el.removeEventListener('touchstart', onTouchStart);
+          el.removeEventListener('touchmove', onTouchMove);
+          el.removeEventListener('touchend', onTouchEnd);
+        };
+      }, [allowSwipe, index, goTo]);
+
+      const handleSelect = (vehicle) => {
+        if (onSelectVehicleAction) {
+          dispatchAction({ ...onSelectVehicleAction, vehicleId: vehicle?.id || onSelectVehicleAction?.vehicleId }, { vehicle });
+        }
+      };
+      const handleRequestMore = () => {
+        if (onRequestMoreAction) dispatchAction(onRequestMoreAction, { count: items.length });
+      };
+
+      const current = items[index] || {};
+
+      return (
+        <section className="w-full bg-white rounded-2xl border border-gray-200 shadow-sm p-4" aria-label={ariaLabel}>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            {navigation?.arrows !== false && (
+              <div className="flex items-center gap-2">
+                <button onClick={() => goTo(index - 1)} className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50" aria-label="Previous">
+                  ‹
+                </button>
+                <button onClick={() => goTo(index + 1)} className="p-2 rounded-lg border border-gray-200 bg-white hover:bg-gray-50" aria-label="Next">
+                  ›
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div ref={trackRef} className="relative overflow-hidden rounded-xl">
+            <div className="flex transition-transform duration-300" style={{ transform: `translateX(-${index * 100}%)`, width: `${items.length * 100}%` }}>
+              {Array.isArray(items) && items.length ? items.map((it, idx) => (
+                <div key={it.id || idx} className="w-full shrink-0 px-1" style={{ width: `${100 / items.length}%` }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-gray-100 rounded-xl overflow-hidden">
+                      {it.imageUrl ? (
+                        <img src={it.imageUrl} alt={`${it.name || 'Vehicle'} image`} loading={lazyLoadImages ? 'lazy' : 'eager'} className="w-full h-64 object-cover"/>
+                      ) : (
+                        <div className="w-full h-64 flex items-center justify-center text-gray-400 bg-gray-100">No image</div>
+                      )}
+                    </div>
+                    <div className="flex flex-col">
+                      <h4 className="text-xl font-semibold text-gray-900">{it.name}</h4>
+                      <div className="mt-1 text-sm text-gray-600">ID: {it.id}</div>
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-gray-500 text-xs">Seats</div>
+                          <div className="text-gray-900 font-semibold">{it.seats ?? '-'}</div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-gray-500 text-xs">Cargo (behind 3rd row)</div>
+                          <div className="text-gray-900 font-semibold">{it.cargoVolumeCuFt != null ? `${it.cargoVolumeCuFt} cu ft` : '—'}</div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-gray-500 text-xs">MPG (city/hwy/comb.)</div>
+                          <div className="text-gray-900 font-semibold">
+                            {it.mpg ? `${it.mpg.city}/${it.mpg.highway}/${it.mpg.combined}` : it.mpgCombined != null ? `${it.mpgCombined}` : '—'}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 rounded-lg p-3">
+                          <div className="text-gray-500 text-xs">Drivetrain / Powertrain</div>
+                          <div className="text-gray-900 font-semibold">{(it.drivetrain || '—').toUpperCase()} {it.powertrain ? `· ${it.powertrain}` : ''}</div>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex items-center justify-between">
+                        <div>
+                          <div className="text-sm text-gray-500">Price</div>
+                          <div className="text-lg font-semibold text-gray-900">{it.priceUSD != null ? formatCurrency(it.priceUSD) : 'See dealer'}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">Availability</div>
+                          <div className="text-sm font-medium text-gray-800 capitalize">{it.availability || 'varies'}</div>
+                        </div>
+                      </div>
+                      {it.priceDisclaimer ? <div className="mt-2 text-xs text-gray-500">{it.priceDisclaimer}</div> : null}
+
+                      <div className="mt-3">
+                        {it.reviewSummary ? (
+                          <RatingBadge rating={it.reviewSummary.rating || 0} reviewCount={it.reviewSummary.reviewCount || 0} onOpenReviewsAction={{ type: 'open_reviews', vehicleId: it.id, source: it.reviewSummary.source || 'platform' }}/>
+                        ) : <span className="text-sm text-gray-500">No reviews</span>}
+                      </div>
+
+                      {Array.isArray(it.tags) && it.tags.length ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {it.tags.map((tag, i) => (
+                            <span key={i} className="inline-flex items-center px-2 py-1 rounded-full bg-indigo-50 text-indigo-800 text-xs">{tag}</span>
+                          ))}
+                        </div>
+                      ) : null}
+
+                      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {it.ctas?.detailsUrl ? (
+                          <a target="_blank" rel="noopener noreferrer" href={it.ctas.detailsUrl} className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-center">Details</a>
+                        ) : null}
+                        {it.ctas?.buildAndPriceUrl ? (
+                          <a target="_blank" rel="noopener noreferrer" href={it.ctas.buildAndPriceUrl} className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-center">Build & Price</a>
+                        ) : null}
+                        {it.ctas?.findDealerUrl ? (
+                          <a target="_blank" rel="noopener noreferrer" href={it.ctas.findDealerUrl} className="px-3 py-2 text-sm rounded-lg border border-gray-200 bg-white hover:bg-gray-50 text-gray-800 text-center">Find Dealer</a>
+                        ) : null}
+                        {it.ctas?.buyNewUrl ? (
+                          <a target="_blank" rel="noopener noreferrer" href={it.ctas.buyNewUrl} className="px-3 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-center">Buy/Shop</a>
+                        ) : (
+                          <button onClick={() => handleSelect(it)} className="px-3 py-2 text-sm rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Select</button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="w-full p-6 text-center text-gray-500">No items to display</div>
+              )}
+            </div>
+          </div>
+
+          {navigation?.dots && items.length > 1 ? (
+            <div className={cn("mt-3 flex items-center justify-center gap-2", snapAlign === 'start' ? 'justify-start' : 'justify-center')}>
+              {items.map((_, i) => (
+                <button key={i} onClick={() => goTo(i)} aria-label={`Go to slide ${i + 1}`} className={cn("w-2.5 h-2.5 rounded-full", i === index ? "bg-indigo-600" : "bg-gray-300 hover:bg-gray-400")} />
+              ))}
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-xs text-gray-500">Slide {items.length ? index + 1 : 0} of {items.length}</div>
+            <div className="flex items-center gap-2">
+              <button onClick={() => goTo(index - 1)} className="px-3 py-1.5 rounded border border-gray-200 text-sm hover:bg-gray-50">Prev</button>
+              <button onClick={() => goTo(index + 1)} className="px-3 py-1.5 rounded border border-gray-200 text-sm hover:bg-gray-50">Next</button>
+              {onRequestMoreAction ? (
+                <button onClick={handleRequestMore} className="px-3 py-1.5 rounded bg-gray-900 text-white text-sm hover:bg-black">Request more</button>
+              ) : null}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      VehicleCarousel: VehicleCarousel,
+      SuvCard: SuvCard,
+      PreferenceFilters: PreferenceFilters,
+      CompareModal: CompareModal,
+      PurchaseOptionsSheet: PurchaseOptionsSheet,
+      RatingBadge: RatingBadge
+    };
+
+    // ComponentRenderer
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    // ContentChunkRenderer
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <p className="text-gray-800 whitespace-pre-line">{chunk}</p>;
+      }
+      if (chunk.type === 'text') {
+        return <p className="text-gray-800 whitespace-pre-line">{chunk.text}</p>;
+      }
+      if (chunk.type === 'component' && chunk.component?.name) {
+        return <ComponentRenderer componentName={chunk.component.name} props={chunk.component.props || {}} />;
+      }
+      return null;
+    };
+
+    // MessageBubble
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const avatar = isUser ? '🧑' : '🤖';
+      return (
+        <div className={cn("w-full flex gap-3", isUser ? "justify-end" : "justify-start")}>
+          {!isUser && (
+            <div className="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm">{avatar}</div>
+          )}
+          <div className={cn("max-w-3xl", isUser ? "text-right" : "text-left")}>
+            <div className={cn("rounded-2xl p-4 shadow-sm border", isUser ? "bg-indigo-600 text-white border-indigo-700" : "bg-white text-gray-900 border-gray-200")}>
+              {Array.isArray(content) ? (
+                <div className="space-y-4">
+                  {content.map((chunk, idx) => <ContentChunkRenderer key={idx} chunk={chunk} />)}
+                </div>
+              ) : (
+                <p className={cn("whitespace-pre-wrap", isUser ? "text-white" : "text-gray-800")}>{content}</p>
+              )}
+            </div>
+          </div>
+          {isUser && (
+            <div className="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center text-sm">{avatar}</div>
+          )}
+        </div>
+      );
+    };
+
+    // ConversationView
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen">
+          <ToastHost />
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 py-4">
+              <h1 className="text-xl font-semibold text-gray-900">Conversation Viewer</h1>
+              <p className="text-sm text-gray-600">Interactive UI components embedded in messages</p>
+            </div>
+          </header>
+          <main className="max-w-6xl mx-auto px-4 py-6">
+            <div className="space-y-6">
+              {conversation.map((m, idx) => (
+                <MessageBubble key={idx} role={m.role} content={m.content} />
+              ))}
+            </div>
+            <footer className="mt-12 text-center text-xs text-gray-500">
+              Specs, pricing, incentives, and availability shown are illustrative estimates and may vary by region and over time. Verify with dealers.
+            </footer>
+          </main>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

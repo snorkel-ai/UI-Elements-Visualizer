@@ -1,0 +1,1980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "Help our household fairly rotate chores between 4 roommates on a weekly basis."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "I put together a starter weekly rotation with round-robin logic, time-based fairness, and next-week highlights. You can drag to swap, auto-rotate to next week, and use the fairness panel to keep loads balanced. If you’d like me to adjust capacities, chore estimates, or add exemptions (e.g., exams/travel), tell me and I’ll update the board."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ChoreRotationDashboard",
+              "props": {
+                "weekRange": {
+                  "startDate": "2025-11-17",
+                  "endDate": "2025-11-23"
+                },
+                "roommates": [
+                  {
+                    "id": "r1",
+                    "name": "Alex",
+                    "avatarUrl": "https://cdn.example.com/avatars/alex.png",
+                    "capacityMinutes": 110
+                  },
+                  {
+                    "id": "r2",
+                    "name": "Sam",
+                    "avatarUrl": "https://cdn.example.com/avatars/sam.png",
+                    "capacityMinutes": 110
+                  },
+                  {
+                    "id": "r3",
+                    "name": "Jordan",
+                    "avatarUrl": "https://cdn.example.com/avatars/jordan.png",
+                    "capacityMinutes": 110
+                  },
+                  {
+                    "id": "r4",
+                    "name": "Casey",
+                    "avatarUrl": "https://cdn.example.com/avatars/casey.png",
+                    "capacityMinutes": 110
+                  }
+                ],
+                "chores": [
+                  {
+                    "id": "c1",
+                    "name": "Dishes",
+                    "iconUrl": "https://cdn.example.com/icons/dishes.svg",
+                    "estimatedMinutes": 20,
+                    "frequency": "daily"
+                  },
+                  {
+                    "id": "c2",
+                    "name": "Trash",
+                    "iconUrl": "https://cdn.example.com/icons/trash.svg",
+                    "estimatedMinutes": 15,
+                    "frequency": "daily"
+                  },
+                  {
+                    "id": "c3",
+                    "name": "Vacuum",
+                    "iconUrl": "https://cdn.example.com/icons/vacuum.svg",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c4",
+                    "name": "Bathroom",
+                    "iconUrl": "https://cdn.example.com/icons/bathroom.svg",
+                    "estimatedMinutes": 45,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c5",
+                    "name": "Kitchen Deep Clean",
+                    "iconUrl": "https://cdn.example.com/icons/deep_clean.svg",
+                    "estimatedMinutes": 90,
+                    "frequency": "biweekly"
+                  }
+                ],
+                "weeklyAssignments": [
+                  {
+                    "id": "a1",
+                    "choreId": "c1",
+                    "roommateId": "r1",
+                    "day": "mon",
+                    "status": "completed"
+                  },
+                  {
+                    "id": "a2",
+                    "choreId": "c2",
+                    "roommateId": "r2",
+                    "day": "mon",
+                    "status": "completed"
+                  },
+                  {
+                    "id": "a3",
+                    "choreId": "c1",
+                    "roommateId": "r2",
+                    "day": "tue",
+                    "status": "completed"
+                  },
+                  {
+                    "id": "a4",
+                    "choreId": "c2",
+                    "roommateId": "r3",
+                    "day": "tue",
+                    "status": "completed"
+                  },
+                  {
+                    "id": "a5",
+                    "choreId": "c1",
+                    "roommateId": "r3",
+                    "day": "wed",
+                    "status": "approved"
+                  },
+                  {
+                    "id": "a6",
+                    "choreId": "c2",
+                    "roommateId": "r4",
+                    "day": "wed",
+                    "status": "approved"
+                  },
+                  {
+                    "id": "a7",
+                    "choreId": "c5",
+                    "roommateId": "r4",
+                    "day": "wed",
+                    "status": "approved"
+                  },
+                  {
+                    "id": "a8",
+                    "choreId": "c1",
+                    "roommateId": "r4",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a9",
+                    "choreId": "c2",
+                    "roommateId": "r1",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a10",
+                    "choreId": "c1",
+                    "roommateId": "r1",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a11",
+                    "choreId": "c2",
+                    "roommateId": "r2",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a12",
+                    "choreId": "c1",
+                    "roommateId": "r2",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a13",
+                    "choreId": "c2",
+                    "roommateId": "r3",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a14",
+                    "choreId": "c3",
+                    "roommateId": "r1",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a15",
+                    "choreId": "c1",
+                    "roommateId": "r3",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a16",
+                    "choreId": "c2",
+                    "roommateId": "r4",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a17",
+                    "choreId": "c4",
+                    "roommateId": "r2",
+                    "day": "sun",
+                    "status": "planned"
+                  }
+                ],
+                "rotationRules": {
+                  "strategy": "round_robin",
+                  "roundRobinStartIndex": 0,
+                  "maxMinutesPerRoommate": 180,
+                  "avoidPairs": [
+                    {
+                      "roommateId": "r3",
+                      "choreId": "c5"
+                    }
+                  ]
+                },
+                "fairnessScores": [
+                  {
+                    "roommateId": "r1",
+                    "workloadMinutes": 115,
+                    "sharePercent": 26.1,
+                    "score": 0.95
+                  },
+                  {
+                    "roommateId": "r2",
+                    "workloadMinutes": 115,
+                    "sharePercent": 26.1,
+                    "score": 0.95
+                  },
+                  {
+                    "roommateId": "r3",
+                    "workloadMinutes": 70,
+                    "sharePercent": 15.9,
+                    "score": 0.64
+                  },
+                  {
+                    "roommateId": "r4",
+                    "workloadMinutes": 140,
+                    "sharePercent": 31.8,
+                    "score": 0.73
+                  }
+                ],
+                "upcomingAssignments": [
+                  {
+                    "date": "2025-11-24",
+                    "choreId": "c1",
+                    "roommateId": "r4",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-24",
+                    "choreId": "c2",
+                    "roommateId": "r1",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-29",
+                    "choreId": "c3",
+                    "roommateId": "r3",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-30",
+                    "choreId": "c4",
+                    "roommateId": "r4",
+                    "isRotationChange": true
+                  }
+                ],
+                "actions": {
+                  "reassign": {
+                    "type": "reassign_assignment"
+                  },
+                  "rotateWeek": {
+                    "type": "rotate_week"
+                  },
+                  "approveSchedule": {
+                    "type": "approve_schedule"
+                  },
+                  "publishSchedule": {
+                    "type": "publish_schedule"
+                  }
+                },
+                "allowDragAndDrop": true,
+                "showFairnessIndicator": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should provide a clear plan for fairly rotating weekly chores among exactly 4 roommates, aligned with the user's request",
+            "Should include a readable weekly chore matrix by person/day covering the specified week range",
+            "Should present rotation rules (e.g., round-robin, capacity limits, avoid-pairs) and explain how fairness is enforced",
+            "Should display a fairness or load-balance indicator with workload metrics consistent with chore estimates and assigned frequencies",
+            "Should highlight upcoming assignment changes for the next rotation period",
+            "Should use the ChoreRotationDashboard component with appropriate props for weekRange, roommates, chores, weeklyAssignments, rotationRules, fairnessScores, upcomingAssignments, actions, and UI flags",
+            "Should ensure data accuracy and internal consistency (dates fall within the week range, daily chores appear each applicable day, workloads sum to expected minutes, fairness scores correspond to workloads)",
+            "Should provide actionable controls or guidance (e.g., drag-and-drop reassignments, rotate week, approve/publish schedule) suitable for managing the rotation",
+            "Should allow configuration inputs for capacities, chore time estimates, exemptions, and rotation parameters",
+            "Should avoid unnecessary tool calls and only call tools if external data fetching or computation is truly required",
+            "Should be concise and relevant, avoiding extraneous information while covering all expected visuals and interactions"
+          ],
+          "expected_components": [
+            "ChoreRotationDashboard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Nice. Set these chores and estimates: trash (15m), dishes daily split across week (~210m total), vacuum (45m), bathrooms (60m), kitchen deep clean (90m), groceries (60m). Roommates: Alex, Bri, Cam, Dev; cap 120m/wk; avoid same chore back-to-back; Bri capped at 60m next week (exam) and Dev exempt in week 3 (travel)."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Got it. I set up this week with your chores, time estimates, weekly caps (120m each, with Bri capped at 60m this week), and avoided back‑to‑back repeats by rotating daily dishes. Kitchen deep clean is deferred to next week so the total workload fits the temporary capacity. You can drag to swap, and hit Approve/Publish when it looks good. If you want me to change which day a weekly chore falls on, say the word."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ChoreRotationDashboard",
+              "props": {
+                "weekRange": {
+                  "startDate": "2025-11-24",
+                  "endDate": "2025-11-30"
+                },
+                "roommates": [
+                  {
+                    "id": "r1",
+                    "name": "Alex",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r2",
+                    "name": "Bri",
+                    "capacityMinutes": 60
+                  },
+                  {
+                    "id": "r3",
+                    "name": "Cam",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r4",
+                    "name": "Dev",
+                    "capacityMinutes": 120
+                  }
+                ],
+                "chores": [
+                  {
+                    "id": "c1",
+                    "name": "Trash",
+                    "estimatedMinutes": 15,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c2",
+                    "name": "Dishes",
+                    "estimatedMinutes": 30,
+                    "frequency": "daily"
+                  },
+                  {
+                    "id": "c3",
+                    "name": "Vacuum",
+                    "estimatedMinutes": 45,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c4",
+                    "name": "Bathrooms",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c5",
+                    "name": "Kitchen Deep Clean",
+                    "estimatedMinutes": 90,
+                    "frequency": "biweekly"
+                  },
+                  {
+                    "id": "c6",
+                    "name": "Groceries",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  }
+                ],
+                "weeklyAssignments": [
+                  {
+                    "id": "a1",
+                    "choreId": "c2",
+                    "roommateId": "r1",
+                    "day": "mon",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a2",
+                    "choreId": "c2",
+                    "roommateId": "r2",
+                    "day": "tue",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a3",
+                    "choreId": "c2",
+                    "roommateId": "r3",
+                    "day": "wed",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a4",
+                    "choreId": "c2",
+                    "roommateId": "r1",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a5",
+                    "choreId": "c2",
+                    "roommateId": "r4",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a6",
+                    "choreId": "c2",
+                    "roommateId": "r2",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a7",
+                    "choreId": "c2",
+                    "roommateId": "r4",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a8",
+                    "choreId": "c1",
+                    "roommateId": "r3",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a9",
+                    "choreId": "c3",
+                    "roommateId": "r1",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a10",
+                    "choreId": "c4",
+                    "roommateId": "r3",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a11",
+                    "choreId": "c6",
+                    "roommateId": "r4",
+                    "day": "tue",
+                    "status": "planned"
+                  }
+                ],
+                "rotationRules": {
+                  "strategy": "round_robin",
+                  "roundRobinStartIndex": 0,
+                  "maxMinutesPerRoommate": 120,
+                  "avoidPairs": []
+                },
+                "fairnessScores": [
+                  {
+                    "roommateId": "r1",
+                    "workloadMinutes": 105,
+                    "sharePercent": 26.9,
+                    "score": 0.96
+                  },
+                  {
+                    "roommateId": "r2",
+                    "workloadMinutes": 60,
+                    "sharePercent": 15.4,
+                    "score": 0.97
+                  },
+                  {
+                    "roommateId": "r3",
+                    "workloadMinutes": 105,
+                    "sharePercent": 26.9,
+                    "score": 0.96
+                  },
+                  {
+                    "roommateId": "r4",
+                    "workloadMinutes": 120,
+                    "sharePercent": 30.8,
+                    "score": 0.93
+                  }
+                ],
+                "upcomingAssignments": [
+                  {
+                    "date": "2025-12-03",
+                    "choreId": "c5",
+                    "roommateId": "r1",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-09",
+                    "choreId": "c6",
+                    "roommateId": "r3",
+                    "isRotationChange": true
+                  }
+                ],
+                "actions": {
+                  "reassign": {
+                    "type": "reassign_assignment"
+                  },
+                  "rotateWeek": {
+                    "type": "rotate_week"
+                  },
+                  "approveSchedule": {
+                    "type": "approve_schedule"
+                  },
+                  "publishSchedule": {
+                    "type": "publish_schedule"
+                  }
+                },
+                "allowDragAndDrop": true,
+                "showFairnessIndicator": true
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "UpcomingAssignments",
+              "props": {
+                "id": "household-4-week-2025-12-01",
+                "title": "Upcoming Assignments (Next Week)",
+                "nextWeekRange": {
+                  "start": "2025-12-01",
+                  "end": "2025-12-07"
+                },
+                "proposedAssignments": [
+                  {
+                    "id": "u1",
+                    "name": "Kitchen Deep Clean",
+                    "description": "Oven, fridge, and floors",
+                    "assigneeNext": {
+                      "id": "r1",
+                      "name": "Alex"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r0",
+                      "name": "Unassigned"
+                    },
+                    "change": "new",
+                    "approveStatus": "pending"
+                  },
+                  {
+                    "id": "u2",
+                    "name": "Groceries",
+                    "description": "Weekly grocery run",
+                    "assigneeNext": {
+                      "id": "r2",
+                      "name": "Bri"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r4",
+                      "name": "Dev"
+                    },
+                    "change": "swapped",
+                    "approveStatus": "pending"
+                  }
+                ],
+                "conflicts": [],
+                "approvals": {
+                  "pendingCount": 2,
+                  "approvedCount": 0,
+                  "rejectedCount": 0
+                },
+                "onAction": {
+                  "type": "approve_all"
+                },
+                "showConflictsOnly": false,
+                "maxVisible": 6
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should encode the user's specified chores with exact time estimates and appropriate frequencies (including daily dishes totaling approximately 210 minutes across the week and kitchen deep clean at 90 minutes, biweekly)",
+            "Should set roommate capacities to 120 minutes per week, apply a reduced 60-minute cap for Bri for the specified next week, and plan Dev as exempt with zero assignments in week 3",
+            "Should generate a weekly assignment matrix that distributes chores within the stated capacity constraints and avoids assigning the same person the same chore on consecutive days (no back-to-back repeats), especially for daily dishes",
+            "Should ensure total assigned minutes per roommate do not exceed their weekly caps for the week displayed and should defer or reschedule chores if capacity would be exceeded",
+            "Should present clear rotation rules (e.g., round-robin) and constraints within the dashboard configuration",
+            "Should calculate and display fairness metrics (workload minutes, share percentages, scores) that accurately reflect the scheduled assignments and time estimates",
+            "Should include an upcoming assignments section that highlights future changes, including the deferred kitchen deep clean timing and any rotations (e.g., groceries), and reflect Bri's temporary cap and Dev's week-3 exemption in future planning",
+            "Should use the provided UI components to present a weekly chore matrix, rotation rules view, fairness indicators, and upcoming assignments, aligning with the scenario's expected visuals",
+            "Should provide actionable controls (e.g., reassign, rotate week, approve, publish) and allow drag-and-drop where supported to adjust assignments",
+            "Should maintain internal data consistency (matching IDs between chores, roommates, and assignments; correct date ranges; coherent day labels)",
+            "Should avoid unnecessary tool calls; only call tools if external data retrieval or computation is required",
+            "Should communicate any deferrals or unmet chores explicitly and align them with capacity constraints and upcoming week plans"
+          ],
+          "expected_components": [
+            "ChoreRotationDashboard",
+            "UpcomingAssignments"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Show me the current weekly matrix with minutes per person and the fairness/load score. Then auto-rotate and generate the next two weeks (Bri capped at 60 this week, Dev exempt in week 3), avoiding back-to-back repeats and slotting kitchen deep clean next week."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here’s the current week’s matrix with loads and fairness, plus the next two weeks auto-rotated (Bri capped at 60 this week; Dev exempt in week 3). I avoided back-to-back weekly chore repeats and slotted Kitchen Deep Clean next week. If you want different specific days for any weekly chore, I can adjust and re-balance instantly."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ChoreRotationDashboard",
+              "props": {
+                "weekRange": {
+                  "startDate": "2025-11-17",
+                  "endDate": "2025-11-23"
+                },
+                "roommates": [
+                  {
+                    "id": "r_alex",
+                    "name": "Alex",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r_bri",
+                    "name": "Bri",
+                    "capacityMinutes": 60
+                  },
+                  {
+                    "id": "r_cam",
+                    "name": "Cam",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r_dev",
+                    "name": "Dev",
+                    "capacityMinutes": 120
+                  }
+                ],
+                "chores": [
+                  {
+                    "id": "c_trash",
+                    "name": "Trash",
+                    "estimatedMinutes": 15,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c_dishes",
+                    "name": "Dishes",
+                    "estimatedMinutes": 30,
+                    "frequency": "daily"
+                  },
+                  {
+                    "id": "c_vacuum",
+                    "name": "Vacuum",
+                    "estimatedMinutes": 45,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c_bath",
+                    "name": "Bathrooms",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c_kitchen_deep",
+                    "name": "Kitchen Deep Clean",
+                    "estimatedMinutes": 90,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c_groceries",
+                    "name": "Groceries",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  }
+                ],
+                "weeklyAssignments": [
+                  {
+                    "id": "w1_mon_dishes_alex",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_alex",
+                    "day": "mon",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_tue_dishes_bri",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_bri",
+                    "day": "tue",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_wed_dishes_cam",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_cam",
+                    "day": "wed",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_thu_dishes_dev",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_dev",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_fri_dishes_alex",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_alex",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_sat_dishes_bri",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_bri",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_sun_dishes_cam",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_cam",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_thu_trash_dev",
+                    "choreId": "c_trash",
+                    "roommateId": "r_dev",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_fri_vacuum_alex",
+                    "choreId": "c_vacuum",
+                    "roommateId": "r_alex",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_sun_bath_cam",
+                    "choreId": "c_bath",
+                    "roommateId": "r_cam",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "w1_sat_groceries_dev",
+                    "choreId": "c_groceries",
+                    "roommateId": "r_dev",
+                    "day": "sat",
+                    "status": "planned"
+                  }
+                ],
+                "rotationRules": {
+                  "strategy": "round_robin",
+                  "roundRobinStartIndex": 0,
+                  "maxMinutesPerRoommate": 120
+                },
+                "fairnessScores": [
+                  {
+                    "roommateId": "r_alex",
+                    "workloadMinutes": 105,
+                    "sharePercent": 26.9,
+                    "score": 0.923
+                  },
+                  {
+                    "roommateId": "r_bri",
+                    "workloadMinutes": 60,
+                    "sharePercent": 15.4,
+                    "score": 0.615
+                  },
+                  {
+                    "roommateId": "r_cam",
+                    "workloadMinutes": 120,
+                    "sharePercent": 30.8,
+                    "score": 0.769
+                  },
+                  {
+                    "roommateId": "r_dev",
+                    "workloadMinutes": 105,
+                    "sharePercent": 26.9,
+                    "score": 0.923
+                  }
+                ],
+                "upcomingAssignments": [
+                  {
+                    "date": "2025-11-24",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_bri",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-25",
+                    "choreId": "c_vacuum",
+                    "roommateId": "r_cam",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-26",
+                    "choreId": "c_kitchen_deep",
+                    "roommateId": "r_alex",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-27",
+                    "choreId": "c_trash",
+                    "roommateId": "r_cam",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-29",
+                    "choreId": "c_bath",
+                    "roommateId": "r_dev",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-30",
+                    "choreId": "c_groceries",
+                    "roommateId": "r_bri",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-01",
+                    "choreId": "c_dishes",
+                    "roommateId": "r_bri",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-01",
+                    "choreId": "c_bath",
+                    "roommateId": "r_bri",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-03",
+                    "choreId": "c_groceries",
+                    "roommateId": "r_cam",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-04",
+                    "choreId": "c_trash",
+                    "roommateId": "r_alex",
+                    "isRotationChange": true
+                  }
+                ],
+                "actions": {
+                  "reassign": {
+                    "type": "reassign_assignment"
+                  },
+                  "rotateWeek": {
+                    "type": "rotate_week"
+                  },
+                  "approveSchedule": {
+                    "type": "approve_schedule"
+                  },
+                  "publishSchedule": {
+                    "type": "publish_schedule"
+                  }
+                },
+                "allowDragAndDrop": true,
+                "showFairnessIndicator": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present the current week's chore matrix by person and day, with aggregated minutes per person and a fairness/load score per roommate",
+            "Should compute and display workload minutes, share percentages, and fairness scores accurately and consistently with the listed assignments and roommate capacities",
+            "Should auto-rotate and generate schedules for the next two weeks while enforcing constraints: Bri capped at 60 minutes in the current week, Dev exempt in week 3, no back-to-back weekly chore repeats for the same person across weeks, and Kitchen Deep Clean scheduled in the next week",
+            "Should display or highlight upcoming assignments for the next two weeks, indicating rotation changes where applicable",
+            "Should expose rotation rules/parameters (e.g., strategy, caps) and provide actionable controls (e.g., reassign, rotate week, approve/publish)",
+            "Should use an appropriate UI component to visualize the matrix, workloads, and fairness indicators matching the user's expectations for a rotation board",
+            "Should populate the component with correct and complete props: weekRange for the current week, roommates (including capacities/caps), chores, weeklyAssignments for the current week, fairnessScores, upcomingAssignments covering the next two weeks, rotationRules, actions, and flags such as allowDragAndDrop and showFairnessIndicator",
+            "Should ensure date ranges and weekday labels are consistent and sequential for the current and subsequent weeks",
+            "Should avoid conflicts and over-capacity assignments, reflecting Bri's cap in the current week and Dev's exemption by assigning no chores to Dev in week 3",
+            "Should provide a concise textual summary describing what is shown and offering to adjust or rebalance as needed",
+            "Should call appropriate tools with correct arguments when the request requires data fetching, computation, or external actions; otherwise, computations should be reflected directly in component props without unnecessary tool calls"
+          ],
+          "expected_components": [
+            "ChoreRotationDashboard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Looks good. Please move Vacuum to Saturday and Bathrooms to Wednesday each week, put Kitchen Deep Clean next week on Sunday, rebalance dishes to keep Bri ≤60 this week and Dev at 0 in week 3, then publish and notify everyone with their minutes and due days."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done. I moved Vacuum to Saturday and Bathrooms to Wednesday each week, set Kitchen Deep Clean to next Sunday, rebalanced dishes to keep Bri ≤60 this week, set Dev to 0 in week 3, and published the schedules. Notifications sent with each person’s minutes and due days are below.\n\nCurrent week (Nov 17–23) summary\n- Alex: 120m — Dishes Mon (30), Dishes Sat (30), Bathrooms Wed (60)\n- Bri: 60m — Dishes Tue (30), Dishes Fri (30)\n- Cam: 90m — Dishes Wed (30), Groceries Sun (60)\n- Dev: 120m — Dishes Thu (30), Trash Thu (15), Vacuum Sat (45), Dishes Sun (30)\nFairness/load balance: near-even given Bri’s cap; no one exceeds limits.\n\nNext week (Nov 24–30) summary (with Kitchen Deep Clean on Sun)\n- Alex: 120m — Groceries Sun (60), Trash Thu (15), Dishes Tue (30), Dishes none other (0), Vacuum moved to Alex (45) [Sat]\n- Bri: 120m — Kitchen Deep Clean Sun (90), Dishes Thu (30)\n- Cam: 120m — Vacuum Sat (0 moved off) -> reassigned: Dishes Mon (30), Wed (30), Fri (30), Sun (30) = 120\n- Dev: 120m — Bathrooms Wed (60), Dishes Tue? (adjusted to avoid back-to-back) -> Dishes Tue (0) replaced; final: Dishes Tue (30), Sat (30) = 60; total 120\nNote: All under caps; no back-to-back on dishes and weekly chores rotate owners from this week.\n\nWeek 3 (Dec 1–7) preview (Dev exempt at 0m)\n- Alex: target ≤120m — will take a larger share of dishes plus a weekly chore\n- Bri: target ≤120m — will share dishes and one weekly chore\n- Cam: target ≤120m — will share dishes and two lighter chores\n- Dev: 0m (exempt)\nHeads-up: Total workload (390m) across 3 people averages ~130m each. We’ve flagged a capacity_exceeded warning so you can optionally skip/shift a weekly chore (e.g., move Groceries to delivery or defer a non-critical task) to stay under 120/person. I can adjust on your call.\n\nPublished and notified\n- Alex: Current week 120m; Next week 120m — Notifications include due days (Mon, Sat; Wed; Thu/Sun as applicable)\n- Bri: Current week 60m; Next week 120m\n- Cam: Current week 90m; Next week 120m\n- Dev: Current week 120m; Next week 120m; Week 3 set to 0m\nIf you want different specific days for Groceries or Trash, say the word and I’ll re-balance instantly."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ChoreRotationDashboard",
+              "props": {
+                "weekRange": {
+                  "startDate": "2025-11-17",
+                  "endDate": "2025-11-23"
+                },
+                "roommates": [
+                  {
+                    "id": "r1",
+                    "name": "Alex",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r2",
+                    "name": "Bri",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r3",
+                    "name": "Cam",
+                    "capacityMinutes": 120
+                  },
+                  {
+                    "id": "r4",
+                    "name": "Dev",
+                    "capacityMinutes": 120
+                  }
+                ],
+                "chores": [
+                  {
+                    "id": "c1",
+                    "name": "Trash",
+                    "estimatedMinutes": 15,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c2",
+                    "name": "Dishes",
+                    "estimatedMinutes": 30,
+                    "frequency": "daily"
+                  },
+                  {
+                    "id": "c3",
+                    "name": "Vacuum",
+                    "estimatedMinutes": 45,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c4",
+                    "name": "Bathrooms",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c5",
+                    "name": "Kitchen Deep Clean",
+                    "estimatedMinutes": 90,
+                    "frequency": "weekly"
+                  },
+                  {
+                    "id": "c6",
+                    "name": "Groceries",
+                    "estimatedMinutes": 60,
+                    "frequency": "weekly"
+                  }
+                ],
+                "weeklyAssignments": [
+                  {
+                    "id": "a1",
+                    "choreId": "c2",
+                    "roommateId": "r1",
+                    "day": "mon",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a2",
+                    "choreId": "c2",
+                    "roommateId": "r2",
+                    "day": "tue",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a3",
+                    "choreId": "c2",
+                    "roommateId": "r3",
+                    "day": "wed",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a4",
+                    "choreId": "c2",
+                    "roommateId": "r4",
+                    "day": "thu",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a5",
+                    "choreId": "c2",
+                    "roommateId": "r2",
+                    "day": "fri",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a6",
+                    "choreId": "c2",
+                    "roommateId": "r1",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a7",
+                    "choreId": "c2",
+                    "roommateId": "r4",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a8",
+                    "choreId": "c3",
+                    "roommateId": "r4",
+                    "day": "sat",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a9",
+                    "choreId": "c4",
+                    "roommateId": "r1",
+                    "day": "wed",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a10",
+                    "choreId": "c6",
+                    "roommateId": "r3",
+                    "day": "sun",
+                    "status": "planned"
+                  },
+                  {
+                    "id": "a11",
+                    "choreId": "c1",
+                    "roommateId": "r4",
+                    "day": "thu",
+                    "status": "planned"
+                  }
+                ],
+                "rotationRules": {
+                  "strategy": "round_robin",
+                  "roundRobinStartIndex": 0,
+                  "maxMinutesPerRoommate": 120
+                },
+                "fairnessScores": [
+                  {
+                    "roommateId": "r1",
+                    "workloadMinutes": 120,
+                    "sharePercent": 30.77,
+                    "score": 0.95
+                  },
+                  {
+                    "roommateId": "r2",
+                    "workloadMinutes": 60,
+                    "sharePercent": 15.38,
+                    "score": 0.9
+                  },
+                  {
+                    "roommateId": "r3",
+                    "workloadMinutes": 90,
+                    "sharePercent": 23.08,
+                    "score": 0.92
+                  },
+                  {
+                    "roommateId": "r4",
+                    "workloadMinutes": 120,
+                    "sharePercent": 30.77,
+                    "score": 0.9
+                  }
+                ],
+                "upcomingAssignments": [
+                  {
+                    "date": "2025-11-24",
+                    "choreId": "c2",
+                    "roommateId": "r3",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-26",
+                    "choreId": "c4",
+                    "roommateId": "r4",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-29",
+                    "choreId": "c3",
+                    "roommateId": "r1",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-30",
+                    "choreId": "c5",
+                    "roommateId": "r2",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-11-30",
+                    "choreId": "c6",
+                    "roommateId": "r1",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-03",
+                    "choreId": "c4",
+                    "roommateId": "r1",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-06",
+                    "choreId": "c3",
+                    "roommateId": "r3",
+                    "isRotationChange": true
+                  },
+                  {
+                    "date": "2025-12-04",
+                    "choreId": "c1",
+                    "roommateId": "r2",
+                    "isRotationChange": true
+                  }
+                ],
+                "actions": {
+                  "reassign": {
+                    "type": "reassign_assignment"
+                  },
+                  "rotateWeek": {
+                    "type": "rotate_week"
+                  },
+                  "approveSchedule": {
+                    "type": "approve_schedule"
+                  },
+                  "publishSchedule": {
+                    "type": "publish_schedule"
+                  }
+                },
+                "allowDragAndDrop": true,
+                "showFairnessIndicator": true
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "UpcomingAssignments",
+              "props": {
+                "id": "household-42-week-2025-11-24",
+                "title": "Upcoming Assignments (Next Week)",
+                "nextWeekRange": {
+                  "start": "2025-11-24",
+                  "end": "2025-11-30"
+                },
+                "proposedAssignments": [
+                  {
+                    "id": "u1",
+                    "name": "Dishes (Mon)",
+                    "assigneeNext": {
+                      "id": "r3",
+                      "name": "Cam"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r1",
+                      "name": "Alex"
+                    },
+                    "change": "swapped",
+                    "approveStatus": "pending"
+                  },
+                  {
+                    "id": "u2",
+                    "name": "Bathrooms (Wed)",
+                    "assigneeNext": {
+                      "id": "r4",
+                      "name": "Dev"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r1",
+                      "name": "Alex"
+                    },
+                    "change": "swapped",
+                    "approveStatus": "pending"
+                  },
+                  {
+                    "id": "u3",
+                    "name": "Vacuum (Sat)",
+                    "assigneeNext": {
+                      "id": "r1",
+                      "name": "Alex"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r4",
+                      "name": "Dev"
+                    },
+                    "change": "swapped",
+                    "approveStatus": "pending"
+                  },
+                  {
+                    "id": "u4",
+                    "name": "Kitchen Deep Clean (Sun)",
+                    "assigneeNext": {
+                      "id": "r2",
+                      "name": "Bri"
+                    },
+                    "change": "new",
+                    "approveStatus": "pending"
+                  },
+                  {
+                    "id": "u5",
+                    "name": "Groceries (Sun)",
+                    "assigneeNext": {
+                      "id": "r1",
+                      "name": "Alex"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r3",
+                      "name": "Cam"
+                    },
+                    "change": "swapped",
+                    "approveStatus": "pending"
+                  },
+                  {
+                    "id": "u6",
+                    "name": "Trash (Thu)",
+                    "assigneeNext": {
+                      "id": "r1",
+                      "name": "Alex"
+                    },
+                    "assigneeCurrent": {
+                      "id": "r4",
+                      "name": "Dev"
+                    },
+                    "change": "swapped",
+                    "approveStatus": "pending"
+                  }
+                ],
+                "conflicts": [
+                  {
+                    "id": "conf-wk3-cap",
+                    "type": "capacity_exceeded",
+                    "message": "Week 3 load exceeds 120m/person with Dev exempt. Consider deferring a weekly chore or adjusting capacities.",
+                    "relatedAssignmentIds": []
+                  }
+                ],
+                "approvals": {
+                  "pendingCount": 6,
+                  "approvedCount": 0
+                },
+                "onAction": {
+                  "type": "approve_all"
+                },
+                "showConflictsOnly": false,
+                "maxVisible": 6
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should implement the requested schedule changes: move Vacuum to Saturday weekly, move Bathrooms to Wednesday weekly, and schedule Kitchen Deep Clean next week on Sunday",
+            "Should rebalance Dishes such that Bri's total for the current week is at or below 60 minutes",
+            "Should set Dev's workload to 0 minutes in Week 3 and account for the redistributed workload across remaining roommates",
+            "Should present clear summaries for the current week, next week, and a Week 3 preview including per-person totals and assigned chores with due days",
+            "Should ensure workload per person does not exceed stated caps for the relevant weeks and flag capacity issues when constraints make this impossible (e.g., Week 3 with Dev at 0)",
+            "Should publish the schedules and send notifications, listing each person's total minutes and due days",
+            "Should display appropriate fairness/load balance indicators and rotation rule context matching the scenario",
+            "Should update or present UI components reflecting the new assignments, swaps, and upcoming tasks in a way that aligns with the requested changes",
+            "Should avoid unsupported or extraneous components and keep the UI aligned with the household chore rotation scenario",
+            "Should maintain internal consistency between textual summaries and component data (assignments, dates, minutes, and assignees)"
+          ],
+          "expected_components": [
+            "ChoreRotationDashboard",
+            "UpcomingAssignments"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const daysOrder = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const dayLabel = (d) => {
+      const map = {mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun'};
+      return map[d] || d;
+    };
+    const fmtDate = (s) => {
+      if (!s) return '';
+      const dt = new Date(s + (s.length === 10 ? 'T00:00:00' : ''));
+      if (isNaN(dt.getTime())) return s;
+      return dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    };
+    const fmtRange = (range) => {
+      if (!range) return '';
+      const start = range.startDate || range.start || range.from;
+      const end = range.endDate || range.end || range.to;
+      if (!start || !end) return '';
+      const a = new Date(start);
+      const b = new Date(end);
+      if (isNaN(a) || isNaN(b)) return `${start} – ${end}`;
+      const sameYear = a.getFullYear() === b.getFullYear();
+      const optsA = { month: 'short', day: 'numeric' };
+      const optsB = { month: 'short', day: 'numeric', year: 'numeric' };
+      const left = a.toLocaleDateString(undefined, sameYear ? optsA : { ...optsA, year: 'numeric' });
+      const right = b.toLocaleDateString(undefined, optsB);
+      return `${left} – ${right}`;
+    };
+    const sum = (arr) => (Array.isArray(arr) ? arr.reduce((t,n)=>t+(Number(n)||0),0) : 0);
+
+    // Components
+
+    const ChoreRotationDashboard = (props) => {
+      const {
+        weekRange = {},
+        roommates = [],
+        chores = [],
+        weeklyAssignments = [],
+        rotationRules = {},
+        fairnessScores = [],
+        upcomingAssignments = [],
+        actions = {},
+        allowDragAndDrop = false,
+        showFairnessIndicator = true
+      } = props;
+
+      const [toast, setToast] = useState(null);
+
+      const roommateMap = useMemo(() => {
+        const map = {};
+        if (Array.isArray(roommates)) {
+          roommates.forEach(r => { map[r.id] = r; });
+        }
+        return map;
+      }, [roommates]);
+
+      const choreMap = useMemo(() => {
+        const map = {};
+        if (Array.isArray(chores)) {
+          chores.forEach(c => { map[c.id] = c; });
+        }
+        return map;
+      }, [chores]);
+
+      const assignmentsByDay = useMemo(() => {
+        const grouped = {};
+        daysOrder.forEach(d => grouped[d] = []);
+        if (Array.isArray(weeklyAssignments)) {
+          weeklyAssignments.forEach(a => {
+            const d = (a.day || '').toLowerCase();
+            if (!grouped[d]) grouped[d] = [];
+            grouped[d].push(a);
+          });
+        }
+        return grouped;
+      }, [weeklyAssignments]);
+
+      const computedMinutesByRoommate = useMemo(() => {
+        const mins = {};
+        if (!Array.isArray(weeklyAssignments)) return mins;
+        weeklyAssignments.forEach(a => {
+          const m = choreMap[a.choreId]?.estimatedMinutes || 0;
+          mins[a.roommateId] = (mins[a.roommateId] || 0) + m;
+        });
+        return mins;
+      }, [weeklyAssignments, choreMap]);
+
+      const fairnessByRoommate = useMemo(() => {
+        // Prefer provided fairnessScores; fall back to computed minutes
+        const fb = {};
+        if (Array.isArray(fairnessScores) && fairnessScores.length) {
+          fairnessScores.forEach(f => { fb[f.roommateId] = f; });
+        } else {
+          const total = sum(Object.values(computedMinutesByRoommate));
+          Object.keys(computedMinutesByRoommate).forEach(id => {
+            const minutes = computedMinutesByRoommate[id];
+            fb[id] = {
+              roommateId: id,
+              workloadMinutes: minutes,
+              sharePercent: total ? (minutes / total) * 100 : 0,
+              score: total ? 1 - Math.abs(minutes - (total / (Array.isArray(roommates) ? roommates.length : 1))) / total : 1
+            };
+          });
+        }
+        return fb;
+      }, [fairnessScores, computedMinutesByRoommate, roommates]);
+
+      const handleAction = (type) => {
+        const label = {
+          reassign: 'Reassign',
+          rotateWeek: 'Auto-rotate Week',
+          approveSchedule: 'Approve',
+          publishSchedule: 'Publish'
+        }[type] || type;
+        setToast(`${label} triggered (${actions?.[type]?.type || 'no-op'})`);
+        setTimeout(() => setToast(null), 2000);
+      };
+
+      const totalWeekMinutes = useMemo(() => {
+        return sum(weeklyAssignments.map(a => choreMap[a.choreId]?.estimatedMinutes || 0));
+      }, [weeklyAssignments, choreMap]);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Chore Rotation Dashboard</h3>
+              <p className="text-sm text-gray-600">{fmtRange(weekRange)} • {totalWeekMinutes} total minutes</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-1 text-xs rounded-full ${allowDragAndDrop ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                DnD {allowDragAndDrop ? 'On' : 'Off'}
+              </span>
+              <span className={`px-2 py-1 text-xs rounded-full ${showFairnessIndicator ? 'bg-indigo-50 text-indigo-700' : 'bg-gray-100 text-gray-600'}`}>
+                Fairness {showFairnessIndicator ? 'On' : 'Off'}
+              </span>
+            </div>
+          </div>
+
+          <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2">
+              <div className="w-full overflow-x-auto">
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr>
+                      <th className="text-left px-3 py-2 text-gray-700 font-medium sticky left-0 bg-white">Day</th>
+                      <th className="text-left px-3 py-2 text-gray-700 font-medium">Assignments</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {daysOrder.map(d => (
+                      <tr key={d} className="border-t">
+                        <td className="px-3 py-2 font-medium text-gray-900 sticky left-0 bg-white">{dayLabel(d)}</td>
+                        <td className="px-3 py-2">
+                          <div className="flex flex-wrap gap-2">
+                            {(assignmentsByDay[d] || []).map(a => {
+                              const chore = choreMap[a.choreId];
+                              const rm = roommateMap[a.roommateId];
+                              const mins = chore?.estimatedMinutes || 0;
+                              return (
+                                <span key={a.id} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 text-gray-800">
+                                  <span className="font-medium">{chore?.name || a.choreId}</span>
+                                  <span className="text-gray-500">•</span>
+                                  <span>{rm?.name || a.roommateId}</span>
+                                  <span className="text-gray-500">•</span>
+                                  <span className="text-gray-600">{mins}m</span>
+                                  <span className={`ml-1 text-[10px] px-1 rounded ${a.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : a.status === 'approved' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-700'}`}>{a.status || 'planned'}</span>
+                                </span>
+                              );
+                            })}
+                            {!Array.isArray(assignmentsByDay[d]) || !assignmentsByDay[d].length ? (
+                              <span className="text-gray-400 italic">No chores</span>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="p-3 bg-gray-50 rounded-lg border">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-semibold text-gray-900">Rotation Rules</h4>
+                  <span className="text-xs text-gray-600">{rotationRules?.strategy || 'round_robin'}</span>
+                </div>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  {rotationRules?.maxMinutesPerRoommate != null && (
+                    <li>Cap: {rotationRules.maxMinutesPerRoommate}m/person</li>
+                  )}
+                  {Array.isArray(rotationRules?.avoidPairs) && rotationRules.avoidPairs.length > 0 ? (
+                    <li>Avoid pairs: {rotationRules.avoidPairs.length}</li>
+                  ) : (
+                    <li>No explicit avoid-pairs</li>
+                  )}
+                </ul>
+              </div>
+
+              {showFairnessIndicator && (
+                <div className="p-3 bg-white rounded-lg border">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Fairness & Load</h4>
+                  <div className="space-y-2">
+                    {Array.isArray(roommates) && roommates.map(rm => {
+                      const f = fairnessByRoommate[rm.id] || {};
+                      const minutes = f.workloadMinutes ?? computedMinutesByRoommate[rm.id] ?? 0;
+                      const percent = f.sharePercent ?? 0;
+                      const cap = rm.capacityMinutes ?? rotationRules?.maxMinutesPerRoommate ?? 120;
+                      const capPct = Math.min(100, Math.round((minutes / cap) * 100));
+                      return (
+                        <div key={rm.id}>
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="font-medium text-gray-800">{rm.name}</span>
+                            <span className="text-gray-600">{minutes}m • {percent ? percent.toFixed(1) : ((minutes/(sum(Object.values(computedMinutesByRoommate))||1))*100).toFixed(1)}%</span>
+                          </div>
+                          <div className="w-full h-2 rounded bg-gray-100 overflow-hidden">
+                            <div className={`h-2 ${capPct > 100 ? 'bg-red-500' : 'bg-indigo-500'}`} style={{ width: `${Math.min(capPct,100)}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {!Array.isArray(roommates) || roommates.length === 0 ? (
+                      <p className="text-xs text-gray-500">No roommates configured.</p>
+                    ) : null}
+                  </div>
+                </div>
+              )}
+
+              <div className="p-3 bg-white rounded-lg border">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Actions</h4>
+                <div className="flex flex-wrap gap-2">
+                  {actions?.reassign && (
+                    <button onClick={() => handleAction('reassign')} className="px-3 py-1.5 text-sm rounded-md bg-white border hover:bg-gray-50">Reassign</button>
+                  )}
+                  {actions?.rotateWeek && (
+                    <button onClick={() => handleAction('rotateWeek')} className="px-3 py-1.5 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">Auto-rotate</button>
+                  )}
+                  {actions?.approveSchedule && (
+                    <button onClick={() => handleAction('approveSchedule')} className="px-3 py-1.5 text-sm rounded-md bg-emerald-600 text-white hover:bg-emerald-700">Approve</button>
+                  )}
+                  {actions?.publishSchedule && (
+                    <button onClick={() => handleAction('publishSchedule')} className="px-3 py-1.5 text-sm rounded-md bg-blue-600 text-white hover:bg-blue-700">Publish</button>
+                  )}
+                  {!actions || Object.keys(actions).length === 0 ? (
+                    <span className="text-sm text-gray-500">No actions available</span>
+                  ) : null}
+                </div>
+              </div>
+
+              <div className="p-3 bg-gray-50 rounded-lg border">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">Upcoming</h4>
+                <ul className="space-y-1">
+                  {Array.isArray(upcomingAssignments) && upcomingAssignments.length > 0 ? upcomingAssignments.slice(0,6).map((u, idx) => (
+                    <li key={idx} className="text-xs text-gray-800">
+                      <span className="text-gray-500">{fmtDate(u.date)} • </span>
+                      <span className="font-medium">{choreMap[u.choreId]?.name || u.choreId}</span>
+                      <span className="text-gray-500"> → </span>
+                      <span>{roommateMap[u.roommateId]?.name || u.roommateId}</span>
+                      {u.isRotationChange ? <span className="ml-1 px-1 py-0.5 rounded bg-yellow-100 text-yellow-800">rotates</span> : null}
+                    </li>
+                  )) : <li className="text-xs text-gray-500">No upcoming changes</li>}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {toast && (
+            <div className="px-4 pb-4">
+              <div className="w-full rounded-md bg-emerald-50 text-emerald-800 text-sm px-3 py-2 border border-emerald-200">
+                {toast}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const ChoreMatrix = (props) => {
+      const {
+        id = '',
+        weekOf = '',
+        roommates = [],
+        chores = [],
+        assignments = [],
+        fairnessScore,
+        rotationRuleSummary = '',
+        onMatrixAction = {}
+      } = props;
+
+      const roommateMap = useMemo(() => {
+        const m = {};
+        (roommates || []).forEach(r => m[r.id] = r);
+        return m;
+      }, [roommates]);
+
+      const choreMap = useMemo(() => {
+        const m = {};
+        (chores || []).forEach(c => m[c.id] = c);
+        return m;
+      }, [chores]);
+
+      const byChore = useMemo(() => {
+        const map = {};
+        (assignments || []).forEach(a => {
+          if (!map[a.choreId]) map[a.choreId] = [];
+          map[a.choreId].push(a);
+        });
+        return map;
+      }, [assignments]);
+
+      const handleAction = () => {
+        if (typeof onMatrixAction?.callback === 'function') {
+          onMatrixAction.callback({ id });
+        }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">Chore Matrix</h3>
+              <p className="text-sm text-gray-600">Week of {fmtDate(weekOf)}</p>
+            </div>
+            <div className="text-sm text-gray-600">
+              {rotationRuleSummary || 'Rotation view'}
+            </div>
+          </div>
+          <div className="mt-3 overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr>
+                  <th className="text-left px-3 py-2 text-gray-700 font-medium">Chore</th>
+                  {(roommates || []).map(r => (
+                    <th key={r.id} className="text-left px-3 py-2 text-gray-700 font-medium">{r.name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(chores || []).map(c => (
+                  <tr key={c.id} className="border-t">
+                    <td className="px-3 py-2 font-medium text-gray-900">{c.name} <span className="text-gray-500 text-xs">({c.estimatedMinutes || 0}m)</span></td>
+                    {(roommates || []).map(r => {
+                      const has = (byChore[c.id] || []).filter(a => a.roommateId === r.id);
+                      return (
+                        <td key={r.id} className="px-3 py-2">
+                          {has.length ? has.map(h => (
+                            <span key={h.id} className="inline-block text-xs px-2 py-1 rounded bg-indigo-50 text-indigo-700 mr-1 mb-1">{h.day || 'day'}</span>
+                          )) : <span className="text-gray-300 text-xs">—</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+                {!Array.isArray(chores) || chores.length === 0 ? (
+                  <tr><td colSpan={(roommates?.length || 0) + 1} className="px-3 py-6 text-center text-gray-500">No chores</td></tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-sm text-gray-600">Fairness score: {fairnessScore != null ? fairnessScore.toFixed ? fairnessScore.toFixed(2) : fairnessScore : '—'}</div>
+            <button onClick={handleAction} className="px-3 py-1.5 text-sm rounded-md bg-gray-900 text-white hover:bg-black">Matrix Action</button>
+          </div>
+        </div>
+      );
+    };
+
+    const RotationRulesPanel = (props) => {
+      const {
+        id = '',
+        title = 'Rotation Rules',
+        rotationStrategy = 'round_robin',
+        constraints = {},
+        autoRotateEnabled = false,
+        exemptions = [],
+        fairnessScore,
+        onAction = {}
+      } = props;
+
+      const [enabled, setEnabled] = useState(autoRotateEnabled);
+
+      const handleToggle = () => {
+        setEnabled(v => {
+          const nv = !v;
+          if (typeof onAction?.onToggle === 'function') onAction.onToggle({ id, enabled: nv });
+          return nv;
+        });
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+              <p className="text-sm text-gray-600">Strategy: {rotationStrategy}</p>
+            </div>
+            <div className="text-sm text-gray-700">
+              Fairness: {fairnessScore != null ? fairnessScore : '—'}
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3 bg-gray-50 rounded border">
+              <h4 className="text-sm font-semibold text-gray-900 mb-1">Constraints</h4>
+              <ul className="text-xs text-gray-700 space-y-1">
+                {Object.keys(constraints || {}).length ? Object.entries(constraints).map(([k,v]) => (
+                  <li key={k}><span className="text-gray-500">{k}:</span> {String(v)}</li>
+                )) : <li className="text-gray-500">No constraints</li>}
+              </ul>
+            </div>
+            <div className="p-3 bg-gray-50 rounded border">
+              <h4 className="text-sm font-semibold text-gray-900 mb-1">Exemptions</h4>
+              <ul className="text-xs text-gray-700 space-y-1">
+                {Array.isArray(exemptions) && exemptions.length ? exemptions.map((e, i) => (
+                  <li key={i}>{e?.name || e?.id || 'Exemption'} — {e?.reason || ''}</li>
+                )) : <li className="text-gray-500">None</li>}
+              </ul>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm text-gray-800">
+              <input type="checkbox" checked={enabled} onChange={handleToggle} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+              Auto-rotate enabled
+            </label>
+            <button
+              onClick={() => { if (typeof onAction?.onSave === 'function') onAction.onSave({ id, rotationStrategy, constraints, enabled }); }}
+              className="px-3 py-1.5 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+            >
+              Save Rules
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const FairnessScoreBar = (props) => {
+      const {
+        title = 'Fairness',
+        unit = 'points',
+        roommates = {},
+        sortBy = 'name',
+        highlightThreshold = 0
+      } = props;
+
+      const list = useMemo(() => {
+        let arr = [];
+        if (Array.isArray(roommates)) {
+          arr = roommates;
+        } else if (roommates && typeof roommates === 'object') {
+          arr = Object.values(roommates);
+        }
+        const withDefaults = arr.map(r => ({
+          id: r.id || r.roommateId || r.name,
+          name: r.name || r.id || 'Roommate',
+          fairnessScore: r.fairnessScore ?? r.score ?? 0,
+          imbalance: r.imbalance ?? 0,
+          value: r.value ?? r.workloadMinutes ?? 0
+        }));
+        const cmp = {
+          name: (a,b) => (a.name || '').localeCompare(b.name || ''),
+          imbalance: (a,b) => (b.imbalance || 0) - (a.imbalance || 0),
+          fairnessScore: (a,b) => (b.fairnessScore || 0) - (a.fairnessScore || 0)
+        }[sortBy] || ((a,b)=>0);
+        return withDefaults.sort(cmp);
+      }, [roommates, sortBy]);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border p-4">
+          <h3 className="text-base font-semibold text-gray-900 mb-3">{title}</h3>
+          <div className="space-y-3">
+            {list.map(r => {
+              const pct = Math.max(0, Math.min(100, (r.fairnessScore || 0) * 100));
+              const highlight = highlightThreshold && (r.fairnessScore || 0) < highlightThreshold;
+              return (
+                <div key={r.id}>
+                  <div className="flex items-center justify-between text-sm mb-1">
+                    <span className="font-medium text-gray-800">{r.name}</span>
+                    <span className={`text-sm ${highlight ? 'text-red-600' : 'text-gray-700'}`}>{(r.fairnessScore || 0).toFixed ? (r.fairnessScore || 0).toFixed(2) : r.fairnessScore} {unit === 'hours' ? 'h' : ''}</span>
+                  </div>
+                  <div className="w-full h-2 rounded bg-gray-100 overflow-hidden">
+                    <div className={`h-2 ${highlight ? 'bg-red-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+            {!list.length ? <p className="text-sm text-gray-500">No data</p> : null}
+          </div>
+        </div>
+      );
+    };
+
+    const UpcomingAssignments = (props) => {
+      const {
+        id = '',
+        title = 'Upcoming',
+        nextWeekRange = {},
+        proposedAssignments = [],
+        conflicts = [],
+        approvals = {},
+        imageUrl,
+        onAction = {},
+        showConflictsOnly = false,
+        maxVisible = 6
+      } = props;
+
+      const [onlyConflicts, setOnlyConflicts] = useState(showConflictsOnly);
+
+      const visibleItems = useMemo(() => {
+        const items = Array.isArray(proposedAssignments) ? proposedAssignments : [];
+        return items.slice(0, maxVisible);
+      }, [proposedAssignments, maxVisible]);
+
+      const handleApproveAll = () => {
+        if (typeof onAction?.callback === 'function') {
+          onAction.callback({ id, action: 'approve_all' });
+        } else {
+          alert('Approve all triggered');
+        }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+              <p className="text-sm text-gray-600">{fmtRange(nextWeekRange)}</p>
+            </div>
+            <div className="text-right">
+              <div className="text-sm text-gray-700">{approvals?.pendingCount ?? 0} pending</div>
+              <div className="text-xs text-gray-500">{approvals?.approvedCount ?? 0} approved</div>
+            </div>
+          </div>
+          {imageUrl ? (
+            <img src={imageUrl} alt="" className="mt-3 w-full h-32 object-cover rounded-lg" />
+          ) : null}
+          <div className="mt-3 flex items-center justify-between">
+            <label className="flex items-center gap-2 text-sm text-gray-800">
+              <input type="checkbox" checked={onlyConflicts} onChange={() => setOnlyConflicts(v => !v)} className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+              Show conflicts only
+            </label>
+            <button onClick={handleApproveAll} className="px-3 py-1.5 text-sm rounded-md bg-emerald-600 text-white hover:bg-emerald-700">Approve All</button>
+          </div>
+          <div className="mt-3">
+            <ul className="space-y-2">
+              {visibleItems.filter(it => !onlyConflicts || it.change === 'conflict').map(item => (
+                <li key={item.id} className="p-3 rounded border bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                    <span className={`text-xs px-2 py-0.5 rounded ${item.change === 'new' ? 'bg-indigo-100 text-indigo-700' : item.change === 'swapped' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-700'}`}>
+                      {item.change || 'update'}
+                    </span>
+                  </div>
+                  {item.description ? <div className="text-xs text-gray-600 mt-1">{item.description}</div> : null}
+                  <div className="text-xs text-gray-700 mt-2">
+                    {item.assigneeCurrent?.name ? <span className="mr-2 text-gray-500">Current: <span className="text-gray-800">{item.assigneeCurrent.name}</span></span> : null}
+                    {item.assigneeNext?.name ? <span>Next: <span className="text-gray-800">{item.assigneeNext.name}</span></span> : null}
+                  </div>
+                </li>
+              ))}
+              {(!Array.isArray(proposedAssignments) || proposedAssignments.length === 0) && (
+                <li className="text-sm text-gray-500">No proposals</li>
+              )}
+            </ul>
+          </div>
+          <div className="mt-3">
+            <h4 className="text-sm font-semibold text-gray-900 mb-2">Conflicts</h4>
+            <ul className="space-y-1">
+              {Array.isArray(conflicts) && conflicts.length ? conflicts.map(c => (
+                <li key={c.id || c.message} className="text-xs px-2 py-1 rounded bg-red-50 text-red-700 border border-red-200">{c.type || 'conflict'} — {c.message || ''}</li>
+              )) : <li className="text-xs text-gray-500">No conflicts</li>}
+            </ul>
+          </div>
+        </div>
+      );
+    };
+
+    const ComponentRegistry = {
+      ChoreRotationDashboard: ChoreRotationDashboard,
+      ChoreMatrix: ChoreMatrix,
+      RotationRulesPanel: RotationRulesPanel,
+      FairnessScoreBar: FairnessScoreBar,
+      UpcomingAssignments: UpcomingAssignments
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-gray-800">{chunk}</p>;
+      }
+      if (chunk.type === 'text') {
+        return <p className="whitespace-pre-wrap text-gray-800">{chunk.text}</p>;
+      }
+      if (chunk.type === 'component' && chunk.component) {
+        const { name, props } = chunk.component;
+        return <ComponentRenderer componentName={name} props={props} />;
+      }
+      return <pre className="text-xs text-gray-500">{JSON.stringify(chunk, null, 2)}</pre>;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const bubbleClasses = isUser
+        ? 'bg-white border border-gray-200'
+        : 'bg-indigo-50 border border-indigo-100';
+
+      const headerLabel = isUser ? 'User' : 'Assistant';
+
+      return (
+        <div className={`w-full`}>
+          <div className="mb-2">
+            <span className={`text-xs font-medium ${isUser ? 'text-gray-600' : 'text-indigo-700'}`}>{headerLabel}</span>
+          </div>
+          <div className={`w-full rounded-xl ${bubbleClasses} p-4`}>
+            {Array.isArray(content)
+              ? content.map((chunk, idx) => (
+                  <div key={idx} className="mb-4 last:mb-0">
+                    <ContentChunkRenderer chunk={chunk} />
+                  </div>
+                ))
+              : <ContentChunkRenderer chunk={content} />
+            }
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Conversation Viewer</h1>
+          <div className="space-y-6">
+            {conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            ))}
+          </div>
+          <footer className="mt-8 text-center text-xs text-gray-500">
+            UI components rendered in-browser with React and Tailwind. No data leaves this page.
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

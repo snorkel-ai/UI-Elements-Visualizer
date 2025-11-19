@@ -1,0 +1,2868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I have 12 plants with different watering and light needs. Help me manage their care routine."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "I set up a starter care plan for 12 plants with color-coded tasks, a calendar, and clear overdue flags. You can tap a plant card to see details or mark tasks done from the calendar/list. If you share your exact plant species and your light conditions (window directions), I can fine-tune frequencies and reminders.\n\nTips:\n- Prioritize the overdue watering tasks first (flagged in red/high priority).\n- Use the filter tabs to switch between Overdue, Today, and This Week.\n- When you complete a task, I’ll auto-schedule the next one based on its typical cadence.\n"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CareOverviewBoard",
+              "props": {
+                "currentMonth": "2025-11-01T00:00:00.000Z",
+                "selectedFilter": "thisWeek",
+                "plants": [
+                  {
+                    "id": "plant_01",
+                    "name": "Monstera",
+                    "moistureStatus": "medium",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-21T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/monstera.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_01"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_02",
+                    "name": "Snake Plant",
+                    "moistureStatus": "light",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-23T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/snake.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_02"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_03",
+                    "name": "Pothos",
+                    "moistureStatus": "dry",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-18T00:00:00.000Z",
+                    "isOverdue": true,
+                    "imageUrl": "https://cdn.example.com/plants/pothos.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_03"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_04",
+                    "name": "Fiddle Leaf Fig",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-22T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/ficus.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_04"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_05",
+                    "name": "ZZ Plant",
+                    "moistureStatus": "light",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-27T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/zz.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_05"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_06",
+                    "name": "Peace Lily",
+                    "moistureStatus": "dry",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-17T00:00:00.000Z",
+                    "isOverdue": true,
+                    "imageUrl": "https://cdn.example.com/plants/peacelily.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_06"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_07",
+                    "name": "Spider Plant",
+                    "moistureStatus": "medium",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-20T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/spider.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_07"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_08",
+                    "name": "Aloe Vera",
+                    "moistureStatus": "light",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-28T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/aloe.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_08"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_09",
+                    "name": "Calathea",
+                    "moistureStatus": "dry",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-16T00:00:00.000Z",
+                    "isOverdue": true,
+                    "imageUrl": "https://cdn.example.com/plants/calathea.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_09"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_10",
+                    "name": "Rubber Plant",
+                    "moistureStatus": "medium",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-25T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/rubber.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_10"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_11",
+                    "name": "Herbs (Basil)",
+                    "moistureStatus": "dry",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-19T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/basil.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_11"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_12",
+                    "name": "Orchid",
+                    "moistureStatus": "light",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-24T00:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/orchid.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_12"
+                      }
+                    }
+                  }
+                ],
+                "careEvents": [
+                  {
+                    "id": "evt_001",
+                    "plantId": "plant_03",
+                    "type": "water",
+                    "date": "2025-11-18T00:00:00.000Z",
+                    "status": "overdue",
+                    "priority": "high",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_001"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_03"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_002",
+                    "plantId": "plant_06",
+                    "type": "water",
+                    "date": "2025-11-17T00:00:00.000Z",
+                    "status": "overdue",
+                    "priority": "high",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_002"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_06"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_003",
+                    "plantId": "plant_09",
+                    "type": "mist",
+                    "date": "2025-11-16T00:00:00.000Z",
+                    "status": "overdue",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_003"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_09"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_004",
+                    "plantId": "plant_07",
+                    "type": "water",
+                    "date": "2025-11-20T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_004"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_07"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_005",
+                    "plantId": "plant_01",
+                    "type": "water",
+                    "date": "2025-11-21T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_005"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_01"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_006",
+                    "plantId": "plant_04",
+                    "type": "rotate",
+                    "date": "2025-11-22T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_006"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_04"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_007",
+                    "plantId": "plant_02",
+                    "type": "water",
+                    "date": "2025-11-23T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_007"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_02"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_008",
+                    "plantId": "plant_12",
+                    "type": "mist",
+                    "date": "2025-11-24T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_008"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_12"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_009",
+                    "plantId": "plant_10",
+                    "type": "fertilize",
+                    "date": "2025-11-25T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_009"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_10"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_010",
+                    "plantId": "plant_05",
+                    "type": "water",
+                    "date": "2025-11-27T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_010"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_05"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_011",
+                    "plantId": "plant_08",
+                    "type": "rotate",
+                    "date": "2025-11-28T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_011"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_08"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_012",
+                    "plantId": "plant_11",
+                    "type": "water",
+                    "date": "2025-11-19T00:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_012"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_11"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_013",
+                    "plantId": "plant_01",
+                    "type": "fertilize",
+                    "date": "2025-11-10T00:00:00.000Z",
+                    "status": "done",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_013"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_01"
+                      }
+                    }
+                  }
+                ],
+                "navigation": {
+                  "prevMonthAction": {
+                    "type": "navigate_month",
+                    "payload": {
+                      "delta": -1
+                    }
+                  },
+                  "nextMonthAction": {
+                    "type": "navigate_month",
+                    "payload": {
+                      "delta": 1
+                    }
+                  }
+                },
+                "filterActions": {
+                  "all": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "all"
+                    }
+                  },
+                  "overdue": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "overdue"
+                    }
+                  },
+                  "today": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "today"
+                    }
+                  },
+                  "thisWeek": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "thisWeek"
+                    }
+                  }
+                },
+                "showOverdueFirst": true
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "OverdueAlertBanner",
+              "props": {
+                "overdueCount": 3,
+                "topOverdue": [
+                  {
+                    "id": "evt_001",
+                    "plantName": "Pothos",
+                    "type": "water",
+                    "daysOverdue": 1
+                  },
+                  {
+                    "id": "evt_002",
+                    "plantName": "Peace Lily",
+                    "type": "water",
+                    "daysOverdue": 2
+                  },
+                  {
+                    "id": "evt_003",
+                    "plantName": "Calathea",
+                    "type": "mist",
+                    "daysOverdue": 3
+                  }
+                ],
+                "severity": "medium",
+                "viewOverdueAction": {
+                  "type": "open_overdue_view",
+                  "filter": {
+                    "status": "overdue"
+                  }
+                },
+                "completeAllAction": {
+                  "type": "bulk_complete_overdue",
+                  "taskIds": [
+                    "evt_001",
+                    "evt_002",
+                    "evt_003"
+                  ]
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should directly address managing care routines for 12 plants with varied watering and light needs using clear, concise guidance",
+            "Should provide actionable next steps (e.g., prioritize overdue tasks, how to complete tasks, how filters work) and explain how the schedule updates",
+            "Should invite or request key missing inputs (e.g., exact species, window directions/light conditions) to personalize care frequencies and reminders",
+            "Should present accurate, plant-relevant task types (e.g., water, mist, rotate, fertilize) and reasonable cadences without unsafe or unrealistic advice",
+            "Should reflect a coherent schedule with correct overdue logic based on current date and task dates, and prioritize critical tasks (e.g., overdue watering) appropriately",
+            "Should ensure data consistency across UI (plant IDs referenced by events must exist; status, dates, and overdue flags should align across components)",
+            "Should use color-coding, icons, and priority labels to match the expected visual (care calendar, plant cards with moisture and light indicators, upcoming tasks, overdue alerts)",
+            "Should include interactive affordances for key actions (view plant details, mark task complete, navigate months, change filters) with clearly defined action payloads",
+            "Should structure component properties with valid, unambiguous fields (e.g., dates in ISO format, correct action types/payload schemas) suitable for rendering without errors",
+            "Should not hallucinate external data or perform unsupported actions; any external data fetching or automation should be clearly indicated and use appropriate tool calls if required",
+            "Should be succinct and user-friendly, avoiding unnecessary verbosity while maintaining clarity",
+            "Should maintain safety and care best practices (no harmful plant care suggestions; indicate that schedules adjust based on completion and plant needs)"
+          ],
+          "expected_components": [
+            "CareOverviewBoard",
+            "OverdueAlertBanner"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Here are my details: south-facing bright living room, east bedroom (morning light), west kitchen (afternoon light), north office (low light), and a shaded hallway; 40–50% humidity, 68–74°F. Plants and current spots: snake plant (hallway), pothos (office), monstera deliciosa (living room), fiddle-leaf fig (living room), peace lily (office), spider plant (kitchen), ZZ plant (hallway), aloe vera (kitchen), jade plant (living room), calathea (bedroom), English ivy (bedroom), basil (kitchen). I prefer batching most tasks on Sundays and morning reminders."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great setup—your placements mostly match each plant’s light needs. I’ll batch care on Sundays with morning reminders and add quick midweek checks for thirstier plants like basil and calathea. Here’s your tailored plan:\n\nRoom placement check\n- Living room (south, bright): Monstera, Fiddle-leaf fig, Jade — ideal. Consider light sheer if leaves scorch.\n- Bedroom (east, morning): Calathea, English ivy — good; calathea appreciates softer morning light.\n- Kitchen (west, afternoon): Spider plant, Aloe, Basil — good; keep basil in the brightest spot near the window.\n- Office (north, low): Pothos, Peace lily — appropriate.\n- Hallway (shaded): Snake plant, ZZ plant — perfect low-light picks.\n\nWatering cadence (batched on Sundays; morning reminders)\n- Weekly (Sun): Monstera, Fiddle-leaf fig, Peace lily (check midweek if droopy), Pothos (may stretch to 10–14 days if soil stays moist), Spider plant (7–10 days), Ivy (5–7 days), Basil (every 2–3 days; Sunday is main water + quick midweek ping), Calathea (5–7 days + light misting).\n- Biweekly to monthly (Sun): Snake plant (2–3 weeks), ZZ plant (2–3 weeks), Jade (2–3 weeks), Aloe (3–4 weeks).\n\nFertilizing (seasonal)\n- Light or pause in late fall/winter; basil can continue a diluted feed weekly. Resume regular feeding for others in spring.\n\nI’ve flagged a couple of overdue waters (basil and peace lily). Tap the banner to jump to them, or complete all in one go. The calendar centers on this month, with upcoming Sunday batches highlighted. Want me to tweak reminder times (e.g., 8:00 AM) or add humidity prompts for the bedroom plants?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "OverdueAlertBanner",
+              "props": {
+                "overdueCount": 3,
+                "topOverdue": [
+                  {
+                    "id": "t_basil_w_1",
+                    "plantName": "Basil",
+                    "type": "water",
+                    "daysOverdue": 2
+                  },
+                  {
+                    "id": "t_peace_w_1",
+                    "plantName": "Peace Lily",
+                    "type": "water",
+                    "daysOverdue": 1
+                  },
+                  {
+                    "id": "t_ivy_mist_1",
+                    "plantName": "English Ivy",
+                    "type": "mist",
+                    "daysOverdue": 3
+                  }
+                ],
+                "severity": "medium",
+                "viewOverdueAction": {
+                  "type": "open_overdue_view",
+                  "filter": {
+                    "status": "overdue"
+                  }
+                },
+                "completeAllAction": {
+                  "type": "bulk_complete_overdue",
+                  "taskIds": [
+                    "t_basil_w_1",
+                    "t_peace_w_1",
+                    "t_ivy_mist_1"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CareCalendar",
+              "props": {
+                "month": "2025-11-01T00:00:00.000Z",
+                "events": [
+                  {
+                    "id": "t_basil_w_1",
+                    "plantId": "p_basil",
+                    "type": "water",
+                    "date": "2025-11-17",
+                    "status": "overdue",
+                    "note": "Check daily; dries fast in afternoon light."
+                  },
+                  {
+                    "id": "t_peace_w_1",
+                    "plantId": "p_peacelily",
+                    "type": "water",
+                    "date": "2025-11-18",
+                    "status": "overdue",
+                    "note": "Wilts when thirsty—water thoroughly."
+                  },
+                  {
+                    "id": "t_ivy_mist_1",
+                    "plantId": "p_ivy",
+                    "type": "mist",
+                    "date": "2025-11-16",
+                    "status": "overdue",
+                    "note": "Helps with spider mites prevention."
+                  },
+                  {
+                    "id": "t_batch_water_1123_monstera",
+                    "plantId": "p_monstera",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Weekly Sunday batch."
+                  },
+                  {
+                    "id": "t_batch_rotate_1123_monstera",
+                    "plantId": "p_monstera",
+                    "type": "rotate",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Promote even growth."
+                  },
+                  {
+                    "id": "t_batch_water_1123_ficus",
+                    "plantId": "p_ficus",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Let top inch dry before watering."
+                  },
+                  {
+                    "id": "t_batch_rotate_1123_ficus",
+                    "plantId": "p_ficus",
+                    "type": "rotate",
+                    "date": "2025-11-23",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_batch_water_1123_pothos",
+                    "plantId": "p_pothos",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Stretch to 10–14 days if soil still moist."
+                  },
+                  {
+                    "id": "t_batch_water_1123_peace",
+                    "plantId": "p_peacelily",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_batch_water_1123_spider",
+                    "plantId": "p_spider",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_batch_water_1123_ivy",
+                    "plantId": "p_ivy",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_batch_water_1123_calathea",
+                    "plantId": "p_calathea",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Use filtered or dechlorinated water if possible."
+                  },
+                  {
+                    "id": "t_batch_mist_1120_calathea",
+                    "plantId": "p_calathea",
+                    "type": "mist",
+                    "date": "2025-11-20",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_batch_mist_1125_calathea",
+                    "plantId": "p_calathea",
+                    "type": "mist",
+                    "date": "2025-11-25",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_batch_water_1123_basil",
+                    "plantId": "p_basil",
+                    "type": "water",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Main weekly water; also check midweek."
+                  },
+                  {
+                    "id": "t_batch_feed_1123_basil",
+                    "plantId": "p_basil",
+                    "type": "fertilize",
+                    "date": "2025-11-23",
+                    "status": "pending",
+                    "note": "Dilute 1/4–1/2 strength."
+                  },
+                  {
+                    "id": "t_midweek_basil_1126",
+                    "plantId": "p_basil",
+                    "type": "water",
+                    "date": "2025-11-26",
+                    "status": "pending",
+                    "note": "Quick midweek check."
+                  },
+                  {
+                    "id": "t_succ_1130_snake",
+                    "plantId": "p_snake",
+                    "type": "water",
+                    "date": "2025-11-30",
+                    "status": "pending",
+                    "note": "2–3 week cadence."
+                  },
+                  {
+                    "id": "t_succ_1130_zz",
+                    "plantId": "p_zz",
+                    "type": "water",
+                    "date": "2025-11-30",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_succ_1130_jade",
+                    "plantId": "p_jade",
+                    "type": "water",
+                    "date": "2025-11-30",
+                    "status": "pending"
+                  },
+                  {
+                    "id": "t_succ_1130_aloe",
+                    "plantId": "p_aloe",
+                    "type": "water",
+                    "date": "2025-11-30",
+                    "status": "pending",
+                    "note": "3–4 week cadence; ensure full drainage."
+                  }
+                ],
+                "colorScheme": {
+                  "water": "#3BA7FF",
+                  "fertilize": "#9C6ADE",
+                  "mist": "#65C1A9",
+                  "rotate": "#F5A623",
+                  "overdue": "#E74C3C",
+                  "done": "#7F8C8D",
+                  "pending": "#2C3E50"
+                },
+                "selectedDate": "2025-11-23",
+                "filter": {
+                  "status": [
+                    "pending",
+                    "overdue"
+                  ]
+                },
+                "plantLookup": [
+                  {
+                    "plantId": "p_snake",
+                    "name": "Snake Plant"
+                  },
+                  {
+                    "plantId": "p_pothos",
+                    "name": "Pothos"
+                  },
+                  {
+                    "plantId": "p_monstera",
+                    "name": "Monstera Deliciosa"
+                  },
+                  {
+                    "plantId": "p_ficus",
+                    "name": "Fiddle-leaf Fig"
+                  },
+                  {
+                    "plantId": "p_peacelily",
+                    "name": "Peace Lily"
+                  },
+                  {
+                    "plantId": "p_spider",
+                    "name": "Spider Plant"
+                  },
+                  {
+                    "plantId": "p_zz",
+                    "name": "ZZ Plant"
+                  },
+                  {
+                    "plantId": "p_aloe",
+                    "name": "Aloe Vera"
+                  },
+                  {
+                    "plantId": "p_jade",
+                    "name": "Jade Plant"
+                  },
+                  {
+                    "plantId": "p_calathea",
+                    "name": "Calathea"
+                  },
+                  {
+                    "plantId": "p_ivy",
+                    "name": "English Ivy"
+                  },
+                  {
+                    "plantId": "p_basil",
+                    "name": "Basil"
+                  }
+                ],
+                "selectDateAction": {
+                  "type": "select_date"
+                },
+                "toggleTaskAction": {
+                  "type": "toggle_task"
+                },
+                "markDayDoneAction": {
+                  "type": "mark_day_done"
+                },
+                "weekStart": "sun",
+                "legendVariant": "dots",
+                "showOverdueBadge": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should tailor guidance to the user's stated rooms, light directions, humidity (40–50%), and temperature (68–74°F)",
+            "Should confirm or adjust plant placements based on light requirements for each of the 12 listed plants",
+            "Should create a clear, batched care routine with most tasks scheduled on Sundays and morning reminders, as requested",
+            "Should provide per-plant watering cadence ranges appropriate to plant type and seasonality, including midweek checks for faster-drying species (e.g., basil, calathea, peace lily)",
+            "Should include concise, actionable care notes (e.g., soil moisture checks, misting needs, filtered water for sensitive plants, rotation for even growth)",
+            "Should include fertilizing guidance with seasonal adjustments (reduced in late fall/winter; basil acceptable with diluted feed)",
+            "Should present a color-coded care calendar for the current month that aligns with the proposed schedule and clearly distinguishes pending vs. overdue tasks",
+            "Should include an overdue-care alert with a count, a concise list of top overdue items, severity level, and actions to view and bulk-complete overdue tasks",
+            "Should ensure internal data consistency across components (matching plantIds to names, task IDs, dates, and statuses)",
+            "Should use ISO-like date formats and valid status values consistent with the component schema (e.g., pending, overdue, done)",
+            "Should avoid overwatering guidance for succulents and drought-tolerant plants (e.g., snake plant, ZZ plant, jade, aloe) and reflect appropriate extended intervals",
+            "Should maintain concise, organized text using short sections or bullet points suitable for in-app display without heavy formatting",
+            "Should not call external tools unless necessary for data fetching or computation; if tools are required, should call appropriate tools with correct arguments",
+            "Should not request unnecessary personal information and should respect user preferences for reminder timing",
+            "Should align UI elements with user expectations: color-coded calendar, overdue alerts, and actionable tasks with clear labels and legends"
+          ],
+          "expected_components": [
+            "OverdueAlertBanner",
+            "CareCalendar"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Set all reminders to 8:00 AM, add weekly humidity prompts for the calathea and ivy, and schedule basil midweek checks on Wednesdays at 8:00 AM. Mark basil and peace lily as watered today, and show the color‑coded calendar with plant cards (moisture/light icons) and overdue alerts."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set! I scheduled all reminders for 8:00 AM, added weekly humidity (misting) prompts for Calathea and English ivy, and set Basil midweek checks every Wednesday at 8:00 AM. I also marked Basil and Peace Lily as watered today. Your calendar is color-coded and batched for Sundays, with Wednesday checks for Basil. You can tap a plant card for details or mark tasks done from the calendar/list."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "OverdueAlertBanner",
+              "props": {
+                "overdueCount": 0,
+                "severity": "low",
+                "viewOverdueAction": {
+                  "type": "open_overdue_view",
+                  "filter": {
+                    "status": "overdue"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CareOverviewBoard",
+              "props": {
+                "currentMonth": "2025-11-01T00:00:00.000Z",
+                "selectedFilter": "thisWeek",
+                "plants": [
+                  {
+                    "id": "plant_snake",
+                    "name": "Snake Plant",
+                    "moistureStatus": "medium",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-12-07T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_snake"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_pothos",
+                    "name": "Pothos",
+                    "moistureStatus": "light",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-30T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_pothos"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_monstera",
+                    "name": "Monstera Deliciosa",
+                    "moistureStatus": "light",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_monstera"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_fiddle",
+                    "name": "Fiddle-Leaf Fig",
+                    "moistureStatus": "light",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_fiddle"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_peacelily",
+                    "name": "Peace Lily",
+                    "moistureStatus": "medium",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_peacelily"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_spider",
+                    "name": "Spider Plant",
+                    "moistureStatus": "light",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_spider"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_zz",
+                    "name": "ZZ Plant",
+                    "moistureStatus": "medium",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-12-07T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_zz"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_aloe",
+                    "name": "Aloe Vera",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-12-14T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_aloe"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_jade",
+                    "name": "Jade Plant",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-12-07T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_jade"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_calathea",
+                    "name": "Calathea",
+                    "moistureStatus": "light",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_calathea"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_ivy",
+                    "name": "English Ivy",
+                    "moistureStatus": "light",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_ivy"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_basil",
+                    "name": "Basil",
+                    "moistureStatus": "dry",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  }
+                ],
+                "careEvents": [
+                  {
+                    "id": "evt_basil_water_today",
+                    "plantId": "plant_basil",
+                    "type": "water",
+                    "date": "2025-11-19T08:00:00.000Z",
+                    "status": "done",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_basil_water_today"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_peacelily_water_today",
+                    "plantId": "plant_peacelily",
+                    "type": "water",
+                    "date": "2025-11-19T08:00:00.000Z",
+                    "status": "done",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_peacelily_water_today"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_peacelily"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_monstera_water_1123",
+                    "plantId": "plant_monstera",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_monstera_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_monstera"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_fiddle_water_1123",
+                    "plantId": "plant_fiddle",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_fiddle_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_fiddle"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_peacelily_water_1123",
+                    "plantId": "plant_peacelily",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_peacelily_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_peacelily"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_spider_water_1123",
+                    "plantId": "plant_spider",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_spider_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_spider"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_ivy_water_1123",
+                    "plantId": "plant_ivy",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_ivy_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_ivy"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_calathea_water_1123",
+                    "plantId": "plant_calathea",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_calathea_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_calathea"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_calathea_mist_1123",
+                    "plantId": "plant_calathea",
+                    "type": "mist",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_calathea_mist_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_calathea"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_ivy_mist_1123",
+                    "plantId": "plant_ivy",
+                    "type": "mist",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_ivy_mist_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_ivy"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_pothos_water_1130",
+                    "plantId": "plant_pothos",
+                    "type": "water",
+                    "date": "2025-11-30T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_pothos_water_1130"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_pothos"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_basil_water_1123",
+                    "plantId": "plant_basil",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "high",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_basil_water_1123"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_basil_check_1126",
+                    "plantId": "plant_basil",
+                    "type": "water",
+                    "date": "2025-11-26T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "high",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_basil_check_1126"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_snake_water_1207",
+                    "plantId": "plant_snake",
+                    "type": "water",
+                    "date": "2025-12-07T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_snake_water_1207"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_snake"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_zz_water_1207",
+                    "plantId": "plant_zz",
+                    "type": "water",
+                    "date": "2025-12-07T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_zz_water_1207"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_zz"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_jade_water_1207",
+                    "plantId": "plant_jade",
+                    "type": "water",
+                    "date": "2025-12-07T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_jade_water_1207"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_jade"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_aloe_water_1214",
+                    "plantId": "plant_aloe",
+                    "type": "water",
+                    "date": "2025-12-14T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_aloe_water_1214"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_aloe"
+                      }
+                    }
+                  }
+                ],
+                "navigation": {
+                  "prevMonthAction": {
+                    "type": "navigate_month",
+                    "payload": {
+                      "delta": -1
+                    }
+                  },
+                  "nextMonthAction": {
+                    "type": "navigate_month",
+                    "payload": {
+                      "delta": 1
+                    }
+                  }
+                },
+                "filterActions": {
+                  "all": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "all"
+                    }
+                  },
+                  "overdue": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "overdue"
+                    }
+                  },
+                  "today": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "today"
+                    }
+                  },
+                  "thisWeek": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "thisWeek"
+                    }
+                  }
+                },
+                "showOverdueFirst": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm each requested change: all reminders set to 8:00 AM, weekly humidity (misting) prompts for Calathea and English Ivy, and Basil midweek checks on Wednesdays at 8:00 AM",
+            "Should mark Basil and Peace Lily as watered with today's date and a completed/done status",
+            "Should display a color-coded care calendar along with plant cards that include moisture and light indicators/icons",
+            "Should include an overdue-care alert with an accurate overdue count and a clear action to view overdue items",
+            "Should ensure all scheduled times are consistently set to 8:00 AM and use a consistent and unambiguous time standard (e.g., ISO 8601 with timezone/UTC)",
+            "Should schedule weekly misting tasks for Calathea and English Ivy at 8:00 AM on a weekly cadence",
+            "Should schedule Basil's Wednesday checks at 8:00 AM on a weekly cadence",
+            "Should provide an upcoming task list or events reflecting the newly scheduled watering, misting, and check tasks",
+            "Should maintain internal data consistency between plant cards, next task dates, task lists, and calendar (e.g., nextTaskDate aligns with the earliest pending care event, isOverdue flags match dates)",
+            "Should keep the plant collection scope coherent with the scenario (12 plants) and avoid introducing extraneous entities or omitting expected ones",
+            "Should provide clear UI affordances to complete tasks and to open/select plant details from the calendar or list",
+            "Should include navigation or filtering controls to view all, today, this week, and overdue care items",
+            "Should call appropriate tools/APIs with correct arguments if the environment requires external scheduling or data updates; if tools are not required/available, should still present the updated state via UI components",
+            "Should avoid unverifiable assumptions beyond the user's instructions and scenario context, and should not contradict the requested scheduling",
+            "Should present a concise confirmation text summarizing the applied updates and how to interact with the UI"
+          ],
+          "expected_components": [
+            "OverdueAlertBanner",
+            "CareOverviewBoard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Show me this week’s upcoming tasks list and highlight anything due before Sunday. Also adjust Pothos to water every 10 days, and set Jade and Aloe to every 3 weeks."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Updates applied: Pothos now waters every 10 days, and Jade + Aloe every 3 weeks. All reminders remain at 8:00 AM. I also kept weekly humidity prompts for Calathea and English ivy, and Basil’s Wednesday 8:00 AM midweek check (already completed today).\n\nHere are the upcoming tasks for the rest of this week, with items due before Sunday highlighted at the top:"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "UpcomingTaskList",
+              "props": {
+                "tasks": [
+                  {
+                    "id": "task_calathea_mist_2025-11-20",
+                    "plantId": "plant_calathea",
+                    "plantName": "Calathea",
+                    "type": "mist",
+                    "dueAt": "2025-11-20T08:00:00Z",
+                    "isOverdue": false
+                  },
+                  {
+                    "id": "task_ivy_mist_2025-11-20",
+                    "plantId": "plant_ivy",
+                    "plantName": "English ivy",
+                    "type": "mist",
+                    "dueAt": "2025-11-20T08:00:00Z",
+                    "isOverdue": false
+                  },
+                  {
+                    "id": "task_ivy_water_2025-11-21",
+                    "plantId": "plant_ivy",
+                    "plantName": "English ivy",
+                    "type": "water",
+                    "dueAt": "2025-11-21T08:00:00Z",
+                    "isOverdue": false
+                  },
+                  {
+                    "id": "task_calathea_water_2025-11-22",
+                    "plantId": "plant_calathea",
+                    "plantName": "Calathea",
+                    "type": "water",
+                    "dueAt": "2025-11-22T08:00:00Z",
+                    "isOverdue": false
+                  }
+                ],
+                "onItemAction": {
+                  "type": "upcoming_task_action"
+                },
+                "defaultSnoozeDays": 3,
+                "snoozeChoices": [
+                  1,
+                  3,
+                  7
+                ],
+                "highlightOverdue": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should acknowledge and confirm the requested schedule updates: set Pothos to water every 10 days, and set Jade and Aloe to water every 3 weeks",
+            "Should persist the schedule changes using the appropriate scheduling/update tool or API so they take effect for future tasks; if unavailable, should clearly state the limitation and ask to proceed",
+            "Should present an upcoming tasks list for the current week only and visually or positionally highlight items due before Sunday",
+            "Should use the UpcomingTaskList component to display tasks, providing correctly structured task objects (id, plantId, plantName, type, dueAt, isOverdue) and appropriate props (e.g., onItemAction, snoozeChoices) per app conventions",
+            "Should ensure task times align with the user's requested reminder time (8:00 AM) and handle timezone correctly",
+            "Should sort or group tasks so that those due before Sunday appear at the top as requested",
+            "Should include only relevant and accurate tasks for the user's plants and this week, avoiding fabricated or extraneous entries not supported by stored data",
+            "Should maintain or call out existing reminder settings only if they are relevant to the upcoming week view or explicitly requested",
+            "Should provide concise textual context summarizing the updates and what is being shown, followed by the component with the actionable task list",
+            "Should avoid unnecessary additional components and stick to the UI element appropriate for the request (upcoming tasks list) while supporting overdue highlighting if applicable"
+          ],
+          "expected_components": [
+            "UpcomingTaskList"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Looks good—can you display the color‑coded calendar for this week with plant cards and any overdue alerts? If any non‑urgent tasks are due Thu–Sat, please snooze them to Sunday at 8:00 AM."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done. I snoozed all non‑urgent Thu–Sat tasks to Sunday at 8:00 AM, kept today’s completed items logged, and surfaced the overdue alerts. Here’s your color‑coded calendar view with plant cards and the current overdue summary."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "OverdueAlertBanner",
+              "props": {
+                "overdueCount": 2,
+                "topOverdue": [
+                  {
+                    "id": "evt_spider_water_mon",
+                    "plantName": "Spider Plant",
+                    "type": "water",
+                    "daysOverdue": 2
+                  },
+                  {
+                    "id": "evt_zz_water_tue",
+                    "plantName": "ZZ Plant",
+                    "type": "water",
+                    "daysOverdue": 1
+                  }
+                ],
+                "severity": "low",
+                "viewOverdueAction": {
+                  "type": "open_overdue_view",
+                  "filter": {
+                    "status": "overdue"
+                  }
+                },
+                "completeAllAction": {
+                  "type": "bulk_complete_overdue",
+                  "taskIds": [
+                    "evt_spider_water_mon",
+                    "evt_zz_water_tue"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CareOverviewBoard",
+              "props": {
+                "currentMonth": "2025-11-01T00:00:00.000Z",
+                "selectedFilter": "thisWeek",
+                "plants": [
+                  {
+                    "id": "plant_basil",
+                    "name": "Basil",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-26T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/basil.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_peace_lily",
+                    "name": "Peace Lily",
+                    "moistureStatus": "light",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-26T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/peace_lily.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_peace_lily"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_calathea",
+                    "name": "Calathea",
+                    "moistureStatus": "medium",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/calathea.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_calathea"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_ivy",
+                    "name": "English Ivy",
+                    "moistureStatus": "light",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/ivy.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_ivy"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_pothos",
+                    "name": "Pothos",
+                    "moistureStatus": "light",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/pothos.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_pothos"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_jade",
+                    "name": "Jade",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/jade.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_jade"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_aloe",
+                    "name": "Aloe",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/aloe.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_aloe"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_snake",
+                    "name": "Snake Plant",
+                    "moistureStatus": "medium",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/snake.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_snake"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_monstera",
+                    "name": "Monstera",
+                    "moistureStatus": "medium",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/monstera.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_monstera"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_zz",
+                    "name": "ZZ Plant",
+                    "moistureStatus": "dry",
+                    "lightLevel": "low",
+                    "nextTaskDate": "2025-11-18T08:00:00.000Z",
+                    "isOverdue": true,
+                    "imageUrl": "https://cdn.example.com/plants/zz.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_zz"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_spider",
+                    "name": "Spider Plant",
+                    "moistureStatus": "dry",
+                    "lightLevel": "medium",
+                    "nextTaskDate": "2025-11-17T08:00:00.000Z",
+                    "isOverdue": true,
+                    "imageUrl": "https://cdn.example.com/plants/spider.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_spider"
+                      }
+                    }
+                  },
+                  {
+                    "id": "plant_fiddle",
+                    "name": "Fiddle Leaf Fig",
+                    "moistureStatus": "medium",
+                    "lightLevel": "high",
+                    "nextTaskDate": "2025-11-23T08:00:00.000Z",
+                    "isOverdue": false,
+                    "imageUrl": "https://cdn.example.com/plants/fiddle.jpg",
+                    "selectAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_fiddle"
+                      }
+                    }
+                  }
+                ],
+                "careEvents": [
+                  {
+                    "id": "evt_basil_water_today",
+                    "plantId": "plant_basil",
+                    "type": "water",
+                    "date": "2025-11-19T08:00:00.000Z",
+                    "status": "done",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_basil_water_today"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_basil_rotate_wed",
+                    "plantId": "plant_basil",
+                    "type": "rotate",
+                    "date": "2025-11-19T08:00:00.000Z",
+                    "status": "done",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_basil_rotate_wed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_basil"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_peace_lily_water_today",
+                    "plantId": "plant_peace_lily",
+                    "type": "water",
+                    "date": "2025-11-19T08:00:00.000Z",
+                    "status": "done",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_peace_lily_water_today"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_peace_lily"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_spider_water_mon",
+                    "plantId": "plant_spider",
+                    "type": "water",
+                    "date": "2025-11-17T08:00:00.000Z",
+                    "status": "overdue",
+                    "priority": "high",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_spider_water_mon"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_spider"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_zz_water_tue",
+                    "plantId": "plant_zz",
+                    "type": "water",
+                    "date": "2025-11-18T08:00:00.000Z",
+                    "status": "overdue",
+                    "priority": "high",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_zz_water_tue"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_zz"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_calathea_mist_snoozed",
+                    "plantId": "plant_calathea",
+                    "type": "mist",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_calathea_mist_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_calathea"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_ivy_mist_snoozed",
+                    "plantId": "plant_ivy",
+                    "type": "mist",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_ivy_mist_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_ivy"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_pothos_water_snoozed",
+                    "plantId": "plant_pothos",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_pothos_water_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_pothos"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_jade_water_snoozed",
+                    "plantId": "plant_jade",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_jade_water_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_jade"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_aloe_water_snoozed",
+                    "plantId": "plant_aloe",
+                    "type": "water",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_aloe_water_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_aloe"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_snake_rotate_snoozed",
+                    "plantId": "plant_snake",
+                    "type": "rotate",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_snake_rotate_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_snake"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_monstera_fert_snoozed",
+                    "plantId": "plant_monstera",
+                    "type": "fertilize",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_monstera_fert_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_monstera"
+                      }
+                    }
+                  },
+                  {
+                    "id": "evt_fiddle_rotate_snoozed",
+                    "plantId": "plant_fiddle",
+                    "type": "rotate",
+                    "date": "2025-11-23T08:00:00.000Z",
+                    "status": "pending",
+                    "priority": "normal",
+                    "completeAction": {
+                      "type": "complete_task",
+                      "payload": {
+                        "taskId": "evt_fiddle_rotate_snoozed"
+                      }
+                    },
+                    "openPlantAction": {
+                      "type": "select_plant",
+                      "payload": {
+                        "plantId": "plant_fiddle"
+                      }
+                    }
+                  }
+                ],
+                "navigation": {
+                  "prevMonthAction": {
+                    "type": "navigate_month",
+                    "payload": {
+                      "delta": -1
+                    }
+                  },
+                  "nextMonthAction": {
+                    "type": "navigate_month",
+                    "payload": {
+                      "delta": 1
+                    }
+                  }
+                },
+                "filterActions": {
+                  "all": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "all"
+                    }
+                  },
+                  "overdue": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "overdue"
+                    }
+                  },
+                  "today": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "today"
+                    }
+                  },
+                  "thisWeek": {
+                    "type": "change_filter",
+                    "payload": {
+                      "filter": "thisWeek"
+                    }
+                  }
+                },
+                "showOverdueFirst": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should display a color-coded care calendar scoped to the current week (not a full month) with the week filter selected",
+            "Should include plant cards that show at minimum plant name, moisture status, light level, next task date, and an action to select/open the plant",
+            "Should surface an overdue alerts banner that shows the number of overdue tasks, a concise summary (e.g., top overdue items), an appropriate severity level, and actions to view and/or bulk-complete overdue items",
+            "Should snooze only non-urgent (non-high-priority) tasks that fall on Thursday through Saturday of the current week to Sunday at 8:00 AM local time",
+            "Should leave urgent/high-priority tasks unchanged when snoozing non-urgent tasks Thu–Sat",
+            "Should correctly compute the target Sunday for the same week, including correct handling of week boundaries, time zones, and month transitions",
+            "Should update the careEvents data to reflect snoozed tasks’ new dates and statuses, and ensure those changes are visible in the UI",
+            "Should maintain today’s completed items as done and should not reschedule or duplicate them",
+            "Should ensure consistency between plant-level flags (e.g., isOverdue) and careEvents statuses/dates",
+            "Should default the board view to thisWeek and, when overdue tasks exist, order or highlight them first in the list/grid",
+            "Should provide clear, concise confirmation text of the actions taken (snoozing, logging completed items, surfacing overdue alerts) and what is being displayed",
+            "Should use appropriate UI components for the requested visuals and populate them with valid, correctly structured props according to the component schema",
+            "Should include intuitive user actions for navigation (prev/next week or month as applicable), filter switching (all, overdue, today, thisWeek), and task completion",
+            "Should apply color-coding consistently to reflect task status/priority/type across the calendar and plant cards",
+            "Should not expose extraneous personal data or unrelated links and should keep the output focused on the plant care context",
+            "Should call appropriate tools or services to perform snoozing/updates if external state changes are required; if tools are unavailable, should accurately reflect the state change in the returned component props"
+          ],
+          "expected_components": [
+            "OverdueAlertBanner",
+            "CareOverviewBoard"
+          ]
+        }
+      }
+    ];
+
+    // Helpers
+    const parseISOToDate = (value) => {
+      if (!value) return null;
+      if (value instanceof Date) return value;
+      if (typeof value !== 'string') return null;
+      // If date without time, assume UTC midnight
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return new Date(value + 'T00:00:00Z');
+      }
+      return new Date(value);
+    };
+
+    const formatDate = (value, options = {}) => {
+      const d = parseISOToDate(value);
+      if (!d || isNaN(d)) return '';
+      const fmt = new Intl.DateTimeFormat(undefined, {
+        weekday: options.weekday ?? 'short',
+        month: options.month ?? 'short',
+        day: options.day ?? 'numeric',
+      });
+      return fmt.format(d);
+    };
+
+    const formatTime = (value) => {
+      const d = parseISOToDate(value);
+      if (!d || isNaN(d)) return '';
+      return new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' }).format(d);
+    };
+
+    const isSameDay = (a, b) => {
+      const da = parseISOToDate(a);
+      const db = parseISOToDate(b);
+      if (!da || !db) return false;
+      return da.getUTCFullYear() === db.getUTCFullYear() &&
+             da.getUTCMonth() === db.getUTCMonth() &&
+             da.getUTCDate() === db.getUTCDate();
+    };
+
+    const startOfWeek = (date, weekStart = 'sun') => {
+      const d = parseISOToDate(date) || new Date();
+      const day = d.getUTCDay(); // 0-6, Sun=0
+      const startIndex = weekStart === 'mon' ? 1 : 0;
+      const diff = (day - startIndex + 7) % 7;
+      const start = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      start.setUTCDate(start.getUTCDate() - diff);
+      return start;
+    };
+
+    const addDays = (date, days) => {
+      const d = new Date(date.getTime());
+      d.setUTCDate(d.getUTCDate() + days);
+      return d;
+    };
+
+    const toISODateString = (date) => {
+      const y = date.getUTCFullYear();
+      const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const d = String(date.getUTCDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    // PlantCard
+    const PlantCard = (props) => {
+      const {
+        id,
+        name,
+        species,
+        imageUrl,
+        moistureStatus,
+        lightLevel,
+        nextTask,
+        isOverdue,
+        onSelectAction,
+        showSpecies = true,
+        compact = false,
+      } = props;
+
+      const handleSelect = () => {
+        if (onSelectAction) {
+          console.log('PlantCard onSelectAction', { onSelectAction, id });
+        }
+      };
+
+      const moistureMap = {
+        dry: { label: 'Dry', color: 'text-red-600', emoji: '💧' },
+        ok: { label: 'OK', color: 'text-emerald-600', emoji: '💧' },
+        wet: { label: 'Wet', color: 'text-sky-600', emoji: '💧' },
+        light: { label: 'Light', color: 'text-amber-600', emoji: '💧' },
+        medium: { label: 'Medium', color: 'text-blue-600', emoji: '💧' },
+        // Fallback
+        default: { label: '—', color: 'text-gray-500', emoji: '💧' },
+      };
+
+      const lightMap = {
+        low: { label: 'Low', color: 'text-gray-600', emoji: '🌥️' },
+        medium: { label: 'Med', color: 'text-amber-600', emoji: '🌤️' },
+        high: { label: 'High', color: 'text-yellow-600', emoji: '☀️' },
+        default: { label: '—', color: 'text-gray-500', emoji: '🌤️' },
+      };
+
+      const m = moistureMap[moistureStatus] || moistureMap.default;
+      const l = lightMap[lightLevel] || lightMap.default;
+
+      const nextTaskDate = nextTask?.date || props.nextTaskDate;
+      const nextTaskType = nextTask?.type || props.nextTaskType;
+
+      return (
+        <div className={`relative bg-white border ${isOverdue ? 'border-red-200' : 'border-gray-200'} rounded-lg p-4 shadow-sm hover:shadow transition`}>
+          {isOverdue && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full shadow">Overdue</span>
+          )}
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-md bg-gray-100 overflow-hidden flex items-center justify-center">
+              {imageUrl ? (
+                <img src={imageUrl} alt={name} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-gray-400 text-xl">{name?.[0] ?? '🌱'}</span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <div className="font-semibold text-gray-900 truncate">{name || 'Unnamed Plant'}</div>
+              {showSpecies && species && <div className="text-xs text-gray-500 truncate">{species}</div>}
+              <div className="mt-1 flex items-center gap-3 text-sm">
+                <span className={`inline-flex items-center gap-1 ${m.color}`}>
+                  <span>{m.emoji}</span>
+                  <span>Moist: {m.label}</span>
+                </span>
+                <span className={`inline-flex items-center gap-1 ${l.color}`}>
+                  <span>{l.emoji}</span>
+                  <span>Light: {l.label}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="mt-3 flex items-center justify-between">
+            <div className="text-xs text-gray-500">
+              Next: {nextTaskType ? `${nextTaskType} • ` : ''}{formatDate(nextTaskDate)} {formatTime(nextTaskDate)}
+            </div>
+            <button
+              onClick={handleSelect}
+              className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            >
+              Open
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // OverdueAlertBanner
+    const OverdueAlertBanner = (props) => {
+      const {
+        overdueCount = 0,
+        topOverdue,
+        severity = 'low',
+        viewOverdueAction,
+        completeAllAction,
+      } = props;
+
+      const top = Array.isArray(topOverdue) ? topOverdue : (topOverdue ? [topOverdue] : []);
+
+      const sevMap = {
+        low: 'bg-yellow-50 border-yellow-200',
+        medium: 'bg-orange-50 border-orange-200',
+        high: 'bg-red-50 border-red-200',
+      };
+
+      const badgeMap = {
+        low: 'bg-yellow-100 text-yellow-800',
+        medium: 'bg-orange-100 text-orange-800',
+        high: 'bg-red-100 text-red-800',
+      };
+
+      const handleView = () => {
+        console.log('viewOverdueAction', viewOverdueAction);
+      };
+
+      const handleCompleteAll = () => {
+        console.log('completeAllAction', completeAllAction);
+      };
+
+      return (
+        <div className={`w-full border ${sevMap[severity] || sevMap.low} rounded-lg p-4`}>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className={`text-xs px-2 py-1 rounded ${badgeMap[severity] || badgeMap.low}`}>Overdue</span>
+              <div className="font-semibold text-gray-900">{overdueCount} item{overdueCount === 1 ? '' : 's'} overdue</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={handleView} className="text-sm px-3 py-1.5 bg-white border border-gray-200 rounded hover:bg-gray-50">View</button>
+              {overdueCount > 0 && (
+                <button onClick={handleCompleteAll} className="text-sm px-3 py-1.5 bg-red-600 text-white rounded hover:bg-red-700">Complete all</button>
+              )}
+            </div>
+          </div>
+          {top.length > 0 && (
+            <div className="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {top.map((t) => (
+                <div key={t.id} className="text-sm bg-white border border-gray-200 rounded p-2 flex items-center justify-between">
+                  <div className="truncate">
+                    <div className="font-medium text-gray-800 truncate">{t.plantName}</div>
+                    <div className="text-xs text-gray-500">{t.type} • {t.daysOverdue} day{t.daysOverdue === 1 ? '' : 's'} overdue</div>
+                  </div>
+                  <span className="text-red-500">⚠️</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // CareCalendar - week-focused view using selectedDate and weekStart
+    const CareCalendar = (props) => {
+      const {
+        month,
+        events = [],
+        colorScheme = {},
+        selectedDate,
+        filter = {},
+        plantLookup = [],
+        selectDateAction,
+        toggleTaskAction,
+        markDayDoneAction,
+        weekStart = 'sun',
+        legendVariant = 'dots',
+        showOverdueBadge = true,
+      } = props;
+
+      const selected = selectedDate || month || new Date().toISOString();
+      const weekStartDate = startOfWeek(selected, weekStart);
+      const days = Array.from({ length: 7 }, (_, i) => addDays(weekStartDate, i));
+      const plantNameMap = useMemo(() => {
+        const map = {};
+        if (Array.isArray(plantLookup)) {
+          plantLookup.forEach(p => { map[p.plantId] = p.name; });
+        }
+        return map;
+      }, [plantLookup]);
+
+      const allowedStatuses = Array.isArray(filter?.status) ? new Set(filter.status) : null;
+
+      const eventsByDate = useMemo(() => {
+        const withinWeek = events.filter(evt => {
+          const d = parseISOToDate(evt.date);
+          if (!d || isNaN(d)) return false;
+          const dayISO = toISODateString(d);
+          const startISO = toISODateString(weekStartDate);
+          const endISO = toISODateString(addDays(weekStartDate, 6));
+          const inRange = dayISO >= startISO && dayISO <= endISO;
+          const statusOk = allowedStatuses ? allowedStatuses.has(evt.status) : true;
+          return inRange && statusOk;
+        });
+        const grouped = {};
+        withinWeek.forEach(evt => {
+          const key = toISODateString(parseISOToDate(evt.date));
+          if (!grouped[key]) grouped[key] = [];
+          grouped[key].push(evt);
+        });
+        return grouped;
+      }, [events, weekStartDate, filter]);
+
+      const handleSelectDate = (d) => {
+        console.log('selectDateAction', selectDateAction, d);
+      };
+
+      const handleToggleTask = (evt) => {
+        console.log('toggleTaskAction', toggleTaskAction, evt);
+      };
+
+      const handleMarkDayDone = (d) => {
+        console.log('markDayDoneAction', markDayDoneAction, d);
+      };
+
+      const statusColor = (evt) => {
+        if (evt.status === 'overdue') return colorScheme.overdue || '#E74C3C';
+        if (evt.status === 'done') return colorScheme.done || '#7F8C8D';
+        const typeColor = colorScheme[evt.type] || colorScheme.pending || '#2C3E50';
+        return typeColor;
+      };
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div className="flex items-baseline justify-between">
+            <div>
+              <div className="font-semibold text-gray-900">This Week</div>
+              <div className="text-sm text-gray-500">{formatDate(weekStartDate)} – {formatDate(addDays(weekStartDate, 6))}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-3 text-xs text-gray-500">
+                <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: colorScheme.water || '#3BA7FF' }}></span> water</span>
+                <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: colorScheme.mist || '#65C1A9' }}></span> mist</span>
+                <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: colorScheme.rotate || '#F5A623' }}></span> rotate</span>
+                <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: colorScheme.fertilize || '#9C6ADE' }}></span> fertilize</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-7 gap-3">
+            {days.map((d) => {
+              const key = toISODateString(d);
+              const list = eventsByDate[key] || [];
+              const isToday = isSameDay(d, new Date().toISOString());
+              return (
+                <div key={key} className={`border rounded-md p-2 ${isToday ? 'border-emerald-300' : 'border-gray-200'} bg-gray-50`}>
+                  <div className="flex items-center justify-between">
+                    <button onClick={() => handleSelectDate(d)} className="font-medium text-gray-800 hover:underline">
+                      {formatDate(d)}
+                    </button>
+                    <button onClick={() => handleMarkDayDone(d)} className="text-xs text-gray-500 hover:text-gray-700">Mark done</button>
+                  </div>
+                  <div className="mt-2 space-y-2">
+                    {list.length === 0 && <div className="text-xs text-gray-400">No tasks</div>}
+                    {list.map((evt) => {
+                      const color = statusColor(evt);
+                      const plantName = evt.plantName || plantNameMap[evt.plantId] || evt.plantId || 'Plant';
+                      return (
+                        <div key={evt.id} className="bg-white border border-gray-200 rounded p-2">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-medium text-gray-800 truncate">{plantName}</div>
+                            {showOverdueBadge && evt.status === 'overdue' && (
+                              <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Overdue</span>
+                            )}
+                          </div>
+                          <div className="mt-1 flex items-center justify-between">
+                            <div className="text-xs text-gray-500 capitalize">{evt.type}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full" style={{ background: color }} title={evt.type}></span>
+                              <span className="text-xs text-gray-500">{formatTime(evt.date) || '—'}</span>
+                            </div>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2">
+                            <button onClick={() => handleToggleTask(evt)} className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100">Toggle</button>
+                            {evt.note && <span className="text-xs text-gray-500 truncate" title={evt.note}>{evt.note}</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    // UpcomingTaskList
+    const UpcomingTaskList = (props) => {
+      const {
+        tasks = [],
+        onItemAction,
+        defaultSnoozeDays = 3,
+        snoozeChoices = [1, 3, 7],
+        highlightOverdue = false,
+        timezone,
+      } = props;
+
+      const handleComplete = (task) => {
+        console.log('UpcomingTaskList complete', { task, onItemAction });
+      };
+
+      const handleSnooze = (task, days) => {
+        console.log('UpcomingTaskList snooze', { task, days, onItemAction });
+      };
+
+      const sorted = useMemo(() => {
+        const copy = Array.isArray(tasks) ? [...tasks] : [];
+        copy.sort((a, b) => {
+          const da = parseISOToDate(a.dueAt)?.getTime() || 0;
+          const db = parseISOToDate(b.dueAt)?.getTime() || 0;
+          return da - db;
+        });
+        return copy;
+      }, [tasks]);
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="font-semibold text-gray-900">This Week: Upcoming</div>
+            <div className="text-xs text-gray-500">Snooze default: {defaultSnoozeDays}d</div>
+          </div>
+          <div className="mt-3 divide-y divide-gray-100">
+            {sorted.length === 0 && <div className="text-sm text-gray-500 py-4">No upcoming tasks.</div>}
+            {sorted.map((t) => {
+              const overdueStyle = highlightOverdue && t.isOverdue ? 'bg-red-50' : '';
+              return (
+                <div key={t.id} className={`py-3 ${overdueStyle}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-gray-900 truncate">{t.plantName || t.plantId}</div>
+                      <div className="text-xs text-gray-500 capitalize">{t.type} • {formatDate(t.dueAt)} {formatTime(t.dueAt)}</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => handleComplete(t)} className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100">Done</button>
+                      <div className="relative group">
+                        <button className="text-xs px-2 py-1 bg-gray-50 text-gray-700 border border-gray-200 rounded hover:bg-gray-100">Snooze</button>
+                        <div className="hidden group-hover:block absolute right-0 mt-1 bg-white border border-gray-200 rounded shadow z-10">
+                          {snoozeChoices.map((d) => (
+                            <button key={d} onClick={() => handleSnooze(t, d)} className="block text-left w-full text-xs px-3 py-1 hover:bg-gray-50">{d} day{d === 1 ? '' : 's'}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    // CareOverviewBoard
+    const CareOverviewBoard = (props) => {
+      const {
+        currentMonth,
+        selectedFilter = 'thisWeek',
+        plants = [],
+        careEvents = [],
+        navigation = {},
+        filterActions = {},
+        showOverdueFirst = false,
+      } = props;
+
+      const [activeFilter, setActiveFilter] = useState(selectedFilter);
+
+      useEffect(() => {
+        setActiveFilter(selectedFilter);
+      }, [selectedFilter]);
+
+      const filters = ['all', 'overdue', 'today', 'thisWeek'];
+
+      const handleFilter = (f) => {
+        setActiveFilter(f);
+        const action = filterActions?.[f];
+        if (action) console.log('CareOverviewBoard change_filter', action);
+      };
+
+      const overdueIds = new Set(
+        careEvents.filter(e => e.status === 'overdue').map(e => e.plantId)
+      );
+
+      const mappedPlants = useMemo(() => {
+        let list = Array.isArray(plants) ? plants.map(p => ({
+          ...p,
+          onSelectAction: p.onSelectAction || p.selectAction,
+          nextTaskType: p.nextTask?.type || p.nextTaskType,
+          nextTaskDate: p.nextTask?.date || p.nextTaskDate,
+        })) : [];
+        if (activeFilter === 'overdue') {
+          list = list.filter(p => p.isOverdue || overdueIds.has(p.id));
+        }
+        if (showOverdueFirst) {
+          list.sort((a, b) => (b.isOverdue === true) - (a.isOverdue === true));
+        }
+        return list;
+      }, [plants, activeFilter, showOverdueFirst, careEvents]);
+
+      // Upcoming this week events list for sidebar
+      const selected = selectedFilter;
+      const weekStartDate = startOfWeek(currentMonth || new Date().toISOString(), 'sun');
+      const weekEndDate = addDays(weekStartDate, 6);
+      const weekEvents = careEvents.filter(evt => {
+        const d = parseISOToDate(evt.date);
+        if (!d) return false;
+        const inRange = d >= weekStartDate && d <= weekEndDate;
+        if (activeFilter === 'overdue') return evt.status === 'overdue';
+        if (activeFilter === 'today') return isSameDay(d, new Date().toISOString());
+        if (activeFilter === 'thisWeek') return inRange;
+        return true;
+      });
+
+      return (
+        <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="font-semibold text-gray-900">Care Board</div>
+                <div className="flex items-center gap-2">
+                  {filters.map(f => (
+                    <button
+                      key={f}
+                      onClick={() => handleFilter(f)}
+                      className={`text-xs px-2 py-1 rounded border ${activeFilter === f ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+                    >
+                      {f === 'thisWeek' ? 'This Week' : f[0].toUpperCase() + f.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {mappedPlants.length === 0 && (
+                <div className="col-span-full text-sm text-gray-500">No plants match the current filter.</div>
+              )}
+              {mappedPlants.map(plant => (
+                <PlantCard key={plant.id} {...plant} onSelectAction={plant.onSelectAction} />
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="font-semibold text-gray-900">This Week’s Tasks</div>
+              <div className="mt-2 space-y-2 max-h-[28rem] overflow-auto pr-1">
+                {weekEvents.length === 0 && <div className="text-sm text-gray-500">No tasks scheduled.</div>}
+                {weekEvents
+                  .slice()
+                  .sort((a, b) => (parseISOToDate(a.date) - parseISOToDate(b.date)))
+                  .map(evt => (
+                    <div key={evt.id} className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded p-2">
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-gray-800 truncate">{evt.plantName || evt.plantId || 'Plant'}</div>
+                        <div className="text-xs text-gray-500 capitalize">{evt.type} • {formatDate(evt.date)} {formatTime(evt.date)}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {evt.status === 'overdue' && <span className="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Overdue</span>}
+                        <button onClick={() => console.log('complete_task', evt)} className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 rounded hover:bg-emerald-100">Done</button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // PlantDetailDrawer (simple static drawer)
+    const PlantDetailDrawer = (props) => {
+      const {
+        plant = {},
+        schedule = {},
+        lastWateredDate,
+        lastFertilizedDate,
+        notes,
+        onCareAction,
+        historyPreviewLimit = 5,
+        timezone,
+      } = props;
+
+      const [open, setOpen] = useState(true);
+
+      const handleAction = (type) => {
+        const action = { type, plantId: plant.id };
+        console.log('PlantDetailDrawer action', action, onCareAction);
+      };
+
+      if (!open) return null;
+
+      return (
+        <div className="fixed inset-0 bg-black/20 z-30 flex justify-end">
+          <div className="w-full max-w-md h-full bg-white shadow-xl p-4 overflow-auto">
+            <div className="flex items-center justify-between">
+              <div className="font-semibold text-gray-900">{plant.name || 'Plant Details'}</div>
+              <button onClick={() => setOpen(false)} className="text-sm text-gray-500 hover:text-gray-700">Close</button>
+            </div>
+            <div className="mt-3 text-sm text-gray-700">
+              <div>Last watered: {formatDate(lastWateredDate)} {formatTime(lastWateredDate)}</div>
+              <div>Last fertilized: {formatDate(lastFertilizedDate)} {formatTime(lastFertilizedDate)}</div>
+              {notes && <div className="mt-2 text-gray-600">{notes}</div>}
+            </div>
+            <div className="mt-4 flex items-center gap-2">
+              <button onClick={() => handleAction('water_now')} className="text-sm px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700">Water now</button>
+              <button onClick={() => handleAction('fertilize_now')} className="text-sm px-3 py-1.5 bg-violet-600 text-white rounded hover:bg-violet-700">Fertilize</button>
+              <button onClick={() => handleAction('mist_now')} className="text-sm px-3 py-1.5 bg-teal-600 text-white rounded hover:bg-teal-700">Mist</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      CareOverviewBoard: CareOverviewBoard,
+      PlantCard: PlantCard,
+      CareCalendar: CareCalendar,
+      UpcomingTaskList: UpcomingTaskList,
+      OverdueAlertBanner: OverdueAlertBanner,
+      PlantDetailDrawer: PlantDetailDrawer,
+    };
+
+    // ComponentRenderer
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    // ContentChunkRenderer and MessageBubble
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-gray-800">{chunk}</p>;
+      }
+      if (chunk.type === 'text') {
+        return <p className="whitespace-pre-wrap text-gray-800">{chunk.text}</p>;
+      }
+      if (chunk.type === 'component') {
+        const { component } = chunk;
+        return (
+          <div className="my-3">
+            <ComponentRenderer componentName={component.name} props={component.props || {}} />
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const bg = isUser ? 'bg-white' : 'bg-emerald-50';
+      const border = isUser ? 'border-gray-200' : 'border-emerald-200';
+
+      const chunks = Array.isArray(content) ? content : [{ type: 'text', text: content }];
+
+      return (
+        <div className={`w-full ${isUser ? 'justify-start' : 'justify-end'} flex`}>
+          <div className={`w-full md:w-5/6 lg:w-3/4 my-3 ${bg} border ${border} rounded-xl p-4 shadow-sm`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-6 h-6 rounded-full ${isUser ? 'bg-gray-200' : 'bg-emerald-200'} flex items-center justify-center text-xs`}>
+                {isUser ? 'U' : 'A'}
+              </div>
+              <div className="text-xs uppercase tracking-wide text-gray-500">{isUser ? 'User' : 'Assistant'}</div>
+            </div>
+            <div className="space-y-3">
+              {chunks.map((chunk, idx) => <ContentChunkRenderer key={idx} chunk={chunk} />)}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // ConversationView
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Conversation Viewer</h1>
+          <div className="space-y-2">
+            {conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // Render to DOM
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

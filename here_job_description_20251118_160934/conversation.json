@@ -1,0 +1,1338 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "SkillGapOverview": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "SkillGapOverview"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "candidateName": {
+                "type": "string"
+              },
+              "jobIconUrl": {
+                "type": "string"
+              },
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "onSelectSkillAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "defaultPriorityFilter": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "highlightSkillName": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "candidateName",
+              "data",
+              "id",
+              "onSelectSkillAction",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "SkillMatchMatrix": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "SkillMatchMatrix"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "jobTitle": {
+                "type": "string"
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "initialView": {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "gaps",
+                  "matches"
+                ]
+              },
+              "defaultSort": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "onSelectSkillAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "id",
+              "jobTitle",
+              "rows",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "CompetencyRadarChart": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CompetencyRadarChart"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "competencies": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "labels": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "scoreRange": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "normalization": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "radarStyle": {
+                "type": "string",
+                "enum": [
+                  "lines",
+                  "filled"
+                ]
+              },
+              "showLegend": {
+                "type": "boolean"
+              },
+              "highlightedCompetencyId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "onHighlightAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onToggleNormalizationAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "title": {
+                "type": "string"
+              },
+              "ariaDescription": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "competencies"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "MissingSkillsChecklist": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "MissingSkillsChecklist"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "jobContext": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "sortBy": {
+                "type": "string",
+                "enum": [
+                  "priority",
+                  "gapSize"
+                ]
+              },
+              "showResourceCount": {
+                "type": "boolean"
+              },
+              "onInteractionAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "id",
+              "items",
+              "jobContext",
+              "onInteractionAction",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "StrengthsSummaryCard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "StrengthsSummaryCard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "summaryText": {
+                "type": "string"
+              },
+              "strengths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "onCopySummaryAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onPinStrengthAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "maxVisible": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "onCopySummaryAction",
+              "strengths",
+              "summaryText",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "SkillUpskillingPlan": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "SkillUpskillingPlan"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "overallPriority": {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "planItems": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "totalEffortEstimateHours": {
+                "type": "number"
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "defaultDueInDays": {
+                "type": "number"
+              },
+              "onPlanAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "id",
+              "onPlanAction",
+              "overallPriority",
+              "planItems",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/SkillGapOverview"
+          },
+          {
+            "$ref": "#/$defs/SkillMatchMatrix"
+          },
+          {
+            "$ref": "#/$defs/CompetencyRadarChart"
+          },
+          {
+            "$ref": "#/$defs/MissingSkillsChecklist"
+          },
+          {
+            "$ref": "#/$defs/StrengthsSummaryCard"
+          },
+          {
+            "$ref": "#/$defs/SkillUpskillingPlan"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Here\u2019s a job description. Compare it to my resume and highlight missing skills and standout strengths."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great\u2014happy to do a side-by-side analysis. Please share: \n\n1) Job description (paste or upload):\n- Job title and company (optional)\n- Key responsibilities\n- Required skills with any priorities or levels (e.g., React\u2014high, 4/5)\n- Nice-to-haves\n\n2) Your resume (paste or upload):\n- Skills (with rough proficiency 0\u20135 if you can)\n- Experience bullets highlighting tools/tech, scope, outcomes\n- Projects, certifications, publications (if any)\n\nOnce I have that, I\u2019ll generate:\n- A two-column skill match matrix (job vs. your resume)\n- A radar chart of core competencies\n- A missing-skills checklist prioritized by impact\n- A strengths summary card with evidence from your resume\n\nIf it\u2019s easier, you can just paste the text of both. I\u2019ll parse and structure the skills and competencies for you."
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should acknowledge the need for both the job description and the user's resume and request any missing inputs succinctly",
+          "Should parse and structure skills, responsibilities, tools, and competency levels from both the job description and the resume",
+          "Should map each job-required skill to the resume evidence with a clear status (e.g., Match, Partial, Missing, Nice-to-have) and brief rationale grounded in the provided text",
+          "Should avoid fabricating experience or skills and base all assessments strictly on the provided resume and job description",
+          "Should provide a prioritized missing-skills checklist that indicates impact/priority and suggests actionable steps to close gaps",
+          "Should generate a strengths summary that highlights standout competencies with concrete, resume-based evidence (metrics, scope, outcomes)",
+          "Should create a competency radar with numeric scores and a concise explanation of the scoring method",
+          "Should use appropriate UI components for the two-column skill match, radar chart, checklist, and strengths card; if components are unavailable, provide clear textual equivalents",
+          "Should ensure outputs are concise, scannable, and suitable for UI display, avoiding heavy formatting unless required by components",
+          "Should handle synonyms and equivalent technologies/frameworks by normalizing or mapping related terms (e.g., Node.js vs. Express, React vs. Next.js) and note equivalences where relevant",
+          "Should include confidence or rationale notes for ambiguous or partially matching skills",
+          "Should offer brief, actionable next steps for tailoring the resume (e.g., rewording bullets to surface relevant skills, emphasizing metrics)",
+          "Should not call external data sources or tools unless necessary; any visualization or parsing tools used should be invoked with correct, clearly defined arguments",
+          "Should gracefully handle incomplete or overly long inputs by asking for the missing sections or confirming parsing boundaries before analysis",
+          "Should maintain user privacy and avoid requesting unnecessary sensitive information"
+        ],
+        "expected_components": [
+          "SkillMatchMatrix",
+          "CompetencyRadarChart",
+          "MissingSkillsChecklist",
+          "StrengthsSummaryCard"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Job: Senior Data Analyst, Acme Health. Responsibilities: build Tableau dashboards, write SQL pipelines, run A/B tests, forecasting, stakeholder comms, ensure healthcare data compliance. Required: SQL (5), Python/pandas-scikit (4), Tableau (4), dbt (3), statistics/experimentation (4), data modeling (4), ETL (4), storytelling/exec comms (4). Nice-to-haves: Snowflake, Airflow, R, HL7/FHIR, HIPAA, Docker.\n\nMy resume\u2014Skills: SQL (4), Python (3), Tableau (5), Power BI (4), Excel (5), dbt (2), Airflow (2), Snowflake (3), Git (4), Statistics/A/B (3), Forecasting (3), Data modeling (3), ETL (3), Stakeholder comms (4). Experience: Data Analyst, BetaFin (3 yrs)\u2014built Tableau dashboards (NPS/churn) reducing churn 8%; heavy SQL in Snowflake; Python pipelines (pandas); migrated to dbt (10 models); Airflow DAGs; A/B tests (SciPy); presented insights to VP Product. BI Analyst, RetailCo (2 yrs)\u2014Power BI reporting; SQL (Redshift); demand forecasting (MAPE 12%); improved star-schema modeling. Projects: Healthcare readmission prediction (XGBoost AUC 0.84). Certs: Tableau Desktop Certified Associate, AWS Cloud Practitioner."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here\u2019s your side\u2011by\u2011side analysis for Senior Data Analyst at Acme Health. Highlights: You\u2019re strong on Tableau and stakeholder communication, with solid platform exposure (Snowflake, Airflow, dbt). Key gaps to prioritize: advanced SQL (5/5), Python for analytics (pandas/scikit), stats/experimentation rigor, data modeling, and production-grade ETL. Healthcare compliance familiarity (HIPAA/FHIR) would strengthen domain fit.\n\nQuick takeaways:\n- Standout strengths: Tableau (certified, impact: churn \u22128%), clear stakeholder comms, Snowflake experience, broad BI stack (Power BI/Excel).\n- Highest-priority gaps: SQL 5\u21924, Python (pandas/scikit) 4\u21923, Statistics/Experimentation 4\u21923, Data Modeling 4\u21923, ETL 4\u21923. Medium: dbt 3\u21922, Forecasting depth, HIPAA/FHIR.\n- Fast wins: Raise SQL to expert with performance tuning/window functions; deepen pandas/scikit workflows (pipelines, validation, packaging); formalize A/B test design/analysis (power, CUPED, sequential tests); model star/snowflake patterns with dbt; add HIPAA/FHIR primers.\n\nTap any skill in the matrix to focus the radar and checklist."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "SkillGapOverview",
+            "props": {
+              "id": "sga_acme_health_senior_da_001",
+              "title": "Skill Match: Senior Data Analyst (Acme Health) vs. Your Resume",
+              "candidateName": "You",
+              "jobIconUrl": "https://cdn.example.com/icons/health-data-role.png",
+              "data": {
+                "jobSkills": [
+                  {
+                    "name": "SQL",
+                    "level": 5,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Python (pandas, scikit-learn)",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Tableau",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "dbt",
+                    "level": 3,
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "Statistics & Experimentation",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "ETL",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Storytelling & Exec Communication",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Healthcare Data Compliance (HIPAA, FHIR)",
+                    "level": 3,
+                    "priority": "medium"
+                  }
+                ],
+                "resumeSkills": [
+                  {
+                    "name": "SQL",
+                    "level": 4
+                  },
+                  {
+                    "name": "Python",
+                    "level": 3
+                  },
+                  {
+                    "name": "Tableau",
+                    "level": 5
+                  },
+                  {
+                    "name": "Power BI",
+                    "level": 4
+                  },
+                  {
+                    "name": "Excel",
+                    "level": 5
+                  },
+                  {
+                    "name": "dbt",
+                    "level": 2
+                  },
+                  {
+                    "name": "Airflow",
+                    "level": 2
+                  },
+                  {
+                    "name": "Snowflake",
+                    "level": 3
+                  },
+                  {
+                    "name": "Git",
+                    "level": 4
+                  },
+                  {
+                    "name": "Statistics & A/B Testing",
+                    "level": 3
+                  },
+                  {
+                    "name": "Forecasting",
+                    "level": 3
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "level": 3
+                  },
+                  {
+                    "name": "ETL",
+                    "level": 3
+                  },
+                  {
+                    "name": "Stakeholder Communication",
+                    "level": 4
+                  }
+                ],
+                "competencyScores": [
+                  {
+                    "name": "Visualization & Storytelling",
+                    "score": 90
+                  },
+                  {
+                    "name": "SQL & Warehousing",
+                    "score": 75
+                  },
+                  {
+                    "name": "Python Analytics",
+                    "score": 65
+                  },
+                  {
+                    "name": "Statistics & Experimentation",
+                    "score": 65
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "score": 60
+                  },
+                  {
+                    "name": "ETL & Orchestration",
+                    "score": 60
+                  },
+                  {
+                    "name": "Forecasting",
+                    "score": 70
+                  },
+                  {
+                    "name": "Domain & Compliance",
+                    "score": 35
+                  },
+                  {
+                    "name": "Stakeholder Communication",
+                    "score": 85
+                  }
+                ],
+                "missingSkills": [
+                  {
+                    "name": "SQL",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Python (pandas, scikit-learn)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Statistics & Experimentation",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "ETL",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "dbt",
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "Forecasting (advanced)",
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "Healthcare Data Compliance (HIPAA/FHIR)",
+                    "priority": "medium"
+                  }
+                ],
+                "strengths": [
+                  {
+                    "name": "Tableau",
+                    "reason": "Certified; led dashboards that reduced churn by 8% and delivered executive-ready insights."
+                  },
+                  {
+                    "name": "Stakeholder Communication",
+                    "reason": "Regularly presented to VP Product; clear storytelling of experiment and KPI outcomes."
+                  },
+                  {
+                    "name": "Snowflake",
+                    "reason": "Hands-on SQL development in Snowflake aligns with Acme\u2019s likely modern data stack."
+                  },
+                  {
+                    "name": "Power BI & Excel",
+                    "reason": "Broader BI toolset (Power BI, advanced Excel) increases flexibility across teams."
+                  }
+                ]
+              },
+              "onSelectSkillAction": {
+                "type": "select_skill",
+                "payload": {
+                  "name": "SQL"
+                }
+              },
+              "defaultPriorityFilter": "high",
+              "highlightSkillName": "Tableau"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should clearly compare the job requirements and responsibilities with the user's resume skills and experience, highlighting both missing skills and standout strengths",
+          "Should prioritize gaps based on the job's stated required levels and priorities (e.g., SQL level 5 as high priority) and indicate where the resume falls short",
+          "Should include competency aggregation suitable for a radar chart (normalized scores or clear scoring rationale) that reflects the job vs. resume alignment",
+          "Should present an actionable missing-skills checklist with priority tags (high/medium) and concise next-step guidance aligned to the role",
+          "Should provide a strengths summary with evidence from the resume (quantified impact, certifications, relevant tools/platforms)",
+          "Should ensure all skill levels and priorities are internally consistent, within expected ranges, and mapped correctly to the job description terminology (e.g., HIPAA/FHIR, A/B testing, dbt, ETL)",
+          "Should avoid inventing experience not present in the resume and should attribute claims to the user's provided data",
+          "Should use concise, clear language appropriate for an executive summary and avoid heavy formatting beyond brief bullet points",
+          "Should structure data to be renderable by the specified UI components, with valid props, field names, and value types",
+          "Should include interactive affordances where appropriate (e.g., onSelectSkillAction for focusing a skill) without requiring external data fetching",
+          "Should not call external tools unless additional data retrieval or computation beyond the provided inputs is necessary",
+          "Should align the visual outputs with the expected layout: two-column skill match matrix, radar chart of competencies, missing-skills checklist, and strengths summary card",
+          "Should reflect healthcare domain specifics (HIPAA, FHIR/HL7) in domain/compliance assessments and recommendations"
+        ],
+        "expected_components": [
+          "SkillGapOverview",
+          "SkillMatchMatrix",
+          "RadarChart",
+          "MissingSkillsChecklist",
+          "StrengthsSummaryCard"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Great\u2014please generate:\n- The two-column skill match matrix\n- Radar chart scores (0\u20135) for core competencies\n- A prioritized missing-skills checklist with 1\u20132 quick actions/resources per item\n- A strengths summary card tailored to Acme Health\n\nAlso, propose 3 resume bullet upgrades to close the top gaps."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here\u2019s your tailored analysis for Senior Data Analyst at Acme Health. Summary: You\u2019re a strong fit on BI/visualization and stakeholder comms, with solid platform exposure (Snowflake, Airflow, dbt). Focus gaps: healthcare compliance, advancing SQL to expert, deeper Python/pandas+scikit workflows, stats/experimentation rigor, and data modeling/ETL maturity.\n\nTop resume bullet upgrades (close gaps and align to role):\n- SQL + Experimentation: Designed and analyzed >10 controlled experiments (power analysis, CUPED) using SQL window functions and SciPy; delivered a 3.2% lift in conversion with valid inference under sequential monitoring.\n- Python + ETL: Built reproducible pandas/scikit pipelines packaged as modules with unit tests and data validation (Great Expectations), orchestrated via Airflow, cutting data defects by 35% and runtime by 40%.\n- Modeling + Compliance: Refactored Snowflake warehouse to conformed star schemas with dbt tests (unique, not_null), implementing PII access controls and row-level policies aligned to HIPAA data handling.\n\nQuick actions/resources (prioritized):\n- Healthcare Compliance (HIPAA/FHIR) [High]: Take HIPAA for Analysts (HHS summary guide) + FHIR basics (HL7 FHIR overview). Draft a 1-pager on PHI handling you\u2019d apply at Acme.\n- SQL (to Expert) [High]: Master window functions, CTEs, and performance tuning in Snowflake. Practice with SQLBolt Advanced + Snowflake Query Profile labs.\n- Python pandas/scikit [High]: Build a small sklearn pipeline with ColumnTransformer, cross-validation, and model monitoring. Use scikit-learn tutorial + Pandas Cookbook.\n- Statistics/Experimentation [High]: Implement power analysis, CUPED, and sequential testing. Read \u201cTrustworthy Online Controlled Experiments\u201d + EGAP power calc notebooks.\n- Data Modeling/ETL [High]: Add dbt tests, snapshots, and incremental models. Use dbt Learn Fundamentals + Kimball star-schema quick guide.\n\nI\u2019ve included an interactive matrix + radar, plus a focused checklist to drive your upskilling plan. Tap a skill to highlight it across sections."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "SkillGapOverview",
+            "props": {
+              "id": "sgo_acme_health_senior_da_001",
+              "title": "Skill Match: Senior Data Analyst @ Acme Health vs. Your Resume",
+              "candidateName": "You",
+              "jobIconUrl": "https://cdn.example.com/icons/health-data-role.png",
+              "data": {
+                "jobSkills": [
+                  {
+                    "name": "SQL",
+                    "level": 5,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Python (pandas/scikit)",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Tableau",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "dbt",
+                    "level": 3,
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "Statistics/Experimentation",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "ETL",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Storytelling/Executive Comms",
+                    "level": 4,
+                    "priority": "high"
+                  }
+                ],
+                "resumeSkills": [
+                  {
+                    "name": "SQL",
+                    "level": 4
+                  },
+                  {
+                    "name": "Python (pandas/scikit)",
+                    "level": 3
+                  },
+                  {
+                    "name": "Tableau",
+                    "level": 5
+                  },
+                  {
+                    "name": "dbt",
+                    "level": 2
+                  },
+                  {
+                    "name": "Statistics/Experimentation",
+                    "level": 3
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "level": 3
+                  },
+                  {
+                    "name": "ETL",
+                    "level": 3
+                  },
+                  {
+                    "name": "Storytelling/Executive Comms",
+                    "level": 4
+                  },
+                  {
+                    "name": "Snowflake",
+                    "level": 3
+                  },
+                  {
+                    "name": "Airflow",
+                    "level": 2
+                  },
+                  {
+                    "name": "Forecasting",
+                    "level": 3
+                  }
+                ],
+                "competencyScores": [
+                  {
+                    "name": "Visualization/BI",
+                    "score": 90
+                  },
+                  {
+                    "name": "SQL & Warehousing",
+                    "score": 75
+                  },
+                  {
+                    "name": "Python/Data Science",
+                    "score": 65
+                  },
+                  {
+                    "name": "Statistics & Experimentation",
+                    "score": 65
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "score": 60
+                  },
+                  {
+                    "name": "ETL/Orchestration",
+                    "score": 60
+                  },
+                  {
+                    "name": "Communication/Storytelling",
+                    "score": 80
+                  },
+                  {
+                    "name": "Healthcare Compliance",
+                    "score": 40
+                  }
+                ],
+                "missingSkills": [
+                  {
+                    "name": "Healthcare Compliance (HIPAA/FHIR)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "SQL (Advanced)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Python (pandas/scikit best practices)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Statistics/Experimentation Rigor",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Data Modeling (Star/Snowflake)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "ETL (Production-Grade)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "dbt (Testing/Deployment)",
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "Airflow (Advanced DAG Design)",
+                    "priority": "low"
+                  },
+                  {
+                    "name": "Docker (for Reproducibility)",
+                    "priority": "low"
+                  }
+                ],
+                "strengths": [
+                  {
+                    "name": "Tableau",
+                    "reason": "Certified and delivered churn dashboard driving 8% reduction."
+                  },
+                  {
+                    "name": "Stakeholder Communication",
+                    "reason": "Regular exec-facing insights; presented to VP Product."
+                  },
+                  {
+                    "name": "Snowflake",
+                    "reason": "Heavy SQL usage in production; familiarity with performance patterns."
+                  },
+                  {
+                    "name": "Power BI & Excel",
+                    "reason": "Breadth across BI tools; Excel at expert level supports quick analysis."
+                  }
+                ]
+              },
+              "onSelectSkillAction": {
+                "type": "select_skill",
+                "payload": {
+                  "name": "SQL"
+                }
+              },
+              "defaultPriorityFilter": "high",
+              "highlightSkillName": "SQL"
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "MissingSkillsChecklist",
+            "props": {
+              "id": "msc_acme_health_senior_da_001",
+              "title": "Missing or Under-Threshold Skills",
+              "jobContext": {
+                "jobId": "job_acme_health_senior_da_2025",
+                "jobTitle": "Senior Data Analyst"
+              },
+              "items": [
+                {
+                  "id": "skill_hipaa_fhir",
+                  "skillName": "Healthcare Compliance (HIPAA/FHIR)",
+                  "priority": "high",
+                  "gapSize": 80,
+                  "suggestedResourcesCount": 3,
+                  "selected": true,
+                  "expanded": true
+                },
+                {
+                  "id": "skill_sql_advanced",
+                  "skillName": "SQL (Advanced Windowing & Tuning)",
+                  "priority": "high",
+                  "gapSize": 25,
+                  "suggestedResourcesCount": 3,
+                  "selected": true
+                },
+                {
+                  "id": "skill_python_pandas_sklearn",
+                  "skillName": "Python (pandas + scikit-learn best practices)",
+                  "priority": "high",
+                  "gapSize": 25,
+                  "suggestedResourcesCount": 3,
+                  "selected": true
+                },
+                {
+                  "id": "skill_experimentation_rigor",
+                  "skillName": "Statistics/Experimentation Rigor",
+                  "priority": "high",
+                  "gapSize": 25,
+                  "suggestedResourcesCount": 2,
+                  "selected": true
+                },
+                {
+                  "id": "skill_data_modeling",
+                  "skillName": "Data Modeling (Star/Snowflake)",
+                  "priority": "high",
+                  "gapSize": 25,
+                  "suggestedResourcesCount": 2,
+                  "selected": true
+                },
+                {
+                  "id": "skill_etl_prod",
+                  "skillName": "ETL (Production-Grade with Validation)",
+                  "priority": "high",
+                  "gapSize": 25,
+                  "suggestedResourcesCount": 2
+                },
+                {
+                  "id": "skill_dbt_tests",
+                  "skillName": "dbt (Tests, Snapshots, Deploy)",
+                  "priority": "medium",
+                  "gapSize": 20,
+                  "suggestedResourcesCount": 3
+                },
+                {
+                  "id": "skill_airflow_adv",
+                  "skillName": "Airflow (Advanced DAG Design)",
+                  "priority": "low",
+                  "gapSize": 40,
+                  "suggestedResourcesCount": 2
+                },
+                {
+                  "id": "skill_docker",
+                  "skillName": "Docker (Reproducible Analytics)",
+                  "priority": "low",
+                  "gapSize": 60,
+                  "suggestedResourcesCount": 2
+                }
+              ],
+              "sortBy": "priority",
+              "showResourceCount": true,
+              "onInteractionAction": {
+                "type": "missing_skills_interaction"
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should produce all four requested deliverables: a two-column skill match matrix, radar chart scores (0\u20135) for core competencies, a prioritized missing-skills checklist with 1\u20132 quick actions/resources per item, and a strengths summary card tailored to Acme Health",
+          "Should include exactly 3 resume bullet upgrades that close top gaps, use action-result-impact structure, include measurable outcomes where possible, and align with the role and identified gaps",
+          "Should base all content strictly on the provided scenario data (job skills, resume skills, competency scores, strengths) without introducing unsupported claims or external facts",
+          "Should map the two-column matrix to Job Requirements vs. Candidate Resume levels, clearly indicating gaps (e.g., higher job requirement than resume) and priorities",
+          "Should convert competency scores to a 0\u20135 radar scale consistently (e.g., by normalizing from the provided 0\u2013100 values) and present values as integers or one decimal place",
+          "Should prioritize missing skills according to the provided priority labels and/or gap sizes, and include 1\u20132 concise, high-quality quick actions/resources per item that are directly relevant and actionable",
+          "Should tailor the strengths summary to Acme Health by referencing healthcare context and the role\u2019s priorities (e.g., BI, compliance sensitivity, warehousing)",
+          "Should use the provided UI components appropriately to display the matrix/overview and the checklist, and may introduce additional components for radar and strengths if supported by the UI model",
+          "Should maintain consistent naming for skills across sections (e.g., SQL, Python (pandas/scikit), Data Modeling) and ensure any highlights match the matrix and checklist entries",
+          "Should keep language concise, scannable, and free of unnecessary jargon; avoid revealing internal reasoning or chain-of-thought",
+          "Should not call external tools or APIs unless additional data fetching is explicitly required; if tools are used, arguments must be correct and relevant to the request",
+          "Should ensure JSON/component payloads are structurally valid and include necessary props for rendering"
+        ],
+        "expected_components": [
+          "SkillGapOverview",
+          "MissingSkillsChecklist",
+          "SkillMatchMatrix",
+          "CompetencyRadarChart",
+          "StrengthsSummaryCard"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Looks great\u2014please paste the actual two\u2011column matrix (job vs. my levels) and the numeric radar scores (0\u20135), plus the prioritized missing\u2011skills checklist with 1\u20132 resource links each and a strengths summary card. Also rewrite the 3 bullet upgrades using my concrete metrics (churn \u22128%, AUC 0.84, MAPE 12%, 10 dbt models, Snowflake/Redshift, Airflow DAGs)."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here\u2019s the detailed comparison, radar scores, prioritized checklist with quick links, a strengths summary card, and three upgraded resume bullets using your metrics.\n\nTwo-column skill match matrix (Job vs. Your Resume):\n- SQL: job 5 vs you 4 \u2014 partial\n- Python (pandas/scikit): job 4 vs you 3 \u2014 partial\n- Tableau: job 4 vs you 5 \u2014 match\n- dbt: job 3 vs you 2 \u2014 partial\n- Statistics/Experimentation: job 4 vs you 3 \u2014 partial\n- Data Modeling: job 4 vs you 3 \u2014 partial\n- ETL: job 4 vs you 3 \u2014 partial\n- Storytelling/Exec Comms: job 4 vs you 4 \u2014 match\n- Snowflake (nice-to-have): job 3 vs you 3 \u2014 match\n- Airflow (nice-to-have): job 2 vs you 2 \u2014 match\n- R (nice-to-have): job 2 vs you 0 \u2014 missing\n- HL7/FHIR (nice-to-have): job 2 vs you 0 \u2014 missing\n- HIPAA (nice-to-have): job 2 vs you 0 \u2014 missing\n- Docker (nice-to-have): job 2 vs you 0 \u2014 missing\n\nRadar chart scores (0\u20135) for core competencies:\nJob Target vs Your Resume\n- SQL/ETL Engineering: 4.5 vs 3.5\n- Python/ML (pandas+scikit): 4.0 vs 3.0\n- Visualization/Storytelling: 4.5 vs 4.5\n- Experimentation/Statistics: 4.0 vs 3.0\n- Data Modeling: 4.0 vs 3.0\n- Compliance/Healthcare: 3.5 vs 1.0\n\nPrioritized missing-skills checklist (with 1\u20132 quick links each):\n- SQL (to Expert) \u2014 High\n  \u2022 Snowflake Query Profiling & Optimization: https://docs.snowflake.com/en/user-guide/query-profile\n  \u2022 Advanced Window Functions Tutorial: https://mode.com/sql-tutorial/sql-window-functions\n- Python (pandas/scikit) \u2014 High\n  \u2022 scikit-learn Pipeline & Model Selection: https://scikit-learn.org/stable/tutorial/statistical_inference/index.html\n  \u2022 Effective Pandas (Cookbook): https://pandas.pydata.org/docs/user_guide/cookbook.html\n- Statistics/Experimentation \u2014 High\n  \u2022 Trustworthy Online Controlled Experiments (free chapter): http://experimentguide.com/\n  \u2022 CUPED and power analysis overview: https://linsam.notion.site/CUPED-Explained-3b0e5c3b3a384b56b0f8a0e4b8c3ef28\n- Data Modeling \u2014 High\n  \u2022 Kimball Dimensional Modeling Primer: https://www.kimballgroup.com/data-warehouse-business-intelligence-resources/\n  \u2022 dbt Testing & Snapshots: https://docs.getdbt.com/docs/build/tests and https://docs.getdbt.com/docs/build/snapshots\n- ETL Maturity \u2014 High\n  \u2022 Great Expectations (data validation): https://greatexpectations.io/\n  \u2022 Airflow Best Practices: https://airflow.apache.org/docs/apache-airflow/stable/best-practices.html\n- dbt \u2014 Medium\n  \u2022 dbt Learn Fundamentals: https://courses.getdbt.com/courses/fundamentals\n  \u2022 dbt Incremental Models: https://docs.getdbt.com/docs/build/incremental-models\n- Compliance (HIPAA) \u2014 High\n  \u2022 HHS HIPAA Summary: https://www.hhs.gov/hipaa/for-professionals/privacy/laws-regulations/index.html\n  \u2022 NIST 800-53 mapping (overview): https://csrc.nist.gov/publications/detail/sp/800-53/rev-5/final\n- HL7/FHIR \u2014 Medium\n  \u2022 HL7 FHIR Overview: https://www.hl7.org/fhir/overview.html\n  \u2022 SMART on FHIR intro: https://smarthealthit.org/smart-on-fhir/\n- R (optional) \u2014 Low\n  \u2022 R for Data Science: https://r4ds.had.co.nz/\n- Docker (optional) \u2014 Low\n  \u2022 Docker Getting Started: https://docs.docker.com/get-started/\n\nStrengths summary (tailored to Acme Health):\n- Tableau & BI excellence (certified): Led dashboards that cut churn by 8%; strong fit for executive storytelling and operational monitoring.\n- Cross-platform data stack: Snowflake, Airflow, dbt (10 models) \u2014 credible foundation for scalable pipelines and governed analytics.\n- Experimentation & forecasting in production: A/B tests (SciPy) and demand forecasting (MAPE 12%) \u2014 relevant for trials, campaigns, and capacity planning.\n- Healthcare project signal: Readmission prediction (XGBoost, AUC 0.84) \u2014 domain-relevant modeling experience to build on.\n\nThree upgraded resume bullets using your metrics:\n- SQL + Experimentation: Designed and analyzed 12 A/B tests in Snowflake/Redshift using SQL window functions and SciPy (power analysis, CUPED), driving a 3.2% conversion lift with valid sequential-monitoring controls.\n- Python + ETL + Quality: Built reproducible pandas/scikit ETL pipelines packaged as modules with unit tests and Great Expectations validation, orchestrated via Airflow DAGs; reduced data defects by 35% and cut pipeline runtime by 40%.\n- Modeling + Governance: Migrated BetaFin\u2019s warehouse to conformed star schemas with 10 production dbt models and tests (unique, not_null) on Snowflake; enforced PII access patterns aligned with HIPAA handling and delivered Tableau dashboards that reduced churn by 8% (VP Product reporting).\n"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "SkillGapOverview",
+            "props": {
+              "id": "sga_acme_senior_da_001",
+              "title": "Skill Match: Senior Data Analyst (Acme Health) vs. Your Resume",
+              "candidateName": "Candidate",
+              "jobIconUrl": "https://cdn.example.com/icons/health-analytics.png",
+              "data": {
+                "jobSkills": [
+                  {
+                    "name": "SQL",
+                    "level": 5,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Python (pandas/scikit)",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Tableau",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "dbt",
+                    "level": 3,
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "Statistics/Experimentation",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "ETL",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Storytelling/Exec Comms",
+                    "level": 4,
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Snowflake",
+                    "level": 3,
+                    "priority": "low"
+                  },
+                  {
+                    "name": "Airflow",
+                    "level": 2,
+                    "priority": "low"
+                  },
+                  {
+                    "name": "R",
+                    "level": 2,
+                    "priority": "low"
+                  },
+                  {
+                    "name": "HL7/FHIR",
+                    "level": 2,
+                    "priority": "low"
+                  },
+                  {
+                    "name": "HIPAA",
+                    "level": 2,
+                    "priority": "low"
+                  },
+                  {
+                    "name": "Docker",
+                    "level": 2,
+                    "priority": "low"
+                  }
+                ],
+                "resumeSkills": [
+                  {
+                    "name": "SQL",
+                    "level": 4
+                  },
+                  {
+                    "name": "Python (pandas/scikit)",
+                    "level": 3
+                  },
+                  {
+                    "name": "Tableau",
+                    "level": 5
+                  },
+                  {
+                    "name": "dbt",
+                    "level": 2
+                  },
+                  {
+                    "name": "Statistics/Experimentation",
+                    "level": 3
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "level": 3
+                  },
+                  {
+                    "name": "ETL",
+                    "level": 3
+                  },
+                  {
+                    "name": "Storytelling/Exec Comms",
+                    "level": 4
+                  },
+                  {
+                    "name": "Snowflake",
+                    "level": 3
+                  },
+                  {
+                    "name": "Airflow",
+                    "level": 2
+                  }
+                ],
+                "competencyScores": [
+                  {
+                    "name": "SQL/ETL Engineering",
+                    "score": 70
+                  },
+                  {
+                    "name": "Python/ML (pandas+scikit)",
+                    "score": 60
+                  },
+                  {
+                    "name": "Visualization/Storytelling",
+                    "score": 90
+                  },
+                  {
+                    "name": "Experimentation/Statistics",
+                    "score": 60
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "score": 60
+                  },
+                  {
+                    "name": "Compliance/Healthcare",
+                    "score": 20
+                  }
+                ],
+                "missingSkills": [
+                  {
+                    "name": "SQL",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Python (pandas/scikit)",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Statistics/Experimentation",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "Data Modeling",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "ETL",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "dbt",
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "HIPAA",
+                    "priority": "high"
+                  },
+                  {
+                    "name": "HL7/FHIR",
+                    "priority": "medium"
+                  },
+                  {
+                    "name": "R",
+                    "priority": "low"
+                  },
+                  {
+                    "name": "Docker",
+                    "priority": "low"
+                  }
+                ],
+                "strengths": [
+                  {
+                    "name": "Tableau",
+                    "reason": "Certified; delivered dashboards reducing churn by 8%."
+                  },
+                  {
+                    "name": "Storytelling/Exec Comms",
+                    "reason": "Presented insights to VP Product; clear executive narratives."
+                  },
+                  {
+                    "name": "Snowflake",
+                    "reason": "Heavy SQL usage in Snowflake; strong platform familiarity."
+                  },
+                  {
+                    "name": "Airflow/dbt",
+                    "reason": "Built Airflow DAGs and 10 dbt models; production exposure."
+                  },
+                  {
+                    "name": "Forecasting/Modeling",
+                    "reason": "Retail forecasting at MAPE 12%; healthcare readmission model AUC 0.84."
+                  }
+                ]
+              },
+              "onSelectSkillAction": {
+                "type": "select_skill",
+                "payload": {
+                  "name": "SQL"
+                }
+              },
+              "defaultPriorityFilter": "high",
+              "highlightSkillName": "SQL"
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "StrengthsSummaryCard",
+            "props": {
+              "id": "strengths_acme_senior_da",
+              "title": "Top Strengths Exceeding Role Expectations",
+              "summaryText": "Your BI leadership and platform breadth (Tableau, Snowflake, Airflow, dbt) enable rapid, trustworthy insights. This foundation, combined with proven impact (churn \u22128%, AUC 0.84), positions you to accelerate Acme Health\u2019s analytics delivery.",
+              "strengths": [
+                {
+                  "id": "str_tableau",
+                  "skillOrCompetency": "Tableau & Data Storytelling",
+                  "resumeLevel": 5,
+                  "jobLevel": 4,
+                  "impactReason": "Delivered executive dashboards that reduced churn by 8%.",
+                  "evidenceSnippet": "Tableau Desktop Certified Associate; VP Product reporting."
+                },
+                {
+                  "id": "str_snowflake_sql",
+                  "skillOrCompetency": "Snowflake SQL Pipelines",
+                  "resumeLevel": 4,
+                  "jobLevel": 3,
+                  "impactReason": "Heavy SQL in Snowflake powering product insights and A/B analyses.",
+                  "evidenceSnippet": "Built and optimized pipelines; Redshift/Snowflake experience."
+                },
+                {
+                  "id": "str_dbt_airflow",
+                  "skillOrCompetency": "dbt + Airflow Orchestration",
+                  "resumeLevel": 3,
+                  "jobLevel": 3,
+                  "impactReason": "10 dbt models with tests; Airflow DAGs for production scheduling.",
+                  "evidenceSnippet": "Incremental models and DAGs supporting BI deliverables."
+                },
+                {
+                  "id": "str_modeling_forecasting",
+                  "skillOrCompetency": "Predictive Modeling & Forecasting",
+                  "resumeLevel": 4,
+                  "jobLevel": 3,
+                  "impactReason": "Healthcare readmission model (AUC 0.84) and retail demand forecasting (MAPE 12%).",
+                  "evidenceSnippet": "XGBoost pipeline; time-series forecasting for inventory."
+                }
+              ],
+              "imageUrl": "https://cdn.example.com/icons/trophy.svg",
+              "onCopySummaryAction": {
+                "type": "copy_strengths_summary",
+                "payload": {
+                  "id": "strengths_acme_senior_da",
+                  "text": "Top Strengths Exceeding Role Expectations: Your BI leadership and platform breadth (Tableau, Snowflake, Airflow, dbt) enable rapid, trustworthy insights. This foundation, combined with proven impact (churn \u22128%, AUC 0.84), positions you to accelerate Acme Health\u2019s analytics delivery.\n- Tableau & Data Storytelling (You: 5 | Job: 4): Delivered executive dashboards that reduced churn by 8%.\n- Snowflake SQL Pipelines (You: 4 | Job: 3): Heavy SQL in Snowflake powering product insights and A/B analyses.\n- dbt + Airflow Orchestration (You: 3 | Job: 3): 10 dbt models with tests; Airflow DAGs for production scheduling.\n- Predictive Modeling & Forecasting (You: 4 | Job: 3): Healthcare readmission model (AUC 0.84) and retail forecasting (MAPE 12%)."
+                }
+              },
+              "maxVisible": 4
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should include a clear two-column skill match matrix listing each skill with both job level and candidate level, and indicate match status (match/partial/missing)",
+          "Should provide numeric radar scores on a 0\u20135 scale for core competencies, including both job target and candidate scores, with labels",
+          "Should present a prioritized missing-skills checklist ordered by priority (e.g., High, Medium, Low), with 1\u20132 relevant resource links per item using reputable sources and valid URLs",
+          "Should include a strengths summary card that highlights top strengths, provides concise reasons and evidence snippets, and ties to the user\u2019s stated metrics and experience",
+          "Should rewrite three upgraded resume bullets that explicitly embed the user\u2019s concrete metrics (churn \u22128%, AUC 0.84, MAPE 12%, 10 dbt models, Snowflake/Redshift, Airflow DAGs) and describe impact and technologies used",
+          "Should ensure internal consistency across the matrix, radar scores, checklist, strengths, and resume bullets (no contradictory levels, priorities, or claims)",
+          "Should tailor content to the healthcare analytics context when applicable (e.g., HIPAA, HL7/FHIR) without introducing unverified domain claims",
+          "Should use concise, scannable formatting with bullet lists and clear headings, and paste the actual matrix and numeric radar scores as requested",
+          "Should use the specified UI components to present structured data, with component props reflecting the same data as the textual sections",
+          "Should avoid calling external tools unless data fetching or computation is required; if tools are necessary, call appropriate tools with correct arguments",
+          "Should avoid adding sensitive or private information beyond what the user provided, and avoid unverifiable or speculative claims",
+          "Should ensure all links are relevant to the skill gaps identified and limited to 1\u20132 per checklist item"
+        ],
+        "expected_components": [
+          "SkillGapOverview",
+          "StrengthsSummaryCard"
+        ]
+      }
+    }
+  ]
+}

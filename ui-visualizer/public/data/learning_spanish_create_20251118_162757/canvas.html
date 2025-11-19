@@ -1,0 +1,2278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I\u2019m learning Spanish. Create a weekly practice plan mixing vocabulary, grammar, and speaking."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here\u2019s a balanced Spanish practice plan for the week that mixes vocabulary, grammar, and speaking. I\u2019ve front-loaded short daily vocab reviews, added focused grammar blocks on mid-week days, and scheduled short-but-regular speaking bursts to keep output consistent. Tip: keep sessions bite-sized (25\u201340 min) and finish with a 5-minute recap in Spanish to reinforce recall.\n\n- Daily rhythm\n  - Mon/Wed/Fri: Vocabulary + Grammar focus, short Speaking drill\n  - Tue/Thu: Speaking-heavy day with a quick vocab warm-up\n  - Weekend: Light review + casual conversation/listening\n- Spaced repetition: Tackle due cards first (aim to clear high-priority decks daily). If time is tight, do at least 1 high-priority deck.\n- Speaking: Use prompts (travel, daily routine, past weekend). Record yourself, then re-say after quick corrections.\n- Grammar: One tense/focus per session (e.g., Presente regular vs. irregular; Ser/Estar; Pret\u00e9rito vs. Imperfecto).\n- Stretch goal: End-of-week check-in\u2014try a 10-minute free talk or write a paragraph, then extract 5 new words to add to your deck.\n\nWant me to tailor the plan to your level (A1\u2013C1), available minutes per day, and interests (travel, work, culture)?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WeeklyPracticeDashboard",
+              "props": {
+                "weekStartDate": "2025-11-24",
+                "sessions": [
+                  {
+                    "id": "mon_vocab_morning",
+                    "date": "2025-11-24T07:30:00",
+                    "skillType": "Vocabulary",
+                    "title": "Core Vocab Review (A1\u2013A2)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Clear SRS due cards; add 5 new travel phrases."
+                  },
+                  {
+                    "id": "mon_grammar_evening",
+                    "date": "2025-11-24T18:30:00",
+                    "skillType": "Grammar",
+                    "title": "Present Tense: Regular -ar/-er/-ir",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "Conjugation drills + 5 example sentences."
+                  },
+                  {
+                    "id": "mon_speaking_night",
+                    "date": "2025-11-24T20:10:00",
+                    "skillType": "Speaking",
+                    "title": "Micro-conversation: Introductions",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Record 2 x 90s monologues; self-correct."
+                  },
+                  {
+                    "id": "tue_vocab_warmup",
+                    "date": "2025-11-25T08:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab Warm-up: Daily Routine",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Collocations with ir/hacer/tener."
+                  },
+                  {
+                    "id": "tue_speaking_focus",
+                    "date": "2025-11-25T18:00:00",
+                    "skillType": "Speaking",
+                    "title": "Role-play: At a Caf\u00e9",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Use ordering phrases + polite forms."
+                  },
+                  {
+                    "id": "wed_vocab_morning",
+                    "date": "2025-11-26T07:30:00",
+                    "skillType": "Vocabulary",
+                    "title": "Top Nouns + Gender Practice",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Article agreement drills (el/la/los/las)."
+                  },
+                  {
+                    "id": "wed_grammar_evening",
+                    "date": "2025-11-26T18:30:00",
+                    "skillType": "Grammar",
+                    "title": "Ser vs. Estar (Basics)",
+                    "durationMin": 35,
+                    "status": "planned",
+                    "notes": "Contrast with location vs. identity; 10 examples."
+                  },
+                  {
+                    "id": "wed_speaking_checkin",
+                    "date": "2025-11-26T20:15:00",
+                    "skillType": "Speaking",
+                    "title": "2-Min Story: My City",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Include ser/estar correctly."
+                  },
+                  {
+                    "id": "thu_vocab_quick",
+                    "date": "2025-11-27T08:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Phrasal Chunks: Ir + a + inf.",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Future plans talking frames."
+                  },
+                  {
+                    "id": "thu_speaking_partner",
+                    "date": "2025-11-27T19:00:00",
+                    "skillType": "Speaking",
+                    "title": "Conversation: Weekend Plans",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "If no partner, shadow a YouTube clip."
+                  },
+                  {
+                    "id": "fri_vocab_review",
+                    "date": "2025-11-28T07:30:00",
+                    "skillType": "Vocabulary",
+                    "title": "Weekly Vocab Sweep",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Promote mature cards; suspend leeches."
+                  },
+                  {
+                    "id": "fri_grammar_contrast",
+                    "date": "2025-11-28T18:30:00",
+                    "skillType": "Grammar",
+                    "title": "Preterite vs. Imperfect (Intro)",
+                    "durationMin": 40,
+                    "status": "planned",
+                    "notes": "Signal words; timelines; 8 mini-drills."
+                  },
+                  {
+                    "id": "fri_speaking_flash",
+                    "date": "2025-11-28T20:15:00",
+                    "skillType": "Speaking",
+                    "title": "Flash Prompts: Past Weekend",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Use both tenses intentionally."
+                  },
+                  {
+                    "id": "sat_vocab_light",
+                    "date": "2025-11-29T10:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Light SRS + Collocations",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Only clear due cards."
+                  },
+                  {
+                    "id": "sat_speaking_fun",
+                    "date": "2025-11-29T16:00:00",
+                    "skillType": "Speaking",
+                    "title": "Casual Chat: Hobbies",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Use me gusta/me encanta + nouns/verbs."
+                  },
+                  {
+                    "id": "sun_recap_speaking",
+                    "date": "2025-11-30T11:00:00",
+                    "skillType": "Speaking",
+                    "title": "Weekly Recap Monologue",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Summarize week; extract 5 new words."
+                  },
+                  {
+                    "id": "sun_grammar_cleanup",
+                    "date": "2025-11-30T17:30:00",
+                    "skillType": "Grammar",
+                    "title": "Error Review + Mini-Drills",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Fix 3 recurring mistakes from speaking."
+                  }
+                ],
+                "activityTypes": [
+                  {
+                    "key": "vocabulary",
+                    "label": "Vocabulary",
+                    "color": "#5B8DEF"
+                  },
+                  {
+                    "key": "grammar",
+                    "label": "Grammar",
+                    "color": "#F39C12"
+                  },
+                  {
+                    "key": "speaking",
+                    "label": "Speaking",
+                    "color": "#27AE60"
+                  },
+                  {
+                    "key": "listening",
+                    "label": "Listening",
+                    "color": "#8E44AD"
+                  },
+                  {
+                    "key": "reading",
+                    "label": "Reading",
+                    "color": "#2C3E50"
+                  },
+                  {
+                    "key": "writing",
+                    "label": "Writing",
+                    "color": "#D35400"
+                  }
+                ],
+                "reviewQueue": [
+                  {
+                    "id": "deck_core_vocab",
+                    "deckName": "Spanish - Core Vocab A1",
+                    "dueCount": 38,
+                    "nextDue": "2025-11-24T07:00:00"
+                  },
+                  {
+                    "id": "deck_travel_phrases",
+                    "deckName": "Travel Phrases",
+                    "dueCount": 12,
+                    "nextDue": "2025-11-24T12:00:00"
+                  },
+                  {
+                    "id": "deck_grammar_present",
+                    "deckName": "Grammar Drills: Present Tense",
+                    "dueCount": 8,
+                    "nextDue": "2025-11-24T18:00:00"
+                  },
+                  {
+                    "id": "deck_ser_estar",
+                    "deckName": "Ser vs. Estar Patterns",
+                    "dueCount": 6,
+                    "nextDue": "2025-11-26T18:00:00"
+                  }
+                ],
+                "proficiency": [
+                  {
+                    "skill": "Vocabulary",
+                    "level0to100": 58
+                  },
+                  {
+                    "skill": "Grammar",
+                    "level0to100": 47
+                  },
+                  {
+                    "skill": "Speaking",
+                    "level0to100": 38
+                  },
+                  {
+                    "skill": "Listening",
+                    "level0to100": 44
+                  },
+                  {
+                    "skill": "Reading",
+                    "level0to100": 55
+                  },
+                  {
+                    "skill": "Writing",
+                    "level0to100": 35
+                  }
+                ],
+                "locale": "en-US",
+                "initialActivityFilters": [
+                  "vocabulary",
+                  "grammar",
+                  "speaking"
+                ]
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present a clear, one-week Spanish practice plan that explicitly mixes vocabulary, grammar, and speaking activities",
+            "Should outline a balanced schedule across the week with day-by-day sessions including titles, durations, and brief actionable notes",
+            "Should include spaced-repetition guidance and a review queue with deck names, due counts, and next due timestamps",
+            "Should provide proficiency data across core language skills suitable for display in a radar chart (e.g., Vocabulary, Grammar, Speaking, Listening, Reading, Writing) with numeric levels",
+            "Should include activity type tags with readable labels and distinct colors to support visual categorization",
+            "Should set a coherent weekStartDate and ensure all session dates fall within the same week window and use consistent, valid ISO 8601 datetime formats",
+            "Should use the specified UI component to render the weekly practice calendar and associated metadata as per the scenario expectations",
+            "Should provide concise textual guidance summarizing the weekly approach and offering tips for execution and reflection",
+            "Should make the plan actionable with session durations in minutes and concrete tasks (e.g., drills, prompts, recordings)",
+            "Should avoid requiring external tool calls; if tools are not necessary for data fetching or computation, none should be called",
+            "Should match locale and labeling to the user's language context (e.g., en-US) for dates, times, and copy",
+            "Should ensure component properties are well-typed and complete (e.g., ids, dates, skillType, status, notes) for reliable rendering",
+            "Should support optional personalization by referencing user level or interests without blocking the delivery of a complete baseline plan",
+            "Should avoid extraneous content and focus on the requested planner, visual tags, SRS queue, and proficiency overview"
+          ],
+          "expected_components": [
+            "WeeklyPracticeDashboard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "I\u2019m A2, with about 30 min Mon\u2013Fri and 60 min on weekends. Interests: travel and work; focus on speaking and past tenses. Please tailor it and show a weekly practice calendar with activity tags, a spaced-repetition review queue, and a proficiency radar chart."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great\u2014here\u2019s your A2 Spanish plan tailored for 30 min Mon\u2013Fri and 60 min on the weekend, focusing on speaking and past tenses with travel/work themes. Do SRS reviews first, then the scheduled sessions. Tip: end each session with a 2\u20133 sentence recap in Spanish about your day or a travel/work scenario using pret\u00e9rito/imperfecto.\n- Mon/Wed/Fri (30 min): vocab warm-up (travel/work), targeted past-tense grammar, 5-min speaking drill.\n- Tue/Thu (30 min): speaking-heavy role-plays; quick vocab at the end.\n- Sat/Sun (60 min): longer conversation, deeper past-tense practice, plus light listening/reading and practical writing (short work email).\nIf you want, I can adjust times of day or swap activities based on your energy peaks."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WeeklyPracticeDashboard",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "sessions": [
+                  {
+                    "id": "sess_mon_vocab",
+                    "date": "2025-11-17T18:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Travel/Work Vocab Warm-up",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "10 flashcards: check-in, boarding, meeting, deadline, invoice."
+                  },
+                  {
+                    "id": "sess_mon_grammar",
+                    "date": "2025-11-17T18:15:00",
+                    "skillType": "Grammar",
+                    "title": "Pret\u00e9rito regular vs. irregular (A2)",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Focus: ir/ser, tener, hacer; sentence drills about last weekend\u2019s trip."
+                  },
+                  {
+                    "id": "sess_mon_speaking",
+                    "date": "2025-11-17T18:30:00",
+                    "skillType": "Speaking",
+                    "title": "Mini speaking: airport check-in",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Record 2 takes; aim for pret\u00e9rito clarity."
+                  },
+                  {
+                    "id": "sess_tue_speaking",
+                    "date": "2025-11-18T18:00:00",
+                    "skillType": "Speaking",
+                    "title": "Role-play: hotel issue + work call",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Hotel complaint (pasado) + brief stand-up update."
+                  },
+                  {
+                    "id": "sess_tue_vocab",
+                    "date": "2025-11-18T18:25:00",
+                    "skillType": "Vocabulary",
+                    "title": "Add 8 phrases from role-play",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Add to deck: \u2018me aloj\u00e9\u2019, \u2018reembolso\u2019, \u2018entrega\u2019, \u2018pendiente\u2019..."
+                  },
+                  {
+                    "id": "sess_wed_vocab",
+                    "date": "2025-11-19T18:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Work email verbs",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Confirmar, adjuntar, seguir, posponer, acordar."
+                  },
+                  {
+                    "id": "sess_wed_grammar",
+                    "date": "2025-11-19T18:15:00",
+                    "skillType": "Grammar",
+                    "title": "Imperfecto: background & habits",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Contrast with pret\u00e9rito: \u2018Cuando viajaba, siempre\u2026\u2019"
+                  },
+                  {
+                    "id": "sess_wed_speaking",
+                    "date": "2025-11-19T18:30:00",
+                    "skillType": "Speaking",
+                    "title": "Mini speaking: last job task",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "1 short story mixing pret\u00e9rito/imperfecto."
+                  },
+                  {
+                    "id": "sess_thu_speaking",
+                    "date": "2025-11-20T18:00:00",
+                    "skillType": "Speaking",
+                    "title": "Role-play: client update (past progress)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Explain what got done vs. ongoing (pret\u00e9rito vs. imperfecto)."
+                  },
+                  {
+                    "id": "sess_thu_vocab",
+                    "date": "2025-11-20T18:25:00",
+                    "skillType": "Vocabulary",
+                    "title": "Travel phrases: transport + delays",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Retraso, conexi\u00f3n, ventanilla, and\u00e9n, equipaje."
+                  },
+                  {
+                    "id": "sess_fri_grammar",
+                    "date": "2025-11-21T17:30:00",
+                    "skillType": "Grammar",
+                    "title": "Pret\u00e9rito vs. imperfecto contrast",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Timed drill: pick correct tense in 12 sentences."
+                  },
+                  {
+                    "id": "sess_fri_vocab",
+                    "date": "2025-11-21T17:50:00",
+                    "skillType": "Vocabulary",
+                    "title": "Work/travel collocations",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Hacer una reserva, cumplir un plazo, emitir factura."
+                  },
+                  {
+                    "id": "sess_fri_speaking",
+                    "date": "2025-11-21T18:05:00",
+                    "skillType": "Speaking",
+                    "title": "Mini speaking: trip recap",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Focus on sequence markers: luego, despu\u00e9s, al final."
+                  },
+                  {
+                    "id": "sess_sat_speaking",
+                    "date": "2025-11-22T10:00:00",
+                    "skillType": "Speaking",
+                    "title": "Conversation: travel story",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Tell a 3-part trip story; self-correct tense choice."
+                  },
+                  {
+                    "id": "sess_sat_grammar",
+                    "date": "2025-11-22T10:30:00",
+                    "skillType": "Grammar",
+                    "title": "Past-tense drills (mixed)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Cloze + transform exercises; note 3 recurring errors."
+                  },
+                  {
+                    "id": "sess_sat_listening",
+                    "date": "2025-11-22T10:55:00",
+                    "skillType": "Listening",
+                    "title": "Podcast: travel mishap clip",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Shadow 5 key sentences in past tenses."
+                  },
+                  {
+                    "id": "sess_sun_speaking",
+                    "date": "2025-11-23T17:00:00",
+                    "skillType": "Speaking",
+                    "title": "Role-play: brief weekly stand-up",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "What you did, what you were doing, what\u2019s next."
+                  },
+                  {
+                    "id": "sess_sun_writing",
+                    "date": "2025-11-23T17:30:00",
+                    "skillType": "Writing",
+                    "title": "Write a short work email (past progress)",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "2\u20133 sentences; use connectors and one imperfecto."
+                  },
+                  {
+                    "id": "sess_sun_reading",
+                    "date": "2025-11-23T17:50:00",
+                    "skillType": "Reading",
+                    "title": "Skim a travel blog paragraph",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Underline past-tense verbs; note one new phrase."
+                  },
+                  {
+                    "id": "sess_sun_vocab",
+                    "date": "2025-11-23T18:05:00",
+                    "skillType": "Vocabulary",
+                    "title": "Add 8 words from weekend",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Feed into SRS: top confusion words from drills."
+                  }
+                ],
+                "activityTypes": [
+                  {
+                    "key": "vocab",
+                    "label": "Vocabulary",
+                    "color": "#5B8DEF"
+                  },
+                  {
+                    "key": "grammar",
+                    "label": "Grammar",
+                    "color": "#EB5757"
+                  },
+                  {
+                    "key": "speaking",
+                    "label": "Speaking",
+                    "color": "#27AE60"
+                  },
+                  {
+                    "key": "listening",
+                    "label": "Listening",
+                    "color": "#9B51E0"
+                  },
+                  {
+                    "key": "reading",
+                    "label": "Reading",
+                    "color": "#F2C94C"
+                  },
+                  {
+                    "key": "writing",
+                    "label": "Writing",
+                    "color": "#2D9CDB"
+                  }
+                ],
+                "reviewQueue": [
+                  {
+                    "id": "deck_vocab_travel",
+                    "deckName": "Spanish - Travel Phrases A2",
+                    "dueCount": 18,
+                    "nextDue": "2025-11-17T08:00:00"
+                  },
+                  {
+                    "id": "deck_vocab_work",
+                    "deckName": "Spanish - Workplace Basics A2",
+                    "dueCount": 9,
+                    "nextDue": "2025-11-17T12:00:00"
+                  },
+                  {
+                    "id": "deck_grammar_past",
+                    "deckName": "Pret\u00e9rito vs. Imperfecto (A2)",
+                    "dueCount": 12,
+                    "nextDue": "2025-11-17T07:30:00"
+                  },
+                  {
+                    "id": "deck_speaking_prompts",
+                    "deckName": "Speaking Prompts: Travel & Work",
+                    "dueCount": 4,
+                    "nextDue": "2025-11-18T09:00:00"
+                  }
+                ],
+                "proficiency": [
+                  {
+                    "skill": "Vocabulary",
+                    "level0to100": 58
+                  },
+                  {
+                    "skill": "Grammar",
+                    "level0to100": 45
+                  },
+                  {
+                    "skill": "Speaking",
+                    "level0to100": 40
+                  },
+                  {
+                    "skill": "Listening",
+                    "level0to100": 50
+                  },
+                  {
+                    "skill": "Reading",
+                    "level0to100": 55
+                  },
+                  {
+                    "skill": "Writing",
+                    "level0to100": 47
+                  }
+                ],
+                "locale": "en-US",
+                "initialActivityFilters": [
+                  "speaking",
+                  "grammar",
+                  "vocab"
+                ]
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should tailor the plan to the user's A2 level, interests (travel and work), time constraints (30 min Mon\u2013Fri, 60 min on weekends), and focus areas (speaking and past tenses)",
+            "Should include a clear weekly practice calendar with specific sessions, dates/times, durations that sum to the user's available time per day, and session titles/notes aligned to speaking and past tense practice",
+            "Should include activity tags/labels for each session (e.g., Vocabulary, Grammar, Speaking) and a legend or mapping for activity types",
+            "Should include a spaced-repetition review queue with deck names, due counts, and next due times relevant to the user's themes and level",
+            "Should include a proficiency radar chart or equivalent data structure covering core skills (Vocabulary, Grammar, Speaking, Listening, Reading, Writing) with numeric levels (0\u2013100)",
+            "Should provide brief actionable guidance/tips on how to execute the plan (e.g., SRS order, short recap practice) without excessive formatting",
+            "Should use the specified UI component(s) to present the calendar, tags, review queue, and proficiency chart data in a structured, parseable way",
+            "Should ensure component props are valid, correctly typed, and internally consistent (e.g., dates within the same week as weekStartDate, ISO timestamps, unique session IDs)",
+            "Should ensure session content is accurate for A2 Spanish and focuses on pret\u00e9rito vs. imperfecto in travel/work contexts",
+            "Should avoid unnecessary tool calls; only call tools if data fetching or external computation is required",
+            "Should maintain clarity, conciseness, and a professional tone appropriate for an educational planning scenario",
+            "Should avoid hallucinating non-existent components or data fields and adhere to the available component's expected structure",
+            "Should localize or format time/date information consistently and reasonably for the specified locale",
+            "Should not include sensitive or disallowed content and should comply with general safety and style guidelines"
+          ],
+          "expected_components": [
+            "WeeklyPracticeDashboard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Great\u2014please show the weekly calendar with activity tags, the SRS review queue, and a proficiency radar chart. I prefer evenings (7:00\u20137:30 pm on weekdays, 10:00\u201311:00 am on weekends); include specific speaking prompts and 1\u20132 resource links per activity."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here\u2019s your A2, speaking- and past-tense\u2013focused week, scheduled for evenings on weekdays (7:00\u20137:30 pm) and late morning on the weekend (10:00\u201311:00 am). Each session includes concrete prompts and 1\u20132 resources. Tip: clear your SRS due cards first, then do the scheduled blocks. If you want different times per day or heavier/lighter focus, tell me and I\u2019ll adjust."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WeeklyPracticeDashboard",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "sessions": [
+                  {
+                    "id": "sess_mon_vocab",
+                    "date": "2025-11-17T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab: Travel & Work warm-up",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Target: 12\u201315 words (airport, hotel, meeting). Quick recall + example phrases.\nResources: Spanish travel phrases (https://www.spanishdict.com/guide/common-spanish-travel-phrases), Memrise A2 Travel (https://www.memrise.com/)"
+                  },
+                  {
+                    "id": "sess_mon_grammar",
+                    "date": "2025-11-17T19:10:00",
+                    "skillType": "Grammar",
+                    "title": "Grammar: Pret\u00e9rito vs. Imperfecto (intro)",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Focus: actions completed (pret\u00e9rito) vs. background/habits (imperfecto). Mini-drills.\nResources: Guide (https://www.spanishdict.com/guide/preterite-vs-imperfect-in-spanish), Drills (https://conjuguemos.com/)"
+                  },
+                  {
+                    "id": "sess_mon_speaking",
+                    "date": "2025-11-17T19:25:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Past weekend mini-retell",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Prompt: \u00bfQu\u00e9 hiciste el fin de semana? A\u00f1ade 1\u20132 frases de contexto con imperfecto.\nResources: Pronunciation (https://forvo.com/languages/es/)"
+                  },
+                  {
+                    "id": "sess_tue_speaking",
+                    "date": "2025-11-18T19:00:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Hotel check-in role-play",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Prompt: T\u00fa llegaste tarde al hotel. Explica lo que pas\u00f3 (pret\u00e9rito) y c\u00f3mo te sent\u00edas (imperfecto). Practica pedir cambios de habitaci\u00f3n.\nResources: Dialogue samples (https://www.123teachme.com/learn_spanish/conversation)"
+                  },
+                  {
+                    "id": "sess_tue_vocab",
+                    "date": "2025-11-18T19:20:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab: Booking & reservations",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Target: 10 collocations (hacer una reserva, confirmaci\u00f3n, disponible, tarifa, retraso).\nResources: Travel list (https://www.spanishdict.com/lists), YouGlish examples (https://youglish.com/spanish)"
+                  },
+                  {
+                    "id": "sess_wed_vocab",
+                    "date": "2025-11-19T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab: Meetings & agenda",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Target: 12 words (reuni\u00f3n, convocatoria, acta, pendiente, adjunto, proveedor).\nResources: Work phrases (https://www.spanishdict.com/translate/meeting), Memrise Workplace (https://www.memrise.com/)"
+                  },
+                  {
+                    "id": "sess_wed_grammar",
+                    "date": "2025-11-19T19:10:00",
+                    "skillType": "Grammar",
+                    "title": "Grammar: Irregular pret\u00e9rito (tener, estar, ir/ser)",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Mini-drills + 3 sentences contrasting with imperfecto.\nResources: Irregulars (https://www.spanishdict.com/guide/preterite-tense-forms), Drills (https://conjuguemos.com/)"
+                  },
+                  {
+                    "id": "sess_wed_speaking",
+                    "date": "2025-11-19T19:25:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Daily stand-up (pasado)",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Prompt: Reporta lo que hiciste ayer en el trabajo (3\u20134 frases, pret\u00e9rito) y el contexto (1 frase en imperfecto)."
+                  },
+                  {
+                    "id": "sess_thu_speaking",
+                    "date": "2025-11-20T19:00:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Flight delay scenario",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Prompt: Explica a un compa\u00f1ero por qu\u00e9 perdiste la conexi\u00f3n (pret\u00e9rito) y c\u00f3mo era la situaci\u00f3n en el aeropuerto (imperfecto). Incluye soluciones.\nResources: Pronunciation (https://forvo.com/languages/es/)"
+                  },
+                  {
+                    "id": "sess_thu_vocab",
+                    "date": "2025-11-20T19:20:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab: Airline & itinerary",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Target: 10 t\u00e9rminos (itinerario, escala, puerta, embarque, cancelaci\u00f3n, reclamaci\u00f3n).\nResources: Travel phrases (https://www.spanishdict.com/guide/common-spanish-travel-phrases)"
+                  },
+                  {
+                    "id": "sess_fri_vocab",
+                    "date": "2025-11-21T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab: Logistics at work",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Target: 10\u201312 (plazo, presupuesto, informe, adjuntar, seguimiento).\nResources: YouGlish in context (https://youglish.com/spanish)"
+                  },
+                  {
+                    "id": "sess_fri_grammar",
+                    "date": "2025-11-21T19:10:00",
+                    "skillType": "Grammar",
+                    "title": "Grammar: Imperfecto for background",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Forms of -ar/-er/-ir; describe habitual actions and settings; contrast 3 sentences with pret\u00e9rito.\nResources: Imperfect guide (https://www.spanishdict.com/guide/the-imperfect-tense-in-spanish), Drills (https://conjuguemos.com/)"
+                  },
+                  {
+                    "id": "sess_fri_speaking",
+                    "date": "2025-11-21T19:25:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Weekly wrap-up (pasado)",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Prompt: Resume tu semana laboral: qu\u00e9 terminaste (pret\u00e9rito) y c\u00f3mo iba el proyecto (imperfecto)."
+                  },
+                  {
+                    "id": "sess_sat_vocab",
+                    "date": "2025-11-22T10:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Vocab+Listening: Airport announcements",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Listen for keywords (embarque, puerta, retraso, horario). Shadow 2 announcements.\nResources: Coffee Break Spanish ep. on travel (https://coffeebreaklanguages.com/coffeebreakspanish/), Forvo for key terms (https://forvo.com/languages/es/)"
+                  },
+                  {
+                    "id": "sess_sat_grammar",
+                    "date": "2025-11-22T10:15:00",
+                    "skillType": "Grammar",
+                    "title": "Grammar: Narrating trips (pret\u00e9rito vs imperfecto)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Drill sequence narration (pret\u00e9rito) + background (imperfecto) with connectors: primero, luego, mientras, cuando.\nResources: Guide (https://www.spanishdict.com/guide/preterite-vs-imperfect-in-spanish), Practice (https://conjuguemos.com/)"
+                  },
+                  {
+                    "id": "sess_sat_speaking",
+                    "date": "2025-11-22T10:35:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Past trip story",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Prompt: Cuenta un viaje pasado (destino, transporte, un problema, c\u00f3mo te sent\u00edas, resoluci\u00f3n). Gr\u00e1bate y reh\u00e1zlo corrigiendo 2\u20133 errores.\nResources: Conversation prompts (https://www.123teachme.com/learn_spanish/conversation)"
+                  },
+                  {
+                    "id": "sess_sun_speaking",
+                    "date": "2025-11-23T10:00:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking: Mock client update (pasado)",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Prompt: Informa a un cliente sobre lo que el equipo hizo la semana pasada y el estado actual. Incluye 1 bloqueo y 1 soluci\u00f3n.\nResources: Pronunciation (https://forvo.com/languages/es/)"
+                  },
+                  {
+                    "id": "sess_sun_listenread",
+                    "date": "2025-11-23T10:25:00",
+                    "skillType": "Reading",
+                    "title": "Reading/Listening: Short news A2",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Lee una noticia corta y extrae 5 palabras nuevas. Di en voz alta 2\u20133 frases en pasado.\nResources: Practica Espa\u00f1ol (https://www.practicaespanol.com/), Coffee Break Spanish (https://coffeebreaklanguages.com/coffeebreakspanish/)"
+                  },
+                  {
+                    "id": "sess_sun_writing",
+                    "date": "2025-11-23T10:40:00",
+                    "skillType": "Writing",
+                    "title": "Writing: Short work email (pasado)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Prompt: Escribe un correo resumiendo el progreso de la semana pasada (3\u20135 frases) y pr\u00f3ximos pasos.\nResources: Email phrases (https://www.fluentu.com/blog/spanish/spanish-email/), Check with LanguageTool (https://languagetool.org/)"
+                  }
+                ],
+                "activityTypes": [
+                  {
+                    "key": "vocab",
+                    "label": "Vocabulary",
+                    "color": "#5B8DEF"
+                  },
+                  {
+                    "key": "grammar",
+                    "label": "Grammar",
+                    "color": "#9B59B6"
+                  },
+                  {
+                    "key": "speaking",
+                    "label": "Speaking",
+                    "color": "#E67E22"
+                  },
+                  {
+                    "key": "listening",
+                    "label": "Listening",
+                    "color": "#2ECC71"
+                  },
+                  {
+                    "key": "reading",
+                    "label": "Reading",
+                    "color": "#3498DB"
+                  },
+                  {
+                    "key": "writing",
+                    "label": "Writing",
+                    "color": "#E74C3C"
+                  }
+                ],
+                "reviewQueue": [
+                  {
+                    "id": "deck_travel_a2",
+                    "deckName": "Spanish - Travel A2 Core",
+                    "dueCount": 26,
+                    "nextDue": "2025-11-17T18:30:00"
+                  },
+                  {
+                    "id": "deck_past_tense_verbs",
+                    "deckName": "Pret\u00e9rito vs. Imperfecto Verbs",
+                    "dueCount": 14,
+                    "nextDue": "2025-11-17T18:30:00"
+                  },
+                  {
+                    "id": "deck_work_basics",
+                    "deckName": "Workplace Spanish Basics",
+                    "dueCount": 9,
+                    "nextDue": "2025-11-17T18:30:00"
+                  }
+                ],
+                "proficiency": [
+                  {
+                    "skill": "Vocabulary",
+                    "level0to100": 62
+                  },
+                  {
+                    "skill": "Grammar",
+                    "level0to100": 55
+                  },
+                  {
+                    "skill": "Speaking",
+                    "level0to100": 48
+                  },
+                  {
+                    "skill": "Listening",
+                    "level0to100": 50
+                  },
+                  {
+                    "skill": "Reading",
+                    "level0to100": 60
+                  },
+                  {
+                    "skill": "Writing",
+                    "level0to100": 52
+                  }
+                ],
+                "locale": "en-US",
+                "initialActivityFilters": [
+                  "vocab",
+                  "grammar",
+                  "speaking"
+                ]
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present a weekly practice calendar that matches the user's preferred times: 7:00\u20137:30 pm on weekdays and 10:00\u201311:00 am on weekends",
+            "Should include a clear activity type tag for each session (e.g., Vocabulary, Grammar, Speaking) with distinguishable labels and/or colors",
+            "Should provide specific speaking prompts for all speaking sessions",
+            "Should include 1\u20132 relevant resource links for each activity, with descriptive context for how to use them",
+            "Should display a spaced-repetition (SRS) review queue with deck names, due counts, and next due timestamps",
+            "Should include a proficiency radar chart across key language skills with numeric values (0\u2013100) for each skill",
+            "Should structure the UI output using the designated component and props required to render the weekly calendar, activity tags, SRS queue, and proficiency radar chart",
+            "Should ensure dates and times are valid ISO timestamps and correspond to the specified schedule windows for each day",
+            "Should keep total session durations within the requested windows for weekdays and weekends",
+            "Should ensure prompts and activities focus on A2 level Spanish with emphasis on speaking and past tense (pret\u00e9rito vs imperfecto)",
+            "Should maintain internal consistency across sessions, tags, colors, and filters (e.g., activityTypes matching session skillType values)",
+            "Should avoid unnecessary tool calls; only call tools if the request requires external data fetching or computation",
+            "Should use concise, clear text alongside the component to explain the plan and usage tips without excessive formatting",
+            "Should ensure resource links are relevant, accessible, and non-malicious",
+            "Should set appropriate initial filters to highlight the requested focus areas (vocabulary, grammar, speaking) if filtering is supported by the component"
+          ],
+          "expected_components": [
+            "WeeklyPracticeDashboard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Please render the full WeeklyPracticeDashboard now: \n- Calendar with activity tags and exact times, \n- SRS review queue with due counts and priority, \n- Proficiency radar chart. \nInclude the specific speaking prompts and 1\u20132 resource links per activity."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here\u2019s your tailored A2 Spanish week with exact times, activity tags, SRS queue, and a proficiency snapshot. Each session\u2019s notes include concrete speaking prompts and 1\u20132 resources. Clear your SRS due cards first each day, then do the scheduled blocks."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WeeklyPracticeDashboard",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "sessions": [
+                  {
+                    "id": "mon_vocab_1",
+                    "date": "2025-11-17T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Travel/Work vocab warm-up",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Target: airport, hotel, meetings. Quick recall drill: 10 items in 2 minutes.\nResources: 1) Travel vocab guide: https://www.spanishdict.com/guide/travel-vocabulary-in-spanish  2) Work vocab list (general): https://www.spanishdict.com/translate/work%20vocabulary"
+                  },
+                  {
+                    "id": "mon_grammar_1",
+                    "date": "2025-11-17T19:10:00",
+                    "skillType": "Grammar",
+                    "title": "Preterite vs. Imperfect (A2)",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Focus: completed vs. ongoing in past; travel/work examples.\nResources: 1) Guide: https://www.spanishdict.com/guide/preterite-vs-imperfect-in-spanish  2) Drills: https://conjuguemos.com/"
+                  },
+                  {
+                    "id": "mon_speaking_1",
+                    "date": "2025-11-17T19:25:00",
+                    "skillType": "Speaking",
+                    "title": "Mini speaking: airport check-in (past)",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Prompt: Ayer factur\u00e9 mi maleta y el agente me pregunt\u00f3\u2026 Describe what happened at the airport yesterday (2\u20133 sentences, pret\u00e9rito/imperfecto).\nResources: 1) Travel phrases: https://spanishandgo.com/blog/common-spanish-travel-phrases"
+                  },
+                  {
+                    "id": "tue_speaking_1",
+                    "date": "2025-11-18T19:00:00",
+                    "skillType": "Speaking",
+                    "title": "Role-play: hotel issue (past)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Prompt: Anoche llegaste al hotel y la reserva no apareci\u00f3. Cuenta qu\u00e9 pas\u00f3 y c\u00f3mo lo solucionaste.\nResources: 1) Mi Vida Loca (situational): http://www.bbc.co.uk/languages/spanish/mividaloca/ 2) Conversation tips: https://www.italki.com/"
+                  },
+                  {
+                    "id": "tue_vocab_1",
+                    "date": "2025-11-18T19:20:00",
+                    "skillType": "Vocabulary",
+                    "title": "Key phrases wrap-up",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Add 8\u201310 phrases from tonight\u2019s role-play to your SRS deck.\nResources: 1) Phrase search: https://www.spanishdict.com/ 2) SRS (Anki): https://apps.ankiweb.net/"
+                  },
+                  {
+                    "id": "wed_vocab_1",
+                    "date": "2025-11-19T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Work meeting vocab",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Targets: agenda, informe, plazo, reuni\u00f3n, jefe, equipo.\nResources: 1) Work terms (searchable): https://www.spanishdict.com/translate 2) Memrise A1/A2 words: https://www.memrise.com/"
+                  },
+                  {
+                    "id": "wed_grammar_1",
+                    "date": "2025-11-19T19:10:00",
+                    "skillType": "Grammar",
+                    "title": "Pret\u00e9rito perfecto vs. indefinido",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Choose regional use: Spain often uses perfecto for recent past. Practice with meeting outcomes.\nResources: 1) Overview: https://www.spanishdict.com/guide/spanish-present-perfect 2) Conjugation drills: https://conjuguemos.com/"
+                  },
+                  {
+                    "id": "wed_speaking_1",
+                    "date": "2025-11-19T19:25:00",
+                    "skillType": "Speaking",
+                    "title": "Mini speaking: yesterday\u2019s meeting",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Prompt: Ayer tuvimos una reuni\u00f3n. Primero\u2026 luego\u2026 Al final\u2026 Usa pret\u00e9rito/imperfecto para describir contexto y acciones."
+                  },
+                  {
+                    "id": "thu_speaking_1",
+                    "date": "2025-11-20T19:00:00",
+                    "skillType": "Speaking",
+                    "title": "Role-play: client call recap (past)",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Prompt: Simula una llamada en la que resumes lo que hiciste la semana pasada para un cliente.\nResources: 1) Notes in Spanish (listening models): https://www.notesinspanish.com/ 2) Travel/work phrases: https://spanishandgo.com/blog/common-spanish-travel-phrases"
+                  },
+                  {
+                    "id": "thu_vocab_1",
+                    "date": "2025-11-20T19:20:00",
+                    "skillType": "Vocabulary",
+                    "title": "Phrase harvest + SRS",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Select 6\u201310 phrases from the call recap and add to SRS.\nResources: 1) Anki: https://apps.ankiweb.net/ 2) SpanishDict examples: https://www.spanishdict.com/examples"
+                  },
+                  {
+                    "id": "fri_vocab_1",
+                    "date": "2025-11-21T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Airport + transport vocab",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Targets: embarque, retraso, ventanilla, escala, equipaje, and ride-share phrases.\nResources: 1) Travel vocab: https://www.spanishdict.com/guide/travel-vocabulary-in-spanish 2) Easy Spanish playlist for travel: https://www.youtube.com/@EasySpanish"
+                  },
+                  {
+                    "id": "fri_grammar_1",
+                    "date": "2025-11-21T19:10:00",
+                    "skillType": "Grammar",
+                    "title": "Past narration: sequencing",
+                    "durationMin": 15,
+                    "status": "planned",
+                    "notes": "Linkers: primero, luego, despu\u00e9s, mientras, cuando, al final. Mix pret\u00e9rito/imperfecto.\nResources: 1) Guide (linkers): https://www.spanishdict.com/guide/spanish-transition-words 2) Drills: https://conjuguemos.com/"
+                  },
+                  {
+                    "id": "fri_speaking_1",
+                    "date": "2025-11-21T19:25:00",
+                    "skillType": "Speaking",
+                    "title": "Mini speaking: flight delay story",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Prompt: Cuenta un retraso de vuelo que tuviste: qu\u00e9 pas\u00f3, cu\u00e1nto esperaste, c\u00f3mo termin\u00f3."
+                  },
+                  {
+                    "id": "sat_speaking_1",
+                    "date": "2025-11-22T10:00:00",
+                    "skillType": "Speaking",
+                    "title": "Conversation: last business trip",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Prompt: Narra tu \u00faltimo viaje de trabajo: objetivo, reuniones, problemas y resultados. Usa pret\u00e9rito e imperfecto.\nResources: 1) Conversation ideas: https://www.italki.com/ 2) Easy Spanish (street interviews): https://www.youtube.com/@EasySpanish"
+                  },
+                  {
+                    "id": "sat_grammar_1",
+                    "date": "2025-11-22T10:25:00",
+                    "skillType": "Grammar",
+                    "title": "Imperfecto for background + habits",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Drill background descriptions and habitual actions during trips (p. ej., Siempre llegaba temprano\u2026)\nResources: 1) Guide: https://www.spanishdict.com/guide/the-imperfect-tense-in-spanish 2) Conjuguemos drills: https://conjuguemos.com/"
+                  },
+                  {
+                    "id": "sat_listening_1",
+                    "date": "2025-11-22T10:45:00",
+                    "skillType": "Listening",
+                    "title": "Listening: travel stories",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Task: listen for past-tense markers (ayer, anoche, mientras) and note 3 sentences.\nResources: 1) Notes in Spanish (Intermediate short): https://www.notesinspanish.com/ 2) Easy Spanish: https://www.youtube.com/@EasySpanish"
+                  },
+                  {
+                    "id": "sat_writing_1",
+                    "date": "2025-11-22T10:55:00",
+                    "skillType": "Writing",
+                    "title": "Short email: trip recap",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Write a 3\u20134 sentence email to your boss summarizing a past trip.\nResources: 1) Email guide: https://blog.lingoda.com/en/how-to-write-an-email-in-spanish/"
+                  },
+                  {
+                    "id": "sun_speaking_1",
+                    "date": "2025-11-23T10:00:00",
+                    "skillType": "Speaking",
+                    "title": "Conversation: weekend travel mishap",
+                    "durationMin": 25,
+                    "status": "planned",
+                    "notes": "Prompt: Cuenta un problema de viaje que ocurri\u00f3 el fin de semana pasado y c\u00f3mo lo resolviste.\nResources: 1) Travel phrases: https://spanishandgo.com/blog/common-spanish-travel-phrases"
+                  },
+                  {
+                    "id": "sun_grammar_1",
+                    "date": "2025-11-23T10:25:00",
+                    "skillType": "Grammar",
+                    "title": "Narrative past polishing",
+                    "durationMin": 20,
+                    "status": "planned",
+                    "notes": "Mix tenses; reduce L1 transfer. Practice time markers and connectors.\nResources: 1) P vs. I recap: https://www.spanishdict.com/guide/preterite-vs-imperfect-in-spanish 2) Drills: https://conjuguemos.com/"
+                  },
+                  {
+                    "id": "sun_reading_1",
+                    "date": "2025-11-23T10:45:00",
+                    "skillType": "Reading",
+                    "title": "Short article skim",
+                    "durationMin": 10,
+                    "status": "planned",
+                    "notes": "Skim a short BBC Mundo article; highlight past forms and new phrases.\nResources: 1) BBC Mundo: https://www.bbc.com/mundo"
+                  },
+                  {
+                    "id": "sun_writing_1",
+                    "date": "2025-11-23T10:55:00",
+                    "skillType": "Writing",
+                    "title": "Micro-journal (past)",
+                    "durationMin": 5,
+                    "status": "planned",
+                    "notes": "Write 3\u20134 sentences about what you did yesterday using linkers (primero, luego, al final).\nResources: 1) Email/phrases reference: https://www.spanishdict.com/guide/how-to-write-an-email-in-spanish"
+                  }
+                ],
+                "activityTypes": [
+                  {
+                    "key": "vocabulary",
+                    "label": "Vocabulary",
+                    "color": "#5B8DEF"
+                  },
+                  {
+                    "key": "grammar",
+                    "label": "Grammar",
+                    "color": "#7E57C2"
+                  },
+                  {
+                    "key": "speaking",
+                    "label": "Speaking",
+                    "color": "#FF7043"
+                  },
+                  {
+                    "key": "listening",
+                    "label": "Listening",
+                    "color": "#26A69A"
+                  },
+                  {
+                    "key": "reading",
+                    "label": "Reading",
+                    "color": "#66BB6A"
+                  },
+                  {
+                    "key": "writing",
+                    "label": "Writing",
+                    "color": "#EF5350"
+                  }
+                ],
+                "reviewQueue": [
+                  {
+                    "id": "deck_vocab_travel",
+                    "deckName": "Spanish - Travel Core A2",
+                    "dueCount": 28,
+                    "nextDue": "2025-11-17T18:30:00"
+                  },
+                  {
+                    "id": "deck_vocab_work",
+                    "deckName": "Spanish - Work/Office A2",
+                    "dueCount": 16,
+                    "nextDue": "2025-11-17T18:45:00"
+                  },
+                  {
+                    "id": "deck_grammar_past",
+                    "deckName": "Grammar: Preterite vs. Imperfect",
+                    "dueCount": 12,
+                    "nextDue": "2025-11-17T18:40:00"
+                  }
+                ],
+                "proficiency": [
+                  {
+                    "skill": "Vocabulary",
+                    "level0to100": 55
+                  },
+                  {
+                    "skill": "Grammar",
+                    "level0to100": 50
+                  },
+                  {
+                    "skill": "Speaking",
+                    "level0to100": 40
+                  },
+                  {
+                    "skill": "Listening",
+                    "level0to100": 45
+                  },
+                  {
+                    "skill": "Reading",
+                    "level0to100": 60
+                  },
+                  {
+                    "skill": "Writing",
+                    "level0to100": 50
+                  }
+                ],
+                "locale": "en-US",
+                "initialActivityFilters": [
+                  "speaking",
+                  "grammar",
+                  "vocabulary"
+                ]
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ReviewQueueList",
+              "props": {
+                "queues": [
+                  {
+                    "id": "deck_grammar_past",
+                    "deckName": "Grammar: Preterite vs. Imperfect",
+                    "dueCount": 12,
+                    "nextDue": "2025-11-17T18:40:00Z",
+                    "priority": "high",
+                    "focusSkill": "grammar"
+                  },
+                  {
+                    "id": "deck_vocab_travel",
+                    "deckName": "Spanish - Travel Core A2",
+                    "dueCount": 28,
+                    "nextDue": "2025-11-17T18:30:00Z",
+                    "priority": "high",
+                    "focusSkill": "vocabulary"
+                  },
+                  {
+                    "id": "deck_vocab_work",
+                    "deckName": "Spanish - Work/Office A2",
+                    "dueCount": 16,
+                    "nextDue": "2025-11-17T18:45:00Z",
+                    "priority": "medium",
+                    "focusSkill": "vocabulary"
+                  }
+                ],
+                "startReviewAction": {
+                  "type": "start_review",
+                  "payload": {
+                    "deckId": ""
+                  }
+                },
+                "reorderAction": {
+                  "type": "reorder_deck",
+                  "payload": {
+                    "deckId": "",
+                    "position": 0
+                  }
+                },
+                "sortOrder": "priority",
+                "timeNow": "2025-11-17T17:30:00Z"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should render a complete WeeklyPracticeDashboard component configured for the specified weekStartDate and include all requested elements: calendar with activity tags and exact times, SRS review queue, and proficiency radar chart",
+            "Should include a full week schedule (Mon\u2013Sun) with sessions containing: unique id, ISO 8601 date/time, skillType from the defined activityTypes, clear title, duration in minutes, status, and notes",
+            "Should provide specific speaking prompts within notes for all speaking activities",
+            "Should include 1\u20132 relevant resource links per activity, formatted as valid URLs and aligned to the activity\u2019s focus",
+            "Should list activityTypes with keys, labels, and color codes that match the skillType values used in sessions",
+            "Should display an SRS review queue with each deck\u2019s id, deckName, dueCount, nextDue in ISO 8601 (UTC when suffixed with Z), and priority",
+            "Should include appropriate queue actions (e.g., start_review and reorder_deck) with correctly structured payloads",
+            "Should reflect the SRS review queue both within the dashboard and in a dedicated ReviewQueueList component when requested, with consistent deck identifiers and properties",
+            "Should present proficiency data as numeric values (0\u2013100) for all listed skills and support rendering as a radar chart via the component\u2019s props",
+            "Should order session times logically within each day and use exact timestamps corresponding to the user\u2019s locale where applicable",
+            "Should avoid unnecessary tool calls; no external tools are required unless fetching or computing additional data beyond the provided content",
+            "Should use UI components appropriate to the requested visualization (calendar layout, queue list with priorities, radar chart) and avoid extraneous narrative text outside component payloads",
+            "Should ensure internal consistency across data fields (matching skillType to activityTypes, consistent deck ids/names between components, and coherent dates within the specified week)",
+            "Should adhere to the user\u2019s scenario (A2 Spanish focus on vocabulary, grammar, and speaking) with tasks and resources relevant to that level",
+            "Should maintain concise, unambiguous notes and prompts, avoiding excessive formatting beyond what components require"
+          ],
+          "expected_components": [
+            "WeeklyPracticeDashboard",
+            "ReviewQueueList"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "I don\u2019t see the full dashboard\u2014please render the complete weekly calendar with exact times and activity tags, the SRS review queue with due counts and priority, and the proficiency radar chart. Include the specific speaking prompts and 1\u20132 resource links per activity. No placeholders\u2014show all details."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here\u2019s your complete weekly Spanish practice dashboard with exact times, activity tags, SRS queue (with priorities), and a proficiency radar. Each session\u2019s notes include concrete speaking prompts and 1\u20132 resource links. Clear your SRS due cards first each day, then do the scheduled block."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WeeklyPracticeDashboard",
+              "props": {
+                "weekStartDate": "2025-11-24",
+                "sessions": [
+                  {
+                    "id": "sess_mon_gram_preterite_imperfect",
+                    "date": "2025-11-24T19:00:00",
+                    "skillType": "Grammar",
+                    "title": "Preterite vs. Imperfect: contrast drills",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "Speaking prompts: 1) Ayer fui a\u2026 2) Cuando era ni\u00f1o/a, siempre\u2026 3) Mientras estudiaba, de repente\u2026 4) El fin de semana pasado, primero\u2026, luego\u2026\nResources: \u2022 SpanishDict guide (preterite vs imperfect): https://www.spanishdict.com/guide/spanish-preterite-vs-imperfect \u2022 Conjuguemos practice: https://conjuguemos.com/activities/spanish/verb/8"
+                  },
+                  {
+                    "id": "sess_tue_vocab_travel",
+                    "date": "2025-11-25T19:00:00",
+                    "skillType": "Vocabulary",
+                    "title": "Travel phrases + collocations",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "Speaking prompts (role-play): 1) En el aeropuerto: \u201cTengo una reserva a\u2026\u201d 2) En el hotel: \u201c\u00bfA qu\u00e9 hora es el desayuno?\u201d 3) Pidiendo direcciones: \u201c\u00bfC\u00f3mo llego a\u2026?\u201d\nResources: \u2022 Anki deck (Spanish Travel Phrases): https://ankiweb.net/shared/info/1590720681 \u2022 Memrise A1-A2 Travel Basics (ES): https://www.memrise.com"
+                  },
+                  {
+                    "id": "sess_wed_speaking_weekend",
+                    "date": "2025-11-26T19:00:00",
+                    "skillType": "Speaking",
+                    "title": "Conversation: pasado reciente",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "Speaking prompts: 1) \u00bfQu\u00e9 hiciste el fin de semana? 2) \u00bfQu\u00e9 estabas haciendo cuando te llam\u00e9? 3) Cu\u00e9ntame una an\u00e9cdota de tu infancia. 4) \u00bfQu\u00e9 sol\u00edas hacer despu\u00e9s de la escuela?\nResources: \u2022 italki (pr\u00e1ctica guiada): https://www.italki.com \u2022 HelloTalk (intercambio de voz): https://www.hellotalk.com"
+                  },
+                  {
+                    "id": "sess_thu_listening_story",
+                    "date": "2025-11-27T19:00:00",
+                    "skillType": "Listening",
+                    "title": "Listening + shadowing (pasado)",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "Task: Escucha una historia corta en pasado; haz shadowing de 2\u20133 frases y resume en 3 oraciones (pret\u00e9rito + imperfecto).\nResources: \u2022 Dreaming Spanish (A2 stories): https://www.youtube.com/c/DreamingSpanish \u2022 Coffee Break Spanish (episodios con pasado): https://coffeebreaklanguages.com/coffeebreakspanish/"
+                  },
+                  {
+                    "id": "sess_fri_reading_news",
+                    "date": "2025-11-28T19:00:00",
+                    "skillType": "Reading",
+                    "title": "Reading: noticias sencillas + subrayado de verbos",
+                    "durationMin": 30,
+                    "status": "planned",
+                    "notes": "Task: Lee 1 art\u00edculo corto; subraya todos los verbos en pasado y reescribe 3 frases cambiando de pret\u00e9rito\u2194imperfecto.\nResources: \u2022 News in Slow Spanish: https://www.newsinslowspanish.com \u2022 Readlang (asistencia de lectura): https://readlang.com"
+                  },
+                  {
+                    "id": "sess_sat_speaking_roleplay",
+                    "date": "2025-11-29T10:00:00",
+                    "skillType": "Speaking",
+                    "title": "Speaking deep-dive: roleplays (restaurante/viaje)",
+                    "durationMin": 60,
+                    "status": "planned",
+                    "notes": "Roleplays: 1) Restaurante: pedir, quejarse, resolver. 2) Viaje: perder un tren, comprar billete, pedir reembolso. 3) Historia personal: \u2018Una vez que\u2026\u2019\nResources: \u2022 italki (sesi\u00f3n de 30\u201360 min): https://www.italki.com \u2022 HelloTalk (notas de voz con nativo): https://www.hellotalk.com"
+                  },
+                  {
+                    "id": "sess_sun_writing_diary",
+                    "date": "2025-11-30T10:00:00",
+                    "skillType": "Writing",
+                    "title": "Writing: diario del fin de semana + feedback",
+                    "durationMin": 60,
+                    "status": "planned",
+                    "notes": "Task: Escribe 120\u2013150 palabras sobre tu fin de semana (pret\u00e9rito + imperfecto). Pide correcciones y reescribe la versi\u00f3n final.\nResources: \u2022 LangCorrect (correcciones comunitarias): https://langcorrect.com \u2022 SpanishChecker (revisi\u00f3n b\u00e1sica): https://spanishchecker.com"
+                  }
+                ],
+                "activityTypes": [
+                  {
+                    "key": "vocabulary",
+                    "label": "Vocabulary",
+                    "color": "#5B8DEF"
+                  },
+                  {
+                    "key": "grammar",
+                    "label": "Grammar",
+                    "color": "#8C54FF"
+                  },
+                  {
+                    "key": "speaking",
+                    "label": "Speaking",
+                    "color": "#FF7043"
+                  },
+                  {
+                    "key": "listening",
+                    "label": "Listening",
+                    "color": "#26C6DA"
+                  },
+                  {
+                    "key": "reading",
+                    "label": "Reading",
+                    "color": "#66BB6A"
+                  },
+                  {
+                    "key": "writing",
+                    "label": "Writing",
+                    "color": "#FFA726"
+                  }
+                ],
+                "reviewQueue": [
+                  {
+                    "id": "deck_vocab_core_a1a2",
+                    "deckName": "Spanish - Core Vocab A1\u2013A2",
+                    "dueCount": 32,
+                    "nextDue": "2025-11-24T07:30:00Z"
+                  },
+                  {
+                    "id": "deck_grammar_preterite",
+                    "deckName": "Grammar Drills: Preterite vs. Imperfect",
+                    "dueCount": 12,
+                    "nextDue": "2025-11-24T08:00:00Z"
+                  },
+                  {
+                    "id": "deck_phrases_travel",
+                    "deckName": "Useful Travel Phrases (ES)",
+                    "dueCount": 8,
+                    "nextDue": "2025-11-24T12:00:00Z"
+                  },
+                  {
+                    "id": "deck_listening_cloze",
+                    "deckName": "Listening Cloze (A2)",
+                    "dueCount": 5,
+                    "nextDue": "2025-11-24T15:00:00Z"
+                  },
+                  {
+                    "id": "deck_irregular_verbs",
+                    "deckName": "Irregular Verbs (Top 100)",
+                    "dueCount": 20,
+                    "nextDue": "2025-11-24T09:30:00Z"
+                  }
+                ],
+                "proficiency": [
+                  {
+                    "skill": "Vocabulary",
+                    "level0to100": 62
+                  },
+                  {
+                    "skill": "Grammar",
+                    "level0to100": 58
+                  },
+                  {
+                    "skill": "Speaking",
+                    "level0to100": 46
+                  },
+                  {
+                    "skill": "Listening",
+                    "level0to100": 55
+                  },
+                  {
+                    "skill": "Reading",
+                    "level0to100": 68
+                  },
+                  {
+                    "skill": "Writing",
+                    "level0to100": 52
+                  }
+                ],
+                "locale": "en-US",
+                "initialActivityFilters": [],
+                "onSelectSessionAction": {
+                  "type": "select_session",
+                  "sessionId": "sess_mon_gram_preterite_imperfect"
+                },
+                "onAddSessionAction": {
+                  "type": "add_session"
+                },
+                "onStartReviewAction": {
+                  "type": "start_review",
+                  "deckId": "deck_vocab_core_a1a2"
+                },
+                "onFilterByActivityTypeAction": {
+                  "type": "filter_by_activity_type",
+                  "activityKeys": [
+                    "vocabulary",
+                    "grammar",
+                    "speaking",
+                    "listening",
+                    "reading",
+                    "writing"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ReviewQueueList",
+              "props": {
+                "queues": [
+                  {
+                    "id": "deck_vocab_core_a1a2",
+                    "deckName": "Spanish - Core Vocab A1\u2013A2",
+                    "dueCount": 32,
+                    "nextDue": "2025-11-24T07:30:00Z",
+                    "priority": "high",
+                    "focusSkill": "vocabulary"
+                  },
+                  {
+                    "id": "deck_irregular_verbs",
+                    "deckName": "Irregular Verbs (Top 100)",
+                    "dueCount": 20,
+                    "nextDue": "2025-11-24T09:30:00Z",
+                    "priority": "high",
+                    "focusSkill": "grammar"
+                  },
+                  {
+                    "id": "deck_grammar_preterite",
+                    "deckName": "Grammar Drills: Preterite vs. Imperfect",
+                    "dueCount": 12,
+                    "nextDue": "2025-11-24T08:00:00Z",
+                    "priority": "medium",
+                    "focusSkill": "grammar"
+                  },
+                  {
+                    "id": "deck_phrases_travel",
+                    "deckName": "Useful Travel Phrases (ES)",
+                    "dueCount": 8,
+                    "nextDue": "2025-11-24T12:00:00Z",
+                    "priority": "low",
+                    "focusSkill": "speaking"
+                  },
+                  {
+                    "id": "deck_listening_cloze",
+                    "deckName": "Listening Cloze (A2)",
+                    "dueCount": 5,
+                    "nextDue": "2025-11-24T15:00:00Z",
+                    "priority": "medium",
+                    "focusSkill": "listening"
+                  }
+                ],
+                "startReviewAction": {
+                  "type": "start_review",
+                  "payload": {
+                    "deckId": "deck_vocab_core_a1a2"
+                  }
+                },
+                "reorderAction": {
+                  "type": "reorder_deck",
+                  "payload": {
+                    "deckId": "deck_vocab_core_a1a2",
+                    "position": 0
+                  }
+                },
+                "sortOrder": "priority",
+                "timeNow": "2025-11-19T07:00:00Z"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should render a complete weekly practice calendar covering the full week starting on the specified weekStartDate, with each session having exact dates/times (ISO timestamps), durations, titles, and activity tags",
+            "Should include per-session notes that contain concrete Spanish speaking prompts and 1\u20132 specific, relevant resource links for each activity (no placeholders or generic text)",
+            "Should display a spaced-repetition (SRS) review queue listing each deck with deckName, dueCount, nextDue (timestamp), priority, and focusSkill, and present or enable a priority-based ordering",
+            "Should include a proficiency radar chart with explicit numeric levels (0\u2013100) for each relevant skill (Vocabulary, Grammar, Speaking, Listening, Reading, Writing)",
+            "Should ensure activity type tags used in sessions map correctly to the activityTypes list (keys, labels, and colors are consistent and appropriate)",
+            "Should avoid placeholders; all fields must be populated with concrete values, realistic times, and real or credible links",
+            "Should keep dates and times internally consistent (e.g., sessions fall within the specified week; nextDue timestamps are plausible relative to the weekStartDate)",
+            "Should provide actionable UI interactions where applicable (e.g., onSelectSessionAction, onAddSessionAction, onStartReviewAction, filtering actions) with coherent arguments",
+            "Should present information in a concise, user-friendly structure using the provided UI components to match the requested visual (calendar, SRS queue, proficiency radar)",
+            "Should ensure the content is directly relevant to Spanish learning and aligns with the requested mix of vocabulary, grammar, and speaking, while allowing additional skill activities if coherent",
+            "Should use valid JSON structures for all components and properties, with correct prop names and data types suitable for rendering",
+            "Should not call external tools unless necessary for data fetching or computation; for static planning content, it should render directly without tool calls",
+            "Should avoid heavy formatting and maintain clarity suitable for an app UI (bulleted lists acceptable; no excessive markdown)",
+            "Should ensure links and resources are appropriate for the specified activities (e.g., grammar drills, travel phrases, listening practice) and are safe to display"
+          ],
+          "expected_components": [
+            "WeeklyPracticeDashboard",
+            "ReviewQueueList"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const cls = (...c) => c.filter(Boolean).join(' ');
+    const parseDate = (s) => {
+      if (!s) return null;
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const formatDate = (d, locale = 'en-US', opts = {}) => {
+      const dt = d instanceof Date ? d : parseDate(d);
+      if (!dt) return '';
+      return new Intl.DateTimeFormat(locale, opts).format(dt);
+    };
+    const urlRegex = /(https?:\/\/[^\s)]+)(?=\)|\s|$)/g;
+
+    const linkifyText = (text) => {
+      if (!text) return '';
+      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const withLinks = escaped.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">${url}</a>`);
+      const withBreaks = withLinks.replace(/\n/g, '<br/>');
+      return withBreaks;
+    };
+
+    // Schema Components
+
+    const ActivityTypeTag = (props) => {
+      const {
+        typeKey = '',
+        label = '',
+        color = '#ddd',
+        selected = false,
+        icon = '',
+        description = '',
+        count = undefined,
+        disabled = false,
+        onToggleAction = {}
+      } = props;
+
+      const handleToggle = () => {
+        if (disabled) return;
+        if (typeof onToggleAction?.onToggle === 'function') {
+          onToggleAction.onToggle({ typeKey, selected: !selected });
+        }
+      };
+
+      return (
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={disabled}
+          className={cls(
+            "flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm transition",
+            disabled ? "opacity-50 cursor-not-allowed" : "hover:shadow",
+            selected ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-800 border-gray-300"
+          )}
+          title={description || label}
+        >
+          <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color }}></span>
+          {icon ? <span className="text-base">{icon}</span> : null}
+          <span>{label}</span>
+          {typeof count === 'number' ? <span className="text-xs text-gray-500">({count})</span> : null}
+        </button>
+      );
+    };
+
+    const ReviewQueueList = (props) => {
+      const {
+        queues = [],
+        startReviewAction = {},
+        reorderAction = {},
+        sortOrder = 'due_soon',
+        timeNow = null
+      } = props;
+
+      const now = parseDate(timeNow) || new Date();
+
+      const sorted = useMemo(() => {
+        const arr = Array.isArray(queues) ? [...queues] : [];
+        const byPriority = { high: 0, medium: 1, low: 2 };
+        if (sortOrder === 'priority') {
+          arr.sort((a, b) => (byPriority[a.priority] ?? 99) - (byPriority[b.priority] ?? 99) || (b.dueCount || 0) - (a.dueCount || 0));
+        } else if (sortOrder === 'alphabetical') {
+          arr.sort((a, b) => (a.deckName || '').localeCompare(b.deckName || ''));
+        } else {
+          arr.sort((a, b) => (parseDate(a.nextDue) || now) - (parseDate(b.nextDue) || now));
+        }
+        return arr;
+      }, [queues, sortOrder, timeNow]);
+
+      const handleStart = (deckId) => {
+        if (typeof startReviewAction?.onStart === 'function') {
+          startReviewAction.onStart({ deckId });
+        } else {
+          console.log('start_review', { deckId, payload: startReviewAction?.payload });
+        }
+      };
+
+      const handleMoveTop = (deckId) => {
+        if (typeof reorderAction?.onReorder === 'function') {
+          reorderAction.onReorder({ deckId, position: 0 });
+        } else {
+          console.log('reorder_deck', { deckId, position: 0, payload: reorderAction?.payload });
+        }
+      };
+
+      const timeDiff = (due) => {
+        const d = parseDate(due);
+        if (!d) return '';
+        const diffMs = d - now;
+        const sign = diffMs >= 0 ? 1 : -1;
+        const abs = Math.abs(diffMs);
+        const hrs = Math.floor(abs / (1000 * 60 * 60));
+        const mins = Math.floor((abs % (1000 * 60 * 60)) / (1000 * 60));
+        return `${sign < 0 ? '-' : ''}${hrs}h ${mins}m`;
+        };
+
+      return (
+        <div className="w-full bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-gray-800">SRS Review Queue</h3>
+            <span className="text-xs text-gray-500">Sorted by {sortOrder.replace('_', ' ')}</span>
+          </div>
+          {sorted.length === 0 ? (
+            <div className="text-sm text-gray-500">No decks in queue.</div>
+          ) : (
+            <ul className="space-y-2">
+              {sorted.map(q => (
+                <li key={q.id} className="flex items-center justify-between gap-3 p-3 rounded-md border border-gray-100 hover:bg-gray-50">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={cls(
+                        "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
+                        q.priority === 'high' ? "bg-red-100 text-red-700" :
+                        q.priority === 'medium' ? "bg-yellow-100 text-yellow-700" :
+                        q.priority === 'low' ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"
+                      )}>{q.priority || 'n/a'}</span>
+                      <span className="font-medium text-gray-800 truncate">{q.deckName}</span>
+                    </div>
+                    <div className="text-xs text-gray-600 mt-1">
+                      Due: {formatDate(q.nextDue, 'en-US', { dateStyle: 'medium', timeStyle: 'short' })} ({timeDiff(q.nextDue)})
+                      {q.focusSkill ? <span className="ml-2">• Focus: {q.focusSkill}</span> : null}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-gray-700">Due: <span className="font-semibold">{q.dueCount ?? 0}</span></span>
+                    <button onClick={() => handleMoveTop(q.id)} className="text-xs px-2 py-1 border rounded hover:bg-gray-100">Top</button>
+                    <button onClick={() => handleStart(q.id)} className="text-xs px-2 py-1 rounded bg-blue-600 text-white hover:bg-blue-700">Start</button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      );
+    };
+
+    const ProficiencyRadarChart = (props) => {
+      const {
+        title = 'Proficiency',
+        skills = [],
+        lastUpdated = new Date().toISOString(),
+        targetLevels = [],
+        compareSnapshot = null,
+        appearance = 'standard',
+        showLegend = true,
+        tooltipFormat = 'percent',
+        onSkillHoverAction = {},
+        onViewDetailsAction = {},
+        onShareAction = {}
+      } = props;
+
+      const size = appearance === 'compact' ? 220 : appearance === 'detailed' ? 420 : 320;
+      const center = size / 2;
+      const radius = size * 0.38;
+      const max = 100;
+      const levels = 4;
+
+      const data = Array.isArray(skills) ? skills : [];
+      const angleStep = (Math.PI * 2) / (data.length || 1);
+
+      const pointFor = (idx, value) => {
+        const angle = -Math.PI / 2 + idx * angleStep;
+        const r = (Math.max(0, Math.min(max, value)) / max) * radius;
+        const x = center + r * Math.cos(angle);
+        const y = center + r * Math.sin(angle);
+        return [x, y];
+      };
+
+      const polygonPoints = data.map((s, i) => pointFor(i, s.level0to100 || 0)).map(p => p.join(',')).join(' ');
+
+      const handleHover = (skill) => {
+        if (typeof onSkillHoverAction?.onHover === 'function') {
+          onSkillHoverAction.onHover({ skill });
+        }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-800">{title}</h3>
+            <div className="flex items-center gap-2">
+              <button onClick={() => typeof onViewDetailsAction?.onView === 'function' ? onViewDetailsAction.onView({}) : console.log('view_details')}
+                className="text-xs px-2 py-1 rounded border hover:bg-gray-50">Details</button>
+              <button onClick={() => typeof onShareAction?.onShare === 'function' ? onShareAction.onShare({}) : console.log('share')}
+                className="text-xs px-2 py-1 rounded bg-gray-900 text-white hover:bg-black">Share</button>
+            </div>
+          </div>
+          <div className="text-xs text-gray-500 mb-2">Updated {formatDate(lastUpdated, 'en-US', { dateStyle: 'medium', timeStyle: 'short' })}</div>
+          <div className="w-full flex justify-center">
+            <svg width={size} height={size} role="img" aria-label="Proficiency radar chart">
+              {/* grid circles */}
+              {[...Array(levels)].map((_, i) => {
+                const r = radius * ((i + 1) / levels);
+                return <circle key={i} cx={center} cy={center} r={r} fill="none" stroke="#e5e7eb" />;
+              })}
+              {/* axes */}
+              {data.map((s, i) => {
+                const [x, y] = pointFor(i, max);
+                return <line key={i} x1={center} y1={center} x2={x} y2={y} stroke="#e5e7eb" />;
+              })}
+              {/* polygon */}
+              <polygon points={polygonPoints} fill="rgba(59,130,246,0.25)" stroke="#2563eb" strokeWidth="2" />
+              {/* points and labels */}
+              {data.map((s, i) => {
+                const [x, y] = pointFor(i, s.level0to100 || 0);
+                const [lx, ly] = pointFor(i, max + 16);
+                return (
+                  <g key={s.skill} onMouseEnter={() => handleHover(s.skill)} className="cursor-pointer">
+                    <circle cx={x} cy={y} r="3" fill="#2563eb" />
+                    <text x={lx} y={ly} textAnchor="middle" fontSize="11" fill="#374151">{s.skill}</text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+          {showLegend ? (
+            <div className="mt-2 text-xs text-gray-600">
+              Scale: 0–100 {tooltipFormat === 'percent' ? '(%)' : '(raw)'}
+            </div>
+          ) : null}
+        </div>
+      );
+    };
+
+    const PracticeCalendarGrid = (props) => {
+      const {
+        weekStartDate = '',
+        sessions = [],
+        timezone = undefined,
+        skillMeta = [],
+        showWeekend = true,
+        timeFormat = '12h',
+        dayAnnotations = [],
+        onSelectSessionAction = {},
+        onAddSessionAction = {},
+        onMarkDoneAction = {}
+      } = props;
+
+      const start = parseDate(weekStartDate) || new Date();
+      const days = [...Array(7)].map((_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+
+      const formatTime = (dateStr) => {
+        const d = parseDate(dateStr);
+        if (!d) return '';
+        const opts = timeFormat === '24h' ? { hour: '2-digit', minute: '2-digit', hour12: false } : { hour: 'numeric', minute: '2-digit' };
+        return new Intl.DateTimeFormat('en-US', opts).format(d);
+      };
+
+      const getColor = (skill) => {
+        const lc = (skill || '').toLowerCase();
+        const normalized = { vocab: 'vocabulary', listening: 'listening' }[lc] || lc;
+        const byLabel = skillMeta.find(m => (m.label || '').toLowerCase() === lc);
+        const byKey = skillMeta.find(m => (m.key || '').toLowerCase() === normalized);
+        return (byLabel || byKey)?.color || '#94a3b8';
+      };
+
+      const grouped = useMemo(() => {
+        const map = {};
+        days.forEach(d => {
+          const key = d.toISOString().slice(0,10);
+          map[key] = [];
+        });
+        (sessions || []).forEach(s => {
+          const d = parseDate(s.date);
+          if (!d) return;
+          const key = d.toISOString().slice(0,10);
+          if (!map[key]) map[key] = [];
+          map[key].push(s);
+        });
+        Object.keys(map).forEach(k => map[k].sort((a,b) => parseDate(a.date)-parseDate(b.date)));
+        return map;
+      }, [sessions, weekStartDate]);
+
+      const selectSession = (s) => {
+        if (typeof onSelectSessionAction?.onSelect === 'function') {
+          onSelectSessionAction.onSelect({ session: s });
+        } else {
+          console.log('select_session', s);
+        }
+      };
+
+      const markDone = (s) => {
+        if (typeof onMarkDoneAction?.onMark === 'function') {
+          onMarkDoneAction.onMark({ sessionId: s.id });
+        } else {
+          console.log('mark_done', s.id);
+        }
+      };
+
+      const addSession = (dayDate) => {
+        if (typeof onAddSessionAction?.onAdd === 'function') {
+          onAddSessionAction.onAdd({ date: dayDate.toISOString() });
+        } else {
+          console.log('add_session', dayDate.toISOString());
+        }
+      };
+
+      return (
+        <div className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-7 gap-3">
+            {days.map((d, idx) => {
+              const key = d.toISOString().slice(0,10);
+              const items = grouped[key] || [];
+              const dayAnno = (dayAnnotations || []).filter(a => a.date?.slice(0,10) === key);
+              return (
+                <div key={key} className="bg-white rounded-lg border border-gray-200 p-3 flex flex-col">
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <div className="text-xs uppercase text-gray-500">{new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(d)}</div>
+                      <div className="font-semibold text-gray-800">{formatDate(d, 'en-US', { month: 'short', day: 'numeric' })}</div>
+                    </div>
+                    <button onClick={() => addSession(d)} className="text-xs px-2 py-1 rounded border hover:bg-gray-50">Add</button>
+                  </div>
+                  <div className="space-y-2">
+                    {items.length === 0 ? (
+                      <div className="text-xs text-gray-400">No sessions</div>
+                    ) : items.map(s => (
+                      <div key={s.id} className="p-2 border rounded hover:bg-gray-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getColor(s.skillType) }}></span>
+                            <div className="truncate">
+                              <div className="text-xs text-gray-600">{formatTime(s.date)} • {s.skillType}</div>
+                              <div className="font-medium text-gray-800 truncate">{s.title}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => selectSession(s)} className="text-xs px-2 py-1 rounded border hover:bg-gray-100">Open</button>
+                            <button onClick={() => markDone(s)} className="text-xs px-2 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700">Done</button>
+                          </div>
+                        </div>
+                        {s.notes ? (
+                          <details className="mt-1">
+                            <summary className="text-xs text-gray-600 cursor-pointer">Notes</summary>
+                            <div className="text-xs text-gray-700 mt-1" dangerouslySetInnerHTML={{ __html: linkifyText(s.notes) }}></div>
+                          </details>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                  {dayAnno.length > 0 ? (
+                    <div className="mt-2 text-xs text-gray-500">{dayAnno.map(a => a.note).join(' • ')}</div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    const SessionEditorModal = (props) => {
+      const {
+        mode = 'create',
+        sessionDraft = {},
+        skillOptions = [],
+        saveAction = {},
+        closeAction = {},
+        deleteAction = {},
+        durationPresetsMin = [5, 10, 15, 20, 30, 45, 60],
+        timeFormat = '12h',
+        minDate = '',
+        allowNotes = true
+      } = props;
+
+      const [draft, setDraft] = useState(sessionDraft || {});
+      const update = (k, v) => setDraft(d => ({ ...d, [k]: v }));
+
+      const close = () => {
+        if (typeof closeAction?.onClose === 'function') closeAction.onClose();
+      };
+      const save = () => {
+        if (typeof saveAction?.onSave === 'function') saveAction.onSave(draft);
+      };
+      const del = () => {
+        if (typeof deleteAction?.onDelete === 'function') deleteAction.onDelete(draft?.id);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-lg bg-white rounded-lg shadow-lg p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-semibold">{mode === 'edit' ? 'Edit Session' : 'New Session'}</h3>
+              <button onClick={close} className="text-sm text-gray-600 hover:text-gray-900">Close</button>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-700">Title</label>
+                <input value={draft.title || ''} onChange={e => update('title', e.target.value)} className="w-full mt-1 border rounded px-3 py-2" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-700">Date/Time</label>
+                  <input type="datetime-local" min={minDate || undefined} value={draft.date || ''} onChange={e => update('date', e.target.value)} className="w-full mt-1 border rounded px-3 py-2" />
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700">Duration (min)</label>
+                  <select value={draft.durationMin || ''} onChange={e => update('durationMin', Number(e.target.value))} className="w-full mt-1 border rounded px-3 py-2">
+                    <option value="">Choose…</option>
+                    {durationPresetsMin.map(n => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm text-gray-700">Skill Type</label>
+                  <select value={draft.skillType || ''} onChange={e => update('skillType', e.target.value)} className="w-full mt-1 border rounded px-3 py-2">
+                    <option value="">Select…</option>
+                    {skillOptions.map(opt => <option key={opt.value || opt} value={opt.value || opt}>{opt.label || opt}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm text-gray-700">Status</label>
+                  <select value={draft.status || 'planned'} onChange={e => update('status', e.target.value)} className="w-full mt-1 border rounded px-3 py-2">
+                    <option value="planned">Planned</option>
+                    <option value="done">Done</option>
+                    <option value="skipped">Skipped</option>
+                  </select>
+                </div>
+              </div>
+              {allowNotes ? (
+                <div>
+                  <label className="text-sm text-gray-700">Notes</label>
+                  <textarea value={draft.notes || ''} onChange={e => update('notes', e.target.value)} rows="4" className="w-full mt-1 border rounded px-3 py-2"></textarea>
+                </div>
+              ) : null}
+            </div>
+            <div className="mt-4 flex items-center justify-between">
+              {mode === 'edit' ? <button onClick={del} className="text-sm px-3 py-2 rounded border border-red-300 text-red-700 hover:bg-red-50">Delete</button> : <span />}
+              <div className="flex items-center gap-2">
+                <button onClick={close} className="text-sm px-3 py-2 rounded border hover:bg-gray-50">Cancel</button>
+                <button onClick={save} className="text-sm px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const WeeklyPracticeDashboard = (props) => {
+      const {
+        weekStartDate = '',
+        sessions = [],
+        activityTypes = [],
+        reviewQueue = [],
+        proficiency = [],
+        locale = 'en-US',
+        initialActivityFilters = [],
+        onSelectSessionAction = {},
+        onAddSessionAction = {},
+        onStartReviewAction = {},
+        onFilterByActivityTypeAction = {}
+      } = props;
+
+      const start = parseDate(weekStartDate) || new Date();
+      const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+
+      // Normalize filters to keys (lowercase)
+      const normalizeKey = (k) => {
+        const m = (k || '').toString().toLowerCase();
+        if (m === 'vocab') return 'vocabulary';
+        return m;
+      };
+      const [filters, setFilters] = useState(new Set((initialActivityFilters || []).map(normalizeKey)));
+
+      const toggleFilter = ({ typeKey, selected }) => {
+        const key = normalizeKey(typeKey);
+        setFilters(prev => {
+          const next = new Set(prev);
+          if (selected) next.add(key);
+          else next.delete(key);
+          if (typeof onFilterByActivityTypeAction?.onFilter === 'function') {
+            onFilterByActivityTypeAction.onFilter({ activityKeys: Array.from(next) });
+          }
+          return next;
+        });
+      };
+
+      const findMetaForSkill = (skill) => {
+        const lc = (skill || '').toLowerCase();
+        const normalizedSkill = normalizeKey(lc);
+        const byKey = activityTypes.find(a => (a.key || '').toLowerCase() === normalizedSkill);
+        const byLabel = activityTypes.find(a => (a.label || '').toLowerCase() === lc);
+        return byKey || byLabel || { key: normalizedSkill, label: skill, color: '#94a3b8' };
+      };
+
+      const filteredSessions = useMemo(() => {
+        if (!filters || filters.size === 0) return sessions;
+        return (sessions || []).filter(s => {
+          const meta = findMetaForSkill(s.skillType);
+          return filters.has(normalizeKey(meta.key)) || filters.has((meta.label || '').toLowerCase());
+        });
+      }, [sessions, filters]);
+
+      const countsByType = useMemo(() => {
+        const map = {};
+        (sessions || []).forEach(s => {
+          const meta = findMetaForSkill(s.skillType);
+          const k = normalizeKey(meta.key);
+          map[k] = (map[k] || 0) + 1;
+        });
+        return map;
+      }, [sessions]);
+
+      // Derive priorities for reviewQueue if missing
+      const queuesWithPriority = (reviewQueue || []).map(q => {
+        let priority = q.priority;
+        if (!priority) {
+          if ((q.dueCount || 0) >= 20) priority = 'high';
+          else if ((q.dueCount || 0) >= 10) priority = 'medium';
+          else priority = 'low';
+        }
+        return { ...q, priority, focusSkill: q.focusSkill || undefined };
+      });
+
+      const handleStartReview = (deckId) => {
+        if (typeof onStartReviewAction?.onStart === 'function') {
+          onStartReviewAction.onStart({ deckId });
+        } else {
+          console.log('start_review', { deckId });
+        }
+      };
+
+      const skillOptions = activityTypes.map(a => ({ value: a.label || a.key, label: a.label || a.key }));
+
+      // Calendar sub-grid
+      const calendarProps = {
+        weekStartDate,
+        sessions: filteredSessions,
+        timezone: undefined,
+        skillMeta: activityTypes,
+        showWeekend: true,
+        timeFormat: '12h',
+        dayAnnotations: [],
+        onSelectSessionAction: { onSelect: (e) => console.log('open session', e) },
+        onAddSessionAction: { onAdd: (e) => console.log('add session', e) },
+        onMarkDoneAction: { onMark: (e) => console.log('mark done', e) }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Weekly Practice Dashboard</h2>
+              <div className="text-sm text-gray-600">
+                {formatDate(start, locale, { month: 'short', day: 'numeric', year: 'numeric' })} – {formatDate(end, locale, { month: 'short', day: 'numeric', year: 'numeric' })}
+              </div>
+            </div>
+            <div className="text-xs text-gray-500">Locale: {locale}</div>
+          </div>
+
+          {/* Filters */}
+          <div className="mt-4">
+            <div className="text-sm font-medium text-gray-700 mb-2">Filter by activity</div>
+            <div className="flex flex-wrap gap-2">
+              {(activityTypes || []).map(a => (
+                <ActivityTypeTag
+                  key={a.key || a.label}
+                  typeKey={a.key || (a.label || '').toLowerCase()}
+                  label={a.label || a.key}
+                  color={a.color || '#94a3b8'}
+                  selected={filters.has(normalizeKey(a.key || (a.label || '').toLowerCase()))}
+                  onToggleAction={{ onToggle: toggleFilter }}
+                  count={countsByType[normalizeKey(a.key || (a.label || '').toLowerCase())] || 0}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Calendar */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-gray-800">Calendar</h3>
+              <div className="text-xs text-gray-500">{filteredSessions.length} of {(sessions || []).length} sessions shown</div>
+            </div>
+            <PracticeCalendarGrid {...calendarProps} />
+          </div>
+
+          {/* Panels */}
+          <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <ReviewQueueList
+              queues={queuesWithPriority}
+              sortOrder="priority"
+              timeNow={new Date().toISOString()}
+              startReviewAction={{ onStart: ({ deckId }) => handleStartReview(deckId) }}
+              reorderAction={{ onReorder: ({ deckId, position }) => console.log('reorder', deckId, position) }}
+            />
+            <ProficiencyRadarChart
+              title="Proficiency Snapshot"
+              skills={proficiency || []}
+              lastUpdated={new Date().toISOString()}
+              appearance="standard"
+              showLegend={true}
+              tooltipFormat="percent"
+            />
+          </div>
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      WeeklyPracticeDashboard,
+      PracticeCalendarGrid,
+      ActivityTypeTag,
+      ReviewQueueList,
+      ProficiencyRadarChart,
+      SessionEditorModal
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    // Message rendering
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <div className="whitespace-pre-wrap text-gray-800 text-sm">{chunk}</div>;
+      }
+      if (chunk.type === 'text') {
+        return <div className="whitespace-pre-wrap text-gray-800 text-sm">{chunk.text}</div>;
+      }
+      if (chunk.type === 'component' && chunk.component?.name) {
+        return <ComponentRenderer componentName={chunk.component.name} props={chunk.component.props || {}} />;
+      }
+      return <div className="text-xs text-gray-500">Unsupported content</div>;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const bg = isUser ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200';
+      return (
+        <div className={cls("w-full rounded-xl border p-4", bg)}>
+          <div className="text-xs mb-2 text-gray-500">{isUser ? 'User' : 'Assistant'}</div>
+          <div className="space-y-3">
+            {Array.isArray(content)
+              ? content.map((c, idx) => <ContentChunkRenderer key={idx} chunk={c} />)
+              : <ContentChunkRenderer chunk={content} />
+            }
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="max-w-6xl mx-auto px-4 py-6 space-y-4">
+          <h1 className="text-2xl font-semibold text-gray-900">Conversation Viewer</h1>
+          {conversation.map((msg, idx) => (
+            <MessageBubble key={idx} role={msg.role} content={msg.content} />
+          ))}
+          <div className="h-4"></div>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

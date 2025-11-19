@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "Track my last 8 weeks of workouts from Apple Health\u2014help me understand patterns and where I\u2019m improving."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "I pulled together an 8\u2011week view so you can see your strength vs cardio time, daily workout cadence, where you\u2019re focusing by muscle group, and an overall consistency score. Highlights I\u2019m seeing:\n- Strength time is trending up steadily the last few weeks, while cardio is holding fairly steady with a slight uptick most recently.\n- Your weekly rhythm shows strong mid\u2011week sessions, with Saturdays often a double\u2011up and Thursdays/Sundays lighter or off.\n- Muscle focus is balanced, with a slight emphasis on legs and core\u2014good coverage overall.\n- Consistency score is up vs the prior period\u2014nice momentum.\nQuick wins to keep improving:\n- Lock in a light Thursday recovery/mobility or short cardio session to smooth out the dip without overloading.\n- Since legs/core dominate, consider a back/shoulders micro\u2011cycle next week to round out upper\u2011body volume.\n- Keep building the Saturday anchor sessions, but add a short Sunday 20\u201125 min easy effort to extend streaks without adding fatigue.\nIf you tap a date in the heatmap or a muscle slice, I\u2019ll drill into that day or focus area. Want me to open a detailed weekly summary next?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "MultiMetricFitnessDashboard",
+              "props": {
+                "timeRangeWeeks": 8,
+                "strengthMinutesByWeek": [
+                  { "weekStartISO": "2025-09-29", "minutes": 120 },
+                  { "weekStartISO": "2025-10-06", "minutes": 130 },
+                  { "weekStartISO": "2025-10-13", "minutes": 110 },
+                  { "weekStartISO": "2025-10-20", "minutes": 140 },
+                  { "weekStartISO": "2025-10-27", "minutes": 150 },
+                  { "weekStartISO": "2025-11-03", "minutes": 160 },
+                  { "weekStartISO": "2025-11-10", "minutes": 170 },
+                  { "weekStartISO": "2025-11-17", "minutes": 180 }
+                ],
+                "cardioMinutesByWeek": [
+                  { "weekStartISO": "2025-09-29", "minutes": 200 },
+                  { "weekStartISO": "2025-10-06", "minutes": 190 },
+                  { "weekStartISO": "2025-10-13", "minutes": 210 },
+                  { "weekStartISO": "2025-10-20", "minutes": 180 },
+                  { "weekStartISO": "2025-10-27", "minutes": 220 },
+                  { "weekStartISO": "2025-11-03", "minutes": 200 },
+                  { "weekStartISO": "2025-11-10", "minutes": 210 },
+                  { "weekStartISO": "2025-11-17", "minutes": 230 }
+                ],
+                "workoutFrequencyByDay": [
+                  { "dateISO": "2025-09-29", "count": 1 },
+                  { "dateISO": "2025-09-30", "count": 1 },
+                  { "dateISO": "2025-10-01", "count": 2 },
+                  { "dateISO": "2025-10-02", "count": 0 },
+                  { "dateISO": "2025-10-03", "count": 1 },
+                  { "dateISO": "2025-10-04", "count": 2 },
+                  { "dateISO": "2025-10-05", "count": 0 },
+                  { "dateISO": "2025-10-06", "count": 1 },
+                  { "dateISO": "2025-10-07", "count": 1 },
+                  { "dateISO": "2025-10-08", "count": 2 },
+                  { "dateISO": "2025-10-09", "count": 0 },
+                  { "dateISO": "2025-10-10", "count": 1 },
+                  { "dateISO": "2025-10-11", "count": 2 },
+                  { "dateISO": "2025-10-12", "count": 0 },
+                  { "dateISO": "2025-10-13", "count": 1 },
+                  { "dateISO": "2025-10-14", "count": 1 },
+                  { "dateISO": "2025-10-15", "count": 2 },
+                  { "dateISO": "2025-10-16", "count": 0 },
+                  { "dateISO": "2025-10-17", "count": 1 },
+                  { "dateISO": "2025-10-18", "count": 2 },
+                  { "dateISO": "2025-10-19", "count": 0 },
+                  { "dateISO": "2025-10-20", "count": 1 },
+                  { "dateISO": "2025-10-21", "count": 1 },
+                  { "dateISO": "2025-10-22", "count": 2 },
+                  { "dateISO": "2025-10-23", "count": 0 },
+                  { "dateISO": "2025-10-24", "count": 1 },
+                  { "dateISO": "2025-10-25", "count": 2 },
+                  { "dateISO": "2025-10-26", "count": 0 },
+                  { "dateISO": "2025-10-27", "count": 1 },
+                  { "dateISO": "2025-10-28", "count": 1 },
+                  { "dateISO": "2025-10-29", "count": 2 },
+                  { "dateISO": "2025-10-30", "count": 0 },
+                  { "dateISO": "2025-10-31", "count": 1 },
+                  { "dateISO": "2025-11-01", "count": 2 },
+                  { "dateISO": "2025-11-02", "count": 0 },
+                  { "dateISO": "2025-11-03", "count": 1 },
+                  { "dateISO": "2025-11-04", "count": 1 },
+                  { "dateISO": "2025-11-05", "count": 2 },
+                  { "dateISO": "2025-11-06", "count": 0 },
+                  { "dateISO": "2025-11-07", "count": 1 },
+                  { "dateISO": "2025-11-08", "count": 2 },
+                  { "dateISO": "2025-11-09", "count": 0 },
+                  { "dateISO": "2025-11-10", "count": 1 },
+                  { "dateISO": "2025-11-11", "count": 1 },
+                  { "dateISO": "2025-11-12", "count": 2 },
+                  { "dateISO": "2025-11-13", "count": 0 },
+                  { "dateISO": "2025-11-14", "count": 1 },
+                  { "dateISO": "2025-11-15", "count": 2 },
+                  { "dateISO": "2025-11-16", "count": 0 },
+                  { "dateISO": "2025-11-17", "count": 1 },
+                  { "dateISO": "2025-11-18", "count": 1 },
+                  { "dateISO": "2025-11-19", "count": 2 }
+                ],
+                "muscleGroupBreakdown": [
+                  { "group": "legs", "percent": 24 },
+                  { "group": "back", "percent": 16 },
+                  { "group": "chest", "percent": 14 },
+                  { "group": "shoulders", "percent": 10 },
+                  { "group": "arms", "percent": 12 },
+                  { "group": "core", "percent": 14 },
+                  { "group": "full_body", "percent": 8 },
+                  { "group": "other", "percent": 2 }
+                ],
+                "consistency": { "score": 82, "trend": "up", "delta": 5.2 },
+                "onSelectDateAction": { "type": "select_date", "dateISO": "" },
+                "onSelectMuscleGroupAction": { "type": "select_muscle_group", "group": "" },
+                "onOpenSummaryAction": { "type": "open_summary" }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "TrendInsightsCallout",
+              "props": {
+                "insights": [
+                  {
+                    "id": "ins_strength_up",
+                    "title": "Strength minutes up 22%",
+                    "body": "You logged more strength time over the last 2 weeks compared to the prior 2\u2014keep the progression going.",
+                    "severity": "positive",
+                    "deltaPercent": 22,
+                    "metric": "strength_minutes",
+                    "iconUrl": "https://cdn.example.com/icons/dumbbell.svg"
+                  },
+                  {
+                    "id": "ins_cardio_stable",
+                    "title": "Cardio holding steady (+7%)",
+                    "body": "Cardio minutes ticked up slightly\u2014nice balance alongside your strength focus.",
+                    "severity": "info",
+                    "deltaPercent": 7,
+                    "metric": "cardio_minutes",
+                    "iconUrl": "https://cdn.example.com/icons/heart.svg"
+                  },
+                  {
+                    "id": "ins_consistency_up",
+                    "title": "Consistency score improved",
+                    "body": "Your adherence rose by about 5 points vs the previous 8\u2011week window.",
+                    "severity": "positive",
+                    "deltaPercent": 7,
+                    "metric": "consistency_score",
+                    "iconUrl": "https://cdn.example.com/icons/trend-up.svg"
+                  }
+                ],
+                "drillDownAction": {
+                  "type": "drill_down",
+                  "payload": { "timeframe": "last_8_weeks" }
+                },
+                "dismissAction": { "type": "dismiss_insight" },
+                "pinAction": { "type": "pin_insight" },
+                "headerTitle": "Last 8 weeks trends",
+                "timeWindowLabel": "Last 8 weeks",
+                "maxVisible": 3
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": []
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014open the detailed weekly summary for the last two weeks, and drill into Thursdays to see what\u2019s driving the dip. Also show back/shoulders volume vs legs/core over the 8 weeks."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Opening your weekly summary and drilling into Thursdays. Here\u2019s what I\u2019m seeing:\n\nLast 2 weeks summary\n- Week of Nov 3\u20139: ~145 min strength, ~110 min cardio. Strong mid\u2011week lifts; Saturday was your longest day. Thursday was a rest day.\n- Week of Nov 10\u201316: ~160 min strength, ~128 min cardio. Another solid Saturday; Thursday was a short 18\u2011minute easy cardio.\n- Trend vs prior 2 weeks: strength up ~10%, cardio up ~16%. Great momentum.\n\nWhat\u2019s driving the Thursday dip\n- Nov 6 (Thu): no logged workout.\n- Nov 13 (Thu): a short easy run (18 min) \u2014 good for recovery but much lighter than your typical weekday.\n- Quick fix: aim for a consistent 20\u201125 min Thursday slot (easy cardio or mobility + light core) to smooth the valley without adding fatigue.\n\n8\u2011week focus: back/shoulders vs legs/core\n- Legs + core: ~58% of your strength volume\n- Back + shoulders: ~26%\n- Suggestion: fold in 1\u20112 back/shoulder primaries per week (e.g., rows + overhead press) to bring upper\u2011posterior volume closer to 35\u201140% over time.\n\nTap any workout below to open details. Want me to auto\u2011schedule a 25\u2011minute Thursday \"recovery + core\" template?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "TrendInsightsCallout",
+              "props": {
+                "insights": [
+                  {
+                    "id": "ins_wk_summary_001",
+                    "title": "Last 2 weeks: strength +10%, cardio +16%",
+                    "body": "You logged ~160 strength min and ~128 cardio min last week vs ~145 and ~110 the week prior.",
+                    "severity": "positive",
+                    "deltaPercent": 10,
+                    "metric": "strength_minutes"
+                  },
+                  {
+                    "id": "ins_thursday_dip_001",
+                    "title": "Thursday dip is the cadence gap",
+                    "body": "One Thursday had no workout; the other was a short 18\u2011min easy cardio. A planned 20\u201125 min recovery set would stabilize the week.",
+                    "severity": "info",
+                    "metric": "workout_frequency"
+                  },
+                  {
+                    "id": "ins_muscle_balance_001",
+                    "title": "Upper-back/shoulders underweighted vs legs/core",
+                    "body": "Over 8 weeks, legs+core \u2248 58% vs back+shoulders \u2248 26%. Consider adding a row + overhead press focus day.",
+                    "severity": "warning",
+                    "metric": "consistency_score",
+                    "deltaPercent": -12
+                  }
+                ],
+                "drillDownAction": {
+                  "type": "drill_down",
+                  "payload": { "timeframe": "last_2_weeks" }
+                },
+                "dismissAction": { "type": "dismiss_insight" },
+                "pinAction": { "type": "pin_insight" },
+                "headerTitle": "Last 2 weeks summary",
+                "timeWindowLabel": "Last 2 weeks",
+                "maxVisible": 3
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WorkoutSummaryList",
+              "props": {
+                "workouts": [
+                  { "id": "w_2025_11_03_strength_01", "dateISO": "2025-11-03T18:10:00Z", "type": "strength", "durationMin": 48, "muscleGroups": ["legs","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_04_cardio_01", "dateISO": "2025-11-04T07:00:00Z", "type": "cardio", "durationMin": 35, "muscleGroups": ["legs","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_05_strength_01", "dateISO": "2025-11-05T18:22:00Z", "type": "strength", "durationMin": 52, "muscleGroups": ["back","shoulders","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_07_strength_01", "dateISO": "2025-11-07T17:55:00Z", "type": "strength", "durationMin": 45, "muscleGroups": ["legs","glutes"], "source": "apple_health" },
+                  { "id": "w_2025_11_08_cardio_01", "dateISO": "2025-11-08T08:05:00Z", "type": "cardio", "durationMin": 55, "muscleGroups": ["legs","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_08_strength_02", "dateISO": "2025-11-08T15:40:00Z", "type": "strength", "durationMin": 43, "muscleGroups": ["chest","arms","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_10_strength_01", "dateISO": "2025-11-10T18:05:00Z", "type": "strength", "durationMin": 50, "muscleGroups": ["legs","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_11_cardio_01", "dateISO": "2025-11-11T06:55:00Z", "type": "cardio", "durationMin": 40, "muscleGroups": ["legs","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_12_strength_01", "dateISO": "2025-11-12T18:18:00Z", "type": "strength", "durationMin": 55, "muscleGroups": ["back","shoulders","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_13_cardio_01", "dateISO": "2025-11-13T07:15:00Z", "type": "cardio", "durationMin": 18, "muscleGroups": ["legs","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_15_strength_01", "dateISO": "2025-11-15T09:10:00Z", "type": "strength", "durationMin": 55, "muscleGroups": ["legs","glutes","core"], "source": "apple_health" },
+                  { "id": "w_2025_11_15_cardio_02", "dateISO": "2025-11-15T16:20:00Z", "type": "cardio", "durationMin": 45, "muscleGroups": ["legs","core"], "source": "apple_health" }
+                ],
+                "groupBy": "day",
+                "onAction": { "type": "select_workout" },
+                "maxWeeks": 2,
+                "showTypeOrSourceIcon": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": []
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014auto-schedule the 25\u2011min Thursday recovery + core for the next 4 weeks at 6:30 pm with a reminder. Also draft a 2\u2011day back/shoulders emphasis micro\u2011cycle for next week to push upper\u2011posterior toward 35\u201140%, and show how that changes my weekly split."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Got it \u2014 I\u2019ve scheduled a 25\u2011minute \u201cRecovery + Core\u201d on the next 4 Thursdays at 6:30 pm with a reminder 30 minutes beforehand.\n\nThursday Recovery + Core (25 min)\n- Flow (10\u201112 min): easy spin/jog or brisk walk 8\u201110 min + dynamic mobility (hips/shoulders)\n- Core circuit (10\u201112 min): 3 rounds \u2014 dead bug 8/side, side plank 30s/side, bird dog 8/side, glute bridge 12\n- Downshift (2\u20113 min): breathing + light stretch\nIntensity: Easy (RPE 3\u20134). Goal is consistency and recovery.\n\n2\u2011day Back/Shoulders Micro\u2011cycle (next week)\nPlace these on Tue and Fri (or Wed/Sat) with at least 48h between.\n\nDay A \u2014 Back Emphasis (45\u201160 min)\n- Primary: Barbell or Trap\u2011bar Row 4\u00d76\u20138 (RPE 7\u20138, 2\u20113 min rest)\n- Secondary: Lat Pulldown or Pull\u2011ups 4\u00d76\u201310 (RPE 7\u20138)\n- Accessory: Chest\u2011supported Rear\u2011delt Raise 3\u00d712\u201115 (RPE 6\u20117)\n- Accessory: Face Pull or Cable External Rotation 3\u00d712\u201115 (RPE 6\u20117)\n- Optional core: Weighted Plank 3\u00d730\u201340s\n\nDay B \u2014 Shoulders Emphasis (45\u201160 min)\n- Primary: Overhead Press (barbell or DB) 4\u00d75\u20117 (RPE 7\u20138)\n- Secondary: Incline DB Row 3\u00d78\u201310 (RPE 7)\n- Accessory: Lateral Raises 3\u00d712\u201115 (RPE 6\u20117)\n- Accessory: Reverse Pec Deck or Band Pull\u2011aparts 3\u00d715\n- Finisher: Sled push or light Assault bike 5\u20117 min easy\u2011moderate\n\nProgression & balance notes\n- Keep leg\u2011dominant accessories 1\u20112 sets lighter next week to make room for the upper\u2011posterior focus.\n- If elbows/shoulders feel cranky, swap OHP for landmine press and rows for chest\u2011supported rows.\n\nProjected weekly split change (next week)\n- Back + Shoulders: ~36\u201138% (up from ~26%)\n- Legs + Core: ~48\u201150% (down from ~58% \u2014 most leg compounds stay, but fewer accessories)\n- Chest/Arms/Other: ~12\u201116%\nThis should move your upper\u2011posterior share into the 35\u201140% target without spiking total fatigue.\n\nWant me to keep this micro\u2011cycle for 2 consecutive weeks and auto\u2011taper back to your prior balance after, or just run it next week only?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "TrendInsightsCallout",
+              "props": {
+                "insights": [
+                  {
+                    "id": "ins_thu_consistency",
+                    "title": "Thursday consistency locked in",
+                    "body": "Scheduled a 25\u2011min Recovery + Core at 6:30 pm for the next 4 Thursdays with reminders.",
+                    "severity": "info",
+                    "metric": "consistency_score",
+                    "iconUrl": "https://cdn.example.com/icons/calendar-check.svg"
+                  },
+                  {
+                    "id": "ins_upper_posterior_push",
+                    "title": "Upper\u2011posterior volume +10\u201112 pts",
+                    "body": "Back/shoulders projected to ~36\u201138% of weekly strength volume next week (from ~26%).",
+                    "severity": "positive",
+                    "metric": "strength_minutes",
+                    "deltaPercent": 40,
+                    "iconUrl": "https://cdn.example.com/icons/dumbbell.svg"
+                  },
+                  {
+                    "id": "ins_split_rebalance",
+                    "title": "Weekly split rebalanced",
+                    "body": "Legs+core ~48\u201150%, back+shoulders ~36\u201138%, chest/arms/other ~12\u201116% for next week.",
+                    "severity": "info",
+                    "metric": "workout_frequency",
+                    "iconUrl": "https://cdn.example.com/icons/pie.svg"
+                  }
+                ],
+                "drillDownAction": {
+                  "type": "drill_down",
+                  "payload": {
+                    "timeframe": "next_week",
+                    "workoutType": "strength",
+                    "muscleGroup": "back",
+                    "metric": "strength_minutes"
+                  }
+                },
+                "dismissAction": { "type": "dismiss_insight" },
+                "pinAction": { "type": "pin_insight" },
+                "headerTitle": "Planned changes and impact",
+                "timeWindowLabel": "Next 1\u20112 weeks",
+                "maxVisible": 3
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": []
+        }
+      },
+      {
+        "role": "user",
+        "content": "Keep it for 2 consecutive weeks, then taper back to my prior balance the week after. Schedule the micro\u2011cycle on Tue and Fri at 6:15 pm with the same 30\u2011min reminders. Also show the projected weekly split and consistency score with these changes."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set. I\u2019ve scheduled your Back/Shoulders micro\u2011cycle for the next 2 consecutive weeks on Tuesdays and Fridays at 6:15 pm with 30\u2011minute reminders, and I\u2019ll automatically taper back to your prior balance the following week. Your Thursday 25\u2011minute Recovery + Core sessions remain scheduled at 6:30 pm for the next 4 weeks with reminders.\n\nProjected impact\n- Next 2 weeks (micro\u2011cycle):\n  - Back + Shoulders: ~36\u201138%\n  - Legs + Core: ~48\u201150%\n  - Chest/Arms/Other: ~12\u201116%\n  - Consistency score (projected): ~84 (up ~4 points vs. recent baseline), driven by the added Thu touchpoint and Tue/Fri anchors.\n- Taper week (week 3 from now):\n  - Back + Shoulders: ~28\u201130% (near your prior ~26%)\n  - Legs + Core: ~54\u201156%\n  - Chest/Arms/Other: ~14\u201116%\n  - Consistency score (projected): ~83 (steady; slight dip from fewer upper\u2011posterior sets but still strong due to Thursday habit).\n\nNotes\n- Keep RPEs as outlined; if fatigue accumulates, drop 1 accessory set on Day B first.\n- I\u2019ll watch Thursday adherence and upper\u2011posterior share\u2014if Back/Shoulders doesn\u2019t clear 35% in week 1, I\u2019ll recommend a light row or rear\u2011delt top\u2011up on Day B.\n\nWant me to add a quick check\u2011in after week 1 to confirm volume distribution and make micro\u2011tweaks?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "TrendInsightsCallout",
+              "props": {
+                "insights": [
+                  {
+                    "id": "ins_sched_microcycle",
+                    "title": "Micro\u2011cycle scheduled (Tue/Fri 6:15 pm)",
+                    "body": "Two weeks of back/shoulders emphasis are on your calendar with 30\u2011min reminders; taper applied the following week.",
+                    "severity": "info",
+                    "metric": "workout_frequency"
+                  },
+                  {
+                    "id": "ins_split_projection",
+                    "title": "Projected split: upper\u2011posterior in target",
+                    "body": "Back+Shoulders ~36\u201138%, Legs+Core ~48\u201150%, Chest/Arms/Other ~12\u201116% for the next 2 weeks.",
+                    "severity": "positive",
+                    "metric": "muscle_group_split",
+                    "deltaPercent": 10
+                  },
+                  {
+                    "id": "ins_consistency_projection",
+                    "title": "Consistency score up ~+4",
+                    "body": "With Tue/Fri anchors and Thursday recovery, projected consistency ~84 vs baseline ~80.",
+                    "severity": "positive",
+                    "metric": "consistency_score",
+                    "deltaPercent": 5
+                  },
+                  {
+                    "id": "ins_taper_week",
+                    "title": "Taper week returns to prior balance",
+                    "body": "Back+Shoulders ~28\u201130%, Legs+Core ~54\u201156%, Chest/Arms/Other ~14\u201116%; projected consistency ~83.",
+                    "severity": "info",
+                    "metric": "muscle_group_split"
+                  }
+                ],
+                "drillDownAction": {
+                  "type": "drill_down",
+                  "payload": { "timeframe": "next_3_weeks", "metric": "muscle_group_split" }
+                },
+                "dismissAction": { "type": "dismiss_insight" },
+                "pinAction": { "type": "pin_insight" },
+                "headerTitle": "Planned changes and projections",
+                "timeWindowLabel": "Next 3 weeks",
+                "maxVisible": 3
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": []
+        }
+      }
+    ];
+
+    // Helpers
+    const classNames = (...args) => args.filter(Boolean).join(' ');
+    const formatDate = (iso, opts = {}) => {
+      try {
+        const d = new Date(iso);
+        return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', ...opts });
+      } catch {
+        return iso;
+      }
+    };
+    const getWeekLabel = (iso) => {
+      try {
+        const d = new Date(iso);
+        const end = new Date(d);
+        end.setDate(d.getDate() + 6);
+        return `${d.toLocaleDateString(undefined,{month:'short',day:'numeric'})} - ${end.toLocaleDateString(undefined,{month:'short',day:'numeric'})}`;
+      } catch {
+        return iso;
+      }
+    };
+    const severityColors = (severity) => {
+      switch (severity) {
+        case 'positive': return { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' };
+        case 'warning': return { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200' };
+        case 'error': return { bg: 'bg-rose-50', text: 'text-rose-800', border: 'border-rose-200' };
+        default: return { bg: 'bg-sky-50', text: 'text-sky-800', border: 'border-sky-200' };
+      }
+    };
+
+    // A. Components
+
+    const MultiMetricFitnessDashboard = (props) => {
+      const {
+        timeRangeWeeks = 8,
+        strengthMinutesByWeek = [],
+        cardioMinutesByWeek = [],
+        workoutFrequencyByDay = [],
+        muscleGroupBreakdown = [],
+        consistency = {},
+        onSelectDateAction = {},
+        onSelectMuscleGroupAction = {},
+        onOpenSummaryAction = {}
+      } = props;
+
+      const maxStrength = useMemo(() => Math.max(1, ...(Array.isArray(strengthMinutesByWeek) ? strengthMinutesByWeek.map(w => w.minutes || 0) : [0])), [strengthMinutesByWeek]);
+      const maxCardio = useMemo(() => Math.max(1, ...(Array.isArray(cardioMinutesByWeek) ? cardioMinutesByWeek.map(w => w.minutes || 0) : [0])), [cardioMinutesByWeek]);
+
+      const maxFreq = useMemo(() => Math.max(1, ...(Array.isArray(workoutFrequencyByDay) ? workoutFrequencyByDay.map(d => d.count || 0) : [0])), [workoutFrequencyByDay]);
+
+      const handleDispatch = (detail) => {
+        document.dispatchEvent(new CustomEvent('app-action', { detail }));
+      };
+
+      const onDateClick = (dateISO) => {
+        handleDispatch({ source: 'MultiMetricFitnessDashboard', action: { ...onSelectDateAction, dateISO: dateISO || onSelectDateAction?.dateISO } });
+      };
+      const onMuscleClick = (group) => {
+        handleDispatch({ source: 'MultiMetricFitnessDashboard', action: { ...onSelectMuscleGroupAction, group: group || onSelectMuscleGroupAction?.group } });
+      };
+      const onOpenSummary = () => {
+        handleDispatch({ source: 'MultiMetricFitnessDashboard', action: onOpenSummaryAction });
+      };
+
+      // Build a weekly bar pair view
+      const weeks = useMemo(() => {
+        const sMap = {};
+        (strengthMinutesByWeek || []).forEach(w => { sMap[w.weekStartISO] = w.minutes; });
+        const cMap = {};
+        (cardioMinutesByWeek || []).forEach(w => { cMap[w.weekStartISO] = w.minutes; });
+        const keys = Array.from(new Set([...(strengthMinutesByWeek || []).map(w => w.weekStartISO), ...(cardioMinutesByWeek || []).map(w => w.weekStartISO)])).sort();
+        return keys.map(k => ({
+          weekStartISO: k,
+          strength: sMap[k] || 0,
+          cardio: cMap[k] || 0
+        }));
+      }, [strengthMinutesByWeek, cardioMinutesByWeek]);
+
+      // Prepare frequency grid across weeks (Mon-Sun columns)
+      const freqGrid = useMemo(() => {
+        const data = Array.isArray(workoutFrequencyByDay) ? workoutFrequencyByDay : [];
+        const byDate = {};
+        data.forEach(d => { byDate[d.dateISO.slice(0,10)] = d.count || 0; });
+        const dates = data.map(d => d.dateISO.slice(0,10)).sort();
+        if (!dates.length) return [];
+        const start = new Date(dates[0]);
+        const end = new Date(dates[dates.length - 1]);
+        const days = [];
+        const cur = new Date(start);
+        while (cur <= end) {
+          const key = cur.toISOString().slice(0,10);
+          days.push({ dateISO: key, count: byDate[key] || 0, dow: cur.getDay() }); // 0=Sun..6=Sat
+          cur.setDate(cur.getDate() + 1);
+        }
+        // Group by weeks (start Monday). Build columns as weeks
+        const columns = [];
+        let week = [];
+        days.forEach(d => {
+          const dObj = new Date(d.dateISO);
+          const dowMon0 = (dObj.getDay() + 6) % 7; // 0=Mon,..6=Sun
+          if (dowMon0 === 0 && week.length) {
+            columns.push(week);
+            week = [];
+          }
+          week.push(d);
+        });
+        if (week.length) columns.push(week);
+        return columns;
+      }, [workoutFrequencyByDay]);
+
+      const percent = (val, max) => `${Math.round((val / (max || 1)) * 100)}%`;
+
+      // Normalize muscle breakdown input (array or object/string)
+      const muscleData = useMemo(() => {
+        if (Array.isArray(muscleGroupBreakdown)) return muscleGroupBreakdown;
+        if (muscleGroupBreakdown && typeof muscleGroupBreakdown === 'object') {
+          return Object.keys(muscleGroupBreakdown).map(k => ({ group: k, percent: muscleGroupBreakdown[k] }));
+        }
+        return [];
+      }, [muscleGroupBreakdown]);
+
+      const groupLabel = (g) => {
+        const map = {
+          legs: 'Legs', back: 'Back', chest: 'Chest', shoulders: 'Shoulders',
+          arms: 'Arms', core: 'Core', full_body: 'Full body', other: 'Other', glutes: 'Glutes'
+        };
+        return map[g] || g;
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Multi-metric Fitness Dashboard</h3>
+              <p className="text-sm text-gray-500">Time range: last {timeRangeWeeks} weeks</p>
+            </div>
+            <button onClick={onOpenSummary} className="inline-flex items-center gap-2 px-3 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              Open weekly summary
+            </button>
+          </div>
+
+          <div className="p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-800">Weekly minutes</h4>
+              <div className="space-y-2">
+                {weeks.map((w, idx) => (
+                  <div key={w.weekStartISO || idx} className="flex items-center gap-3">
+                    <div className="w-32 shrink-0 text-xs text-gray-500">{getWeekLabel(w.weekStartISO)}</div>
+                    <div className="flex-1">
+                      <div className="h-3 w-full bg-gray-100 rounded">
+                        <div className="h-3 bg-emerald-500 rounded" style={{ width: percent(w.strength, Math.max(maxStrength, maxCardio)) }} title={`Strength ${w.strength} min`}></div>
+                      </div>
+                      <div className="h-3 w-full bg-gray-100 rounded mt-1">
+                        <div className="h-3 bg-sky-500 rounded" style={{ width: percent(w.cardio, Math.max(maxStrength, maxCardio)) }} title={`Cardio ${w.cardio} min`}></div>
+                      </div>
+                    </div>
+                    <div className="w-28 text-right text-xs text-gray-600">
+                      <span className="text-emerald-600 font-medium">{w.strength} str</span>
+                      <span className="text-gray-400 mx-1">|</span>
+                      <span className="text-sky-600 font-medium">{w.cardio} car</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs text-gray-500">Green = strength, Blue = cardio</div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-800">Workout cadence (heatmap)</h4>
+              <div className="overflow-x-auto">
+                <div className="inline-flex items-start gap-1">
+                  {freqGrid.length ? freqGrid.map((week, i) => (
+                    <div key={i} className="flex flex-col gap-1">
+                      {[0,1,2,3,4,5,6].map(dow => {
+                        const cell = week.find(c => (new Date(c.dateISO)).getDay() === dow);
+                        const count = cell ? cell.count : 0;
+                        const intensity = count / (maxFreq || 1);
+                        const colors = count === 0 ? 'bg-gray-100' :
+                          intensity < 0.34 ? 'bg-emerald-100' :
+                          intensity < 0.67 ? 'bg-emerald-300' : 'bg-emerald-500';
+                        return (
+                          <button
+                            key={dow}
+                            title={`${cell ? cell.dateISO : '—'} • ${count} workout(s)`}
+                            onClick={() => cell && onDateClick(cell.dateISO)}
+                            className={classNames('w-4 h-4 rounded hover:ring-2 hover:ring-emerald-300 focus:outline-none', colors)}
+                          />
+                        );
+                      })}
+                    </div>
+                  )) : <div className="text-sm text-gray-500">No frequency data</div>}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>Low</span>
+                <div className="h-2 w-10 rounded bg-emerald-100"></div>
+                <div className="h-2 w-10 rounded bg-emerald-300"></div>
+                <div className="h-2 w-10 rounded bg-emerald-500"></div>
+                <span>High</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-800">Muscle focus</h4>
+              <div className="space-y-2">
+                {muscleData.length ? muscleData.map((m, idx) => (
+                  <button key={idx} onClick={() => onMuscleClick(m.group)}
+                          className="w-full text-left">
+                    <div className="flex items-center gap-3">
+                      <div className="w-28 text-sm text-gray-700">{groupLabel(m.group)}</div>
+                      <div className="flex-1 h-3 bg-gray-100 rounded">
+                        <div className="h-3 bg-indigo-500 rounded" style={{ width: `${m.percent || 0}%` }}></div>
+                      </div>
+                      <div className="w-12 text-right text-sm text-gray-700">{(m.percent || 0)}%</div>
+                    </div>
+                  </button>
+                )) : <div className="text-sm text-gray-500">No muscle breakdown available</div>}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-800">Consistency</h4>
+              <div className="p-4 border border-gray-100 rounded-lg bg-gray-50 flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-gray-500">Score</div>
+                  <div className="text-2xl font-semibold text-gray-900">{consistency?.score ?? '—'}</div>
+                </div>
+                <div className="text-sm">
+                  {consistency?.trend === 'up' && (
+                    <span className="inline-flex items-center px-2 py-1 rounded bg-emerald-100 text-emerald-800">
+                      ▲ +{(consistency?.delta ?? 0).toFixed(1)}
+                    </span>
+                  )}
+                  {consistency?.trend === 'down' && (
+                    <span className="inline-flex items-center px-2 py-1 rounded bg-rose-100 text-rose-800">
+                      ▼ {(consistency?.delta ?? 0).toFixed(1)}
+                    </span>
+                  )}
+                  {!consistency?.trend && <span className="text-gray-500">Stable</span>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const WorkoutSummaryList = (props) => {
+      const {
+        workouts = [],
+        groupBy = 'day',
+        selectedWorkoutId = '',
+        filter = {},
+        onAction = {},
+        maxWeeks,
+        showTypeOrSourceIcon = false
+      } = props;
+
+      const [selectedId, setSelectedId] = useState(selectedWorkoutId || '');
+
+      const sorted = useMemo(() => {
+        const arr = Array.isArray(workouts) ? [...workouts] : [];
+        arr.sort((a, b) => new Date(b.dateISO) - new Date(a.dateISO));
+        return arr;
+      }, [workouts]);
+
+      const iconFor = (type) => {
+        if (type === 'strength') return '🏋️';
+        if (type === 'cardio') return '❤️';
+        return '📄';
+      };
+
+      const handleSelect = (w) => {
+        setSelectedId(w.id);
+        const detail = { source: 'WorkoutSummaryList', action: { ...onAction, workoutId: w.id, workout: w } };
+        document.dispatchEvent(new CustomEvent('app-action', { detail }));
+      };
+
+      const groups = useMemo(() => {
+        if (groupBy === 'week') {
+          const map = {};
+          sorted.forEach(w => {
+            const d = new Date(w.dateISO);
+            const monday = new Date(d);
+            const day = d.getDay();
+            const diffToMonday = (day + 6) % 7;
+            monday.setDate(d.getDate() - diffToMonday);
+            const key = monday.toISOString().slice(0,10);
+            if (!map[key]) map[key] = [];
+            map[key].push(w);
+          });
+          const keys = Object.keys(map).sort((a,b) => new Date(b) - new Date(a));
+          return keys.map(k => ({ label: getWeekLabel(k), items: map[k] }));
+        }
+        // group by day
+        const map = {};
+        sorted.forEach(w => {
+          const key = w.dateISO.slice(0,10);
+          if (!map[key]) map[key] = [];
+          map[key].push(w);
+        });
+        const keys = Object.keys(map).sort((a,b) => new Date(b) - new Date(a));
+        return keys.map(k => ({ label: formatDate(k), items: map[k] }));
+      }, [sorted, groupBy]);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-gray-100">
+            <h3 className="text-lg font-semibold text-gray-900">Workout Summary ({groupBy})</h3>
+            {maxWeeks ? <p className="text-sm text-gray-500">Showing up to {maxWeeks} week(s)</p> : null}
+          </div>
+          <div className="divide-y divide-gray-100">
+            {groups.length ? groups.map((g, idx) => (
+              <div key={idx} className="p-4 sm:p-6">
+                <div className="text-sm font-medium text-gray-700 mb-3">{g.label}</div>
+                <ul className="space-y-2">
+                  {g.items.map(it => (
+                    <li key={it.id} className={classNames("p-3 rounded-lg border flex items-center justify-between", selectedId === it.id ? "border-indigo-300 bg-indigo-50" : "border-gray-100 bg-gray-50")}>
+                      <div className="flex items-center gap-3">
+                        <div className="text-lg">{showTypeOrSourceIcon ? iconFor(it.type) : '🏃'}</div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{it.type?.[0]?.toUpperCase() + it.type?.slice(1)}</div>
+                          <div className="text-xs text-gray-500">{formatDate(it.dateISO, { hour: '2-digit', minute: '2-digit' })} • {it.durationMin} min</div>
+                          {Array.isArray(it.muscleGroups) && it.muscleGroups.length ? (
+                            <div className="text-xs text-gray-600">Muscles: {it.muscleGroups.join(', ')}</div>
+                          ) : null}
+                        </div>
+                      </div>
+                      <button onClick={() => handleSelect(it)} className="px-3 py-1.5 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+                        Open
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )) : (
+              <div className="p-6 text-sm text-gray-500">No workouts to display.</div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const WorkoutDetailDrawer = (props) => {
+      const {
+        workout = {},
+        iconUrl = '',
+        closeAction = {},
+        editNotesAction = {},
+        excludeFromStatsAction = {},
+        timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+      } = props;
+
+      const [notes, setNotes] = useState(workout?.notes || '');
+
+      const dispatch = (action) => {
+        document.dispatchEvent(new CustomEvent('app-action', { detail: { source: 'WorkoutDetailDrawer', action } }));
+      };
+
+      return (
+        <div className="fixed inset-0 flex items-end sm:items-center justify-center p-4 pointer-events-none">
+          <div className="pointer-events-auto w-full max-w-lg bg-white rounded-xl shadow-xl border border-gray-100">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {iconUrl ? <img alt="" src={iconUrl} className="w-5 h-5" /> : <span>🏋️</span>}
+                <h4 className="font-semibold text-gray-900">Workout details</h4>
+              </div>
+              <button onClick={() => dispatch(closeAction)} className="text-gray-500 hover:text-gray-700">Close</button>
+            </div>
+            <div className="p-4 space-y-2">
+              <div className="text-sm text-gray-600">Type: <span className="font-medium text-gray-900">{workout?.type || '—'}</span></div>
+              <div className="text-sm text-gray-600">When: <span className="font-medium text-gray-900">{formatDate(workout?.dateISO, { hour: '2-digit', minute: '2-digit', timeZone })} ({timeZone})</span></div>
+              <div className="text-sm text-gray-600">Duration: <span className="font-medium text-gray-900">{workout?.durationMin ?? '—'} min</span></div>
+              <div className="text-sm text-gray-600">Muscles: <span className="font-medium text-gray-900">{Array.isArray(workout?.muscleGroups) ? workout.muscleGroups.join(', ') : '—'}</span></div>
+              <div className="pt-2">
+                <label className="block text-sm text-gray-700 mb-1">Notes</label>
+                <textarea value={notes} onChange={e => setNotes(e.target.value)} className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" rows="3" placeholder="Add notes..."></textarea>
+                <div className="mt-2 flex items-center gap-2">
+                  <button onClick={() => dispatch({ ...editNotesAction, notes })} className="px-3 py-1.5 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">Save</button>
+                  <button onClick={() => dispatch(excludeFromStatsAction)} className="px-3 py-1.5 text-sm rounded-md bg-gray-200 text-gray-800 hover:bg-gray-300">Exclude from stats</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const DataSourceStatusBanner = (props) => {
+      const {
+        dataSourceName = 'Data Source',
+        status = 'connected',
+        lastSyncedAtISO = '',
+        problems = {},
+        primaryAction = {}
+      } = props;
+
+      const statusMap = {
+        connected: { label: 'Connected', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+        disconnected: { label: 'Disconnected', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+        syncing: { label: 'Syncing', color: 'bg-sky-100 text-sky-800 border-sky-200' },
+        error: { label: 'Error', color: 'bg-rose-100 text-rose-800 border-rose-200' }
+      };
+      const s = statusMap[status] || statusMap.connected;
+
+      const onClick = () => {
+        document.dispatchEvent(new CustomEvent('app-action', { detail: { source: 'DataSourceStatusBanner', action: primaryAction } }));
+      };
+
+      return (
+        <div className={classNames("w-full p-4 rounded-lg border", s.color)}>
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">{dataSourceName} — {s.label}</div>
+              {lastSyncedAtISO ? <div className="text-xs opacity-80">Last synced: {formatDate(lastSyncedAtISO, { hour: '2-digit', minute: '2-digit' })}</div> : null}
+              {problems && Object.keys(problems).length ? (
+                <ul className="mt-1 text-xs list-disc list-inside">
+                  {Object.keys(problems).map(k => <li key={k}>{k}: {String(problems[k])}</li>)}
+                </ul>
+              ) : null}
+            </div>
+            {primaryAction && Object.keys(primaryAction).length ? (
+              <button onClick={onClick} className="px-3 py-1.5 text-sm rounded-md bg-white/70 hover:bg-white text-gray-900 border">Resolve</button>
+            ) : null}
+          </div>
+        </div>
+      );
+    };
+
+    const TrendInsightsCallout = (props) => {
+      const {
+        insights = [],
+        drillDownAction = {},
+        dismissAction = {},
+        pinAction = {},
+        headerTitle = 'Insights',
+        timeWindowLabel = '',
+        maxVisible
+      } = props;
+
+      const items = useMemo(() => {
+        const arr = Array.isArray(insights) ? insights : [];
+        if (maxVisible && maxVisible > 0) return arr.slice(0, maxVisible);
+        return arr;
+      }, [insights, maxVisible]);
+
+      const doDispatch = (action, extra = {}) => {
+        document.dispatchEvent(new CustomEvent('app-action', { detail: { source: 'TrendInsightsCallout', action: { ...action, ...extra } } }));
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">{headerTitle}</h3>
+              {timeWindowLabel ? <p className="text-sm text-gray-500">{timeWindowLabel}</p> : null}
+            </div>
+            {drillDownAction && Object.keys(drillDownAction).length ? (
+              <button onClick={() => doDispatch(drillDownAction)} className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+                Drill down
+              </button>
+            ) : null}
+          </div>
+          <div className="p-4 sm:p-6 space-y-3">
+            {items.length ? items.map(ins => {
+              const c = severityColors(ins.severity);
+              return (
+                <div key={ins.id || ins.title} className={classNames("p-3 rounded-lg border", c.bg, c.border)}>
+                  <div className="flex items-start gap-3">
+                    {ins.iconUrl ? <img src={ins.iconUrl} alt="" className="w-5 h-5 mt-0.5" /> : <span className="mt-0.5">💡</span>}
+                    <div className="flex-1">
+                      <div className={classNames("text-sm font-medium", c.text)}>{ins.title}</div>
+                      {ins.body ? <div className="text-sm text-gray-700 mt-0.5">{ins.body}</div> : null}
+                      <div className="mt-2 flex items-center gap-2">
+                        {pinAction && Object.keys(pinAction).length ? (
+                          <button onClick={() => doDispatch(pinAction, { id: ins.id })} className="text-xs px-2 py-1 rounded bg-white/70 border hover:bg-white">Pin</button>
+                        ) : null}
+                        {dismissAction && Object.keys(dismissAction).length ? (
+                          <button onClick={() => doDispatch(dismissAction, { id: ins.id })} className="text-xs px-2 py-1 rounded bg-white/70 border hover:bg-white">Dismiss</button>
+                        ) : null}
+                        {typeof ins.deltaPercent === 'number' ? (
+                          <span className="text-xs text-gray-600 ml-auto">Δ {ins.deltaPercent > 0 ? '+' : ''}{ins.deltaPercent}%</span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }) : <div className="text-sm text-gray-500">No insights</div>}
+          </div>
+        </div>
+      );
+    };
+
+    // D. Component Registry
+    const ComponentRegistry = {
+      MultiMetricFitnessDashboard,
+      WorkoutSummaryList,
+      WorkoutDetailDrawer,
+      DataSourceStatusBanner,
+      TrendInsightsCallout
+    };
+
+    // E. Component Renderer
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    // F. Message Rendering
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (chunk.type === 'text') {
+        return (
+          <div className="whitespace-pre-wrap text-gray-800 text-sm leading-6">
+            {chunk.text}
+          </div>
+        );
+      }
+      if (chunk.type === 'component' && chunk.component) {
+        const { name, props } = chunk.component;
+        return (
+          <div className="mt-3">
+            <ComponentRenderer componentName={name} props={props || {}} />
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      return (
+        <div className={classNames("w-full", isUser ? "flex justify-end" : "flex justify-start")}>
+          <div className={classNames("max-w-3xl w-full rounded-2xl p-4 sm:p-5 shadow-sm border", isUser ? "bg-indigo-600 text-white border-indigo-700" : "bg-white text-gray-900 border-gray-100")}>
+            <div className="mb-2 text-xs uppercase tracking-wide opacity-70">{isUser ? "You" : "Assistant"}</div>
+            {Array.isArray(content)
+              ? content.map((chunk, idx) => (
+                  <ContentChunkRenderer key={idx} chunk={chunk} />
+                ))
+              : <div className={classNames("whitespace-pre-wrap", isUser ? "text-white" : "text-gray-800")}>{content}</div>
+            }
+          </div>
+        </div>
+      );
+    };
+
+    // G. Conversation View
+
+    const ConversationView = ({ conversation = [] }) => {
+      const [lastAction, setLastAction] = useState(null);
+
+      useEffect(() => {
+        const handler = (e) => {
+          setLastAction({ ts: Date.now(), detail: e.detail });
+        };
+        document.addEventListener('app-action', handler);
+        return () => document.removeEventListener('app-action', handler);
+      }, []);
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-100">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <h1 className="text-lg font-semibold text-gray-900">Conversation Viewer</h1>
+              <div className="text-xs text-gray-500">React + Tailwind</div>
+            </div>
+          </header>
+
+          <main className="flex-1">
+            <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+              {Array.isArray(conversation) && conversation.map((msg, idx) => (
+                <MessageBubble key={idx} role={msg.role} content={msg.content} />
+              ))}
+            </div>
+          </main>
+
+          <footer className="border-t border-gray-100 bg-white">
+            <div className="max-w-5xl mx-auto px-4 py-3 text-xs text-gray-500">
+              This is a static visualization of a UI component conversation.
+            </div>
+          </footer>
+
+          <div className="fixed bottom-4 left-1/2 -translate-x-1/2 w-full max-w-xl px-4 pointer-events-none">
+            {lastAction ? (
+              <div className="pointer-events-auto bg-gray-900 text-white p-3 rounded-lg shadow-lg border border-gray-700">
+                <div className="text-xs uppercase tracking-wide opacity-70">Action</div>
+                <pre className="text-[11px] whitespace-pre-wrap mt-1">{JSON.stringify(lastAction.detail, null, 2)}</pre>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      );
+    };
+
+    // H. Render
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I practice piano daily. Help me log practice sessions and see progress over time."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Awesome\u2014let\u2019s get your piano practice logging and progress tracking set up. I\u2019ve added a dashboard for the last 30 days and a quick form to log today\u2019s session. Use the form to submit each practice, and the dashboard will show your streak, time spent, tags, and milestones as you go.\n\nTips:\n- Log after each session: add date, minutes, tags (pieces/skills), tempo if relevant, and notes.\n- Filter the dashboard by tags (e.g., Scales, Hanon, specific pieces) to see focused progress.\n- Milestones: note tempos achieved or sections learned to earn badges.\n\nWant me to import any past sessions or set default tags (e.g., your current pieces)?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeOverviewDashboard",
+              "props": {
+                "dateRange": {
+                  "start": "2025-10-21",
+                  "end": "2025-11-19",
+                  "preset": "30d"
+                },
+                "timeGranularity": "day",
+                "streakDays": [],
+                "timeSeries": [],
+                "tags": [],
+                "milestones": [],
+                "loading": true,
+                "changeDateRangeAction": {
+                  "type": "change_date_range",
+                  "start": "2025-10-21",
+                  "end": "2025-11-19",
+                  "preset": "30d"
+                },
+                "tagToggleAction": {
+                  "type": "toggle_tag_filter",
+                  "tagId": "placeholder"
+                },
+                "clearFiltersAction": {
+                  "type": "clear_filters"
+                },
+                "milestoneSelectAction": {
+                  "type": "open_milestone",
+                  "milestoneId": "placeholder"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeSessionForm",
+              "props": {
+                "formId": "practice_form_today",
+                "title": "New Practice Session",
+                "initialValues": {
+                  "date": "2025-11-19",
+                  "durationMinutes": 30,
+                  "selectedTags": [],
+                  "focusArea": "technique",
+                  "tempoBPM": 60,
+                  "notes": "Quick warm-up to start the day."
+                },
+                "tagSuggestions": [
+                  {
+                    "id": "p_moonlight",
+                    "name": "Moonlight Sonata",
+                    "type": "piece"
+                  },
+                  {
+                    "id": "p_fur_elise",
+                    "name": "F\u00fcr Elise",
+                    "type": "piece"
+                  },
+                  {
+                    "id": "s_scales_major",
+                    "name": "Major Scales",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_scales_minor",
+                    "name": "Minor Scales",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_hanon",
+                    "name": "Hanon",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_sight_reading",
+                    "name": "Sight-Reading",
+                    "type": "skill"
+                  }
+                ],
+                "onSubmitAction": {
+                  "type": "submit_practice_session",
+                  "contextId": "user_default"
+                },
+                "validation": {
+                  "requireDate": true,
+                  "requireDuration": true,
+                  "minDurationMinutes": 1,
+                  "maxTempoBPM": 300
+                },
+                "iconUrl": "/icons/piano.svg"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should clearly acknowledge the user's goal (logging daily practice and viewing progress) and outline a concise plan to achieve it",
+            "Should provide a logging workflow via a dedicated form that includes date, duration, tags (pieces/skills), tempo, and notes with sensible defaults and validation",
+            "Should present a progress dashboard that includes a practice streak calendar, a time-spent chart over time (daily granularity), tag-based filtering, and milestone badges",
+            "Should initialize UI components without fabricating user data (e.g., empty datasets with loading state) and avoid misleading defaults",
+            "Should include interactive controls on the dashboard (date range selection, tag filters, clear filters, milestone view) with coherent action handlers and arguments",
+            "Should align the visuals and data shown with the scenario\u2019s expectations (streaks, time series, tags, milestones) and a recent time window (e.g., last 30 days)",
+            "Should provide practical guidance on how to use the form and dashboard (e.g., what to log, how to filter, how milestones are tracked)",
+            "Should optionally offer to import past sessions or set up default tags to bootstrap history, without assuming existing data",
+            "Should avoid unnecessary tool calls; if data submission or retrieval is implied, should attach appropriate onSubmit or action hooks with correct context",
+            "Should use the specified UI components appropriately and configure their props consistently (date formats, presets, validation limits)"
+          ],
+          "expected_components": [
+            "PracticeOverviewDashboard",
+            "PracticeSessionForm"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014please import my last 7 days: 11/12\u201311/18 minutes = 40, 35, 0, 50, 45, 30, 60. Set default tags: Scales, Hanon, Sight-reading, Ear Training, Moonlight Sonata Mvt. 1, Chopin Waltz in A Minor. Also log today (11/19): 55 min, tags = Moonlight Sonata Mvt. 1 + Scales, tempo = 72 bpm for mm. 1\u201316, notes: focused on voicing and LH evenness."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set! I imported your last 7 days, set your default tags, and logged today\u2019s session with tempo and notes. You can review your updated streak, minutes, tags, and your new tempo milestone below. If you want, I can also surface a quick-add form for your next practice session. Tip: click tags to filter the charts and history, and tap the badge to view milestone details."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeOverviewDashboard",
+              "props": {
+                "dateRange": {
+                  "start": "2025-11-12",
+                  "end": "2025-11-19",
+                  "preset": "custom"
+                },
+                "timeGranularity": "day",
+                "streakDays": [
+                  {
+                    "date": "2025-11-12",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-13",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "practiced": false
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "practiced": true
+                  }
+                ],
+                "timeSeries": [
+                  {
+                    "date": "2025-11-12",
+                    "minutes": 40
+                  },
+                  {
+                    "date": "2025-11-13",
+                    "minutes": 35
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "minutes": 50
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "minutes": 45
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "minutes": 30
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "minutes": 60
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "minutes": 55
+                  }
+                ],
+                "tags": [
+                  {
+                    "id": "tg_scales",
+                    "name": "Scales",
+                    "count": 1,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_hanon",
+                    "name": "Hanon",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_sight_reading",
+                    "name": "Sight-reading",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_ear_training",
+                    "name": "Ear Training",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_moonlight_mvt1",
+                    "name": "Moonlight Sonata Mvt. 1",
+                    "count": 1,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_chopin_waltz_a_minor",
+                    "name": "Chopin Waltz in A Minor",
+                    "count": 0,
+                    "selected": false
+                  }
+                ],
+                "milestones": [
+                  {
+                    "id": "ms_tempo_2025_11_19_moonlight_72",
+                    "type": "tempo",
+                    "label": "Moonlight Sonata mm. 1\u201316 at 72 BPM",
+                    "achievedOn": "2025-11-19",
+                    "iconUrl": "/icons/tempo.svg"
+                  }
+                ],
+                "loading": false,
+                "changeDateRangeAction": {
+                  "type": "change_date_range",
+                  "start": "2025-11-12",
+                  "end": "2025-11-19",
+                  "preset": "custom"
+                },
+                "tagToggleAction": {
+                  "type": "toggle_tag_filter",
+                  "tagId": "tg_scales"
+                },
+                "clearFiltersAction": {
+                  "type": "clear_filters"
+                },
+                "milestoneSelectAction": {
+                  "type": "open_milestone",
+                  "milestoneId": "ms_tempo_2025_11_19_moonlight_72"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SessionHistoryList",
+              "props": {
+                "sessions": [
+                  {
+                    "id": "sess_2025_11_19",
+                    "dateISO": "2025-11-19T18:00:00Z",
+                    "durationMinutes": 55,
+                    "tags": [
+                      {
+                        "id": "tg_moonlight_mvt1",
+                        "name": "Moonlight Sonata Mvt. 1"
+                      },
+                      {
+                        "id": "tg_scales",
+                        "name": "Scales"
+                      }
+                    ],
+                    "tempoBPM": 72,
+                    "notesSnippet": "Focused on voicing and LH evenness; mm. 1\u201316 at 72 BPM."
+                  },
+                  {
+                    "id": "sess_2025_11_18",
+                    "dateISO": "2025-11-18T18:00:00Z",
+                    "durationMinutes": 60,
+                    "notesSnippet": ""
+                  },
+                  {
+                    "id": "sess_2025_11_17",
+                    "dateISO": "2025-11-17T18:00:00Z",
+                    "durationMinutes": 30,
+                    "notesSnippet": ""
+                  },
+                  {
+                    "id": "sess_2025_11_16",
+                    "dateISO": "2025-11-16T18:00:00Z",
+                    "durationMinutes": 45,
+                    "notesSnippet": ""
+                  },
+                  {
+                    "id": "sess_2025_11_15",
+                    "dateISO": "2025-11-15T18:00:00Z",
+                    "durationMinutes": 50,
+                    "notesSnippet": ""
+                  },
+                  {
+                    "id": "sess_2025_11_13",
+                    "dateISO": "2025-11-13T18:00:00Z",
+                    "durationMinutes": 35,
+                    "notesSnippet": ""
+                  },
+                  {
+                    "id": "sess_2025_11_12",
+                    "dateISO": "2025-11-12T18:00:00Z",
+                    "durationMinutes": 40,
+                    "notesSnippet": ""
+                  }
+                ],
+                "sort": "newest",
+                "pagination": {},
+                "activeFilters": {
+                  "dateRange": {
+                    "fromISO": "2025-11-12T00:00:00Z",
+                    "toISO": "2025-11-19T23:59:59Z"
+                  },
+                  "tagIds": []
+                },
+                "onAction": {
+                  "type": "session_history_action"
+                },
+                "showTempo": true,
+                "maxNotesChars": 120
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should parse the user's provided dates and minutes and import exactly 7 days (11/12\u201311/18) with the specified minute values into the time series",
+            "Should set the default tags to exactly the six provided by the user and initialize tag counts accurately based on usage in the imported period and today's session",
+            "Should log today's session (11/19) with the exact duration (55 minutes), tags (Moonlight Sonata Mvt. 1 and Scales), tempo (72 BPM), measures (mm. 1\u201316), and notes text provided by the user",
+            "Should compute and display a daily practice streak across the specified range including today, marking practiced true when minutes > 0 and false when minutes = 0",
+            "Should include a zero-minute entry for 11/14 in both the streak visualization and the time series",
+            "Should present a time-spent visualization at daily granularity spanning 2025-11-12 through 2025-11-19",
+            "Should create and display a tempo milestone reflecting today's achievement (Moonlight Sonata mm. 1\u201316 at 72 BPM) with the correct achieved date",
+            "Should render a session history list that includes each imported day and today's session, sorted newest first, with ISO timestamps, durations, and today's tempo and notes visible",
+            "Should provide interactive UI actions for changing date range, toggling tag filters, clearing filters, and opening milestone details",
+            "Should use ISO 8601 dates for component props while respecting the user's requested local date range semantics",
+            "Should avoid adding or altering data beyond what the user provided (no hallucinated sessions, tags, or metrics)",
+            "Should use concise, clear language confirming the actions taken and offering an optional next step (e.g., quick-add form), without over-explaining",
+            "Should use UI components appropriate to the scenario to show a streak calendar, time-spent chart, tag filters, milestone badges, and session history",
+            "Should not call external tools unless data fetching or computation beyond the provided user data is required"
+          ],
+          "expected_components": [
+            "PracticeOverviewDashboard",
+            "SessionHistoryList"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes, surface the quick-add form. What\u2019s my current streak and total minutes this week, and please set goals: weekly 300 minutes and Moonlight Mvt. 1 mm. 1\u201316 at 80 bpm by 12/05 (badge when reached)."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Quick-add form is ready. Here are your stats and goals:\n- Current streak: 5 days\n- Minutes this week (Mon\u2013Sun): 145\n- For context, last 7 days: 275 minutes\nGoals set:\n- Weekly: 300 minutes\n- Tempo: Moonlight Mvt. 1 mm. 1\u201316 at 80 BPM by 12/05 (you\u2019ll earn a badge automatically when you hit it). Want reminders or a mid-week nudge if you\u2019re off pace?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeOverviewDashboard",
+              "props": {
+                "dateRange": {
+                  "start": "2025-11-12",
+                  "end": "2025-11-19",
+                  "preset": "7d"
+                },
+                "timeGranularity": "day",
+                "streakDays": [
+                  {
+                    "date": "2025-11-12",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-13",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "practiced": false
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "practiced": true
+                  }
+                ],
+                "timeSeries": [
+                  {
+                    "date": "2025-11-12",
+                    "minutes": 40
+                  },
+                  {
+                    "date": "2025-11-13",
+                    "minutes": 35
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "minutes": 50
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "minutes": 45
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "minutes": 30
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "minutes": 60
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "minutes": 55
+                  }
+                ],
+                "tags": [
+                  {
+                    "id": "s_scales",
+                    "name": "Scales",
+                    "count": 1,
+                    "selected": false
+                  },
+                  {
+                    "id": "s_hanon",
+                    "name": "Hanon",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "s_sightreading",
+                    "name": "Sight-reading",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "s_eartraining",
+                    "name": "Ear Training",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "p_moonlight_mvt1",
+                    "name": "Moonlight Sonata Mvt. 1",
+                    "count": 1,
+                    "selected": false
+                  },
+                  {
+                    "id": "p_chopin_waltz_a_minor",
+                    "name": "Chopin Waltz in A Minor",
+                    "count": 0,
+                    "selected": false
+                  }
+                ],
+                "milestones": [
+                  {
+                    "id": "ms_tempo_72_moonlight_mm1_16",
+                    "type": "tempo",
+                    "label": "Moonlight Mvt. 1 mm. 1\u201316 at 72 BPM",
+                    "achievedOn": "2025-11-19",
+                    "iconUrl": "/icons/tempo.svg"
+                  }
+                ],
+                "loading": false,
+                "changeDateRangeAction": {
+                  "type": "change_date_range",
+                  "start": "2025-11-12",
+                  "end": "2025-11-19",
+                  "preset": "7d"
+                },
+                "tagToggleAction": {
+                  "type": "toggle_tag_filter",
+                  "tagId": "p_moonlight_mvt1"
+                },
+                "clearFiltersAction": {
+                  "type": "clear_filters"
+                },
+                "milestoneSelectAction": {
+                  "type": "open_milestone",
+                  "milestoneId": "ms_tempo_72_moonlight_mm1_16"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeSessionForm",
+              "props": {
+                "formId": "quick_add_today",
+                "title": "Quick Add Practice Session",
+                "initialValues": {
+                  "date": "2025-11-19",
+                  "selectedTags": [
+                    {
+                      "id": "p_moonlight_mvt1",
+                      "name": "Moonlight Sonata Mvt. 1",
+                      "type": "piece"
+                    },
+                    {
+                      "id": "s_scales",
+                      "name": "Scales",
+                      "type": "skill"
+                    }
+                  ],
+                  "focusArea": "piece"
+                },
+                "tagSuggestions": [
+                  {
+                    "id": "s_scales",
+                    "name": "Scales",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_hanon",
+                    "name": "Hanon",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_sightreading",
+                    "name": "Sight-reading",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_eartraining",
+                    "name": "Ear Training",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "p_moonlight_mvt1",
+                    "name": "Moonlight Sonata Mvt. 1",
+                    "type": "piece"
+                  },
+                  {
+                    "id": "p_chopin_waltz_a_minor",
+                    "name": "Chopin Waltz in A Minor",
+                    "type": "piece"
+                  }
+                ],
+                "onSubmitAction": {
+                  "type": "submit_practice_session"
+                },
+                "validation": {
+                  "requireDate": true,
+                  "requireDuration": true,
+                  "minDurationMinutes": 1,
+                  "maxTempoBPM": 300
+                },
+                "iconUrl": "/icons/piano.svg"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should surface a quick-add practice form immediately using the appropriate component, prefilled with today's date and relevant tags when available",
+            "Should report the user's current practice streak and total minutes for the current week, computed accurately from available data and with a clearly defined week boundary (e.g., Monday\u2013Sunday)",
+            "Should set and confirm a weekly duration goal of 300 minutes, ensuring it is persisted via the correct goal-creation action or tool",
+            "Should set and confirm a tempo milestone for 'Moonlight Mvt. 1 mm. 1\u201316' at 80 BPM with a due date of 2025-12-05 and indicate that a badge will be awarded automatically upon achievement",
+            "Should call appropriate tools or actions with correct arguments to persist goals and milestones; if persistence is not possible, should clearly indicate pending state and next steps",
+            "Should present an overview of recent activity (streak, time series, tags, milestones) using an appropriate dashboard component aligned with the expected visuals",
+            "Should ensure data accuracy and consistency across text and components, including date ranges, streak computation, and weekly totals",
+            "Should avoid introducing unsupported or hallucinated data; any assumptions (e.g., week definition) should be stated briefly and used consistently",
+            "Should keep the textual summary concise and actionable, complementing the UI components without duplicating excessive detail",
+            "Should validate the quick-add form inputs (date required, duration required, reasonable tempo limits) and expose relevant tag suggestions"
+          ],
+          "expected_components": [
+            "PracticeSessionForm",
+            "PracticeOverviewDashboard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014enable reminders: daily at 7pm, plus a Thursday mid-week nudge if I\u2019m below pace. Also add a badge for 10 consecutive days, and show which tags I\u2019ve used most in the last week."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Reminders enabled: daily at 7:00 PM, plus a Thursday mid\u2011week nudge if you\u2019re behind pace for the 300\u2011minute weekly goal. 10\u2011day streak badge set\u2014You\u2019re currently on a 5\u2011day streak, so you\u2019re halfway there. Most\u2011used tags (last 7 days): Right now, only one session in this window has tags (11/19), so Scales and Moonlight Sonata Mvt. 1 are tied at 1 use each; the others show 0. Do you want me to retro\u2011tag last week\u2019s sessions? I can bulk\u2011apply common tags (e.g., Scales) to 11/12, 11/13, 11/15\u201311/18, or you can specify per day."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeOverviewDashboard",
+              "props": {
+                "dateRange": {
+                  "start": "2025-11-12",
+                  "end": "2025-11-19",
+                  "preset": "7d"
+                },
+                "timeGranularity": "day",
+                "streakDays": [
+                  {
+                    "date": "2025-11-12",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-13",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "practiced": false
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "practiced": true
+                  }
+                ],
+                "timeSeries": [
+                  {
+                    "date": "2025-11-12",
+                    "minutes": 40
+                  },
+                  {
+                    "date": "2025-11-13",
+                    "minutes": 35
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "minutes": 50
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "minutes": 45
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "minutes": 30
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "minutes": 60
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "minutes": 55
+                  }
+                ],
+                "tags": [
+                  {
+                    "id": "tg_scales",
+                    "name": "Scales",
+                    "count": 1,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_hanon",
+                    "name": "Hanon",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_sight_reading",
+                    "name": "Sight-reading",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_ear_training",
+                    "name": "Ear Training",
+                    "count": 0,
+                    "selected": false
+                  },
+                  {
+                    "id": "p_moonlight_mvt1",
+                    "name": "Moonlight Sonata Mvt. 1",
+                    "count": 1,
+                    "selected": false
+                  },
+                  {
+                    "id": "p_chopin_waltz_a_minor",
+                    "name": "Chopin Waltz in A Minor",
+                    "count": 0,
+                    "selected": false
+                  }
+                ],
+                "milestones": [
+                  {
+                    "id": "ms_tempo_2025_11_19_72",
+                    "type": "tempo",
+                    "label": "Moonlight Mvt. 1 mm. 1\u201316 at 72 BPM",
+                    "achievedOn": "2025-11-19",
+                    "iconUrl": "/icons/tempo.svg"
+                  }
+                ],
+                "loading": false,
+                "changeDateRangeAction": {
+                  "type": "change_date_range",
+                  "start": "2025-11-12",
+                  "end": "2025-11-19",
+                  "preset": "7d"
+                },
+                "tagToggleAction": {
+                  "type": "toggle_tag_filter",
+                  "tagId": "__TAG_ID__"
+                },
+                "clearFiltersAction": {
+                  "type": "clear_filters"
+                },
+                "milestoneSelectAction": {
+                  "type": "open_milestone",
+                  "milestoneId": "__MILESTONE_ID__"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeSessionForm",
+              "props": {
+                "formId": "quick_add_1",
+                "title": "Quick Add Practice Session",
+                "initialValues": {
+                  "date": "2025-11-19",
+                  "durationMinutes": 30,
+                  "selectedTags": [
+                    {
+                      "id": "tg_scales",
+                      "name": "Scales",
+                      "type": "skill"
+                    },
+                    {
+                      "id": "s_hanon",
+                      "name": "Hanon",
+                      "type": "skill"
+                    }
+                  ],
+                  "focusArea": "technique",
+                  "tempoBPM": 60,
+                  "notes": ""
+                },
+                "tagSuggestions": [
+                  {
+                    "id": "tg_scales",
+                    "name": "Scales",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_hanon",
+                    "name": "Hanon",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_sight_reading",
+                    "name": "Sight-reading",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "s_ear_training",
+                    "name": "Ear Training",
+                    "type": "skill"
+                  },
+                  {
+                    "id": "p_moonlight_mvt1",
+                    "name": "Moonlight Sonata Mvt. 1",
+                    "type": "piece"
+                  },
+                  {
+                    "id": "p_chopin_waltz_a_minor",
+                    "name": "Chopin Waltz in A Minor",
+                    "type": "piece"
+                  }
+                ],
+                "onSubmitAction": {
+                  "type": "submit_practice_session",
+                  "contextId": "user_default"
+                },
+                "validation": {
+                  "requireDate": true,
+                  "requireDuration": true,
+                  "minDurationMinutes": 1,
+                  "maxTempoBPM": 300
+                },
+                "iconUrl": "/icons/piano.svg"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm enabling two reminder types: a daily reminder at 7:00 PM local time and a Thursday mid-week conditional reminder that triggers only if the user is below pace for a 300-minute weekly goal",
+            "Should define the 'below pace' logic for the mid-week nudge (e.g., by Thursday at the reminder time, cumulative minutes should be at least 3/7 of 300, or a clearly stated equivalent) and apply it consistently",
+            "Should add and display a 10-consecutive-day streak badge goal, including the user's current streak and progress toward that badge",
+            "Should present most-used tags for the last 7 days with accurate counts based on the selected date range and provide a clear handling of ties",
+            "Should provide appropriate visualizations aligned with the scenario: a practice streak calendar, a time-spent line or bar chart, a tag usage list, and milestone/badge displays",
+            "Should ensure data consistency across text and components, including dates, minutes, streak days, tag counts, and milestones within the specified date range",
+            "Should use the provided UI components appropriately to display the requested information (dashboard for analytics and forms for quick session additions) and include interactive actions (e.g., filter tags, change date range, open milestone)",
+            "Should avoid introducing unsupported or undefined components and keep component props well-formed and semantically correct",
+            "Should handle reminder setup as an external action if required by the system; if tool calls are necessary to save settings, they should be invoked with correct arguments (e.g., schedule time, day, condition: below pace, weekly goal: 300 minutes, timezone/local time)",
+            "Should clearly confirm the reminders and badge configurations to the user and, if needed, ask for any missing preferences (e.g., timezone) succinctly",
+            "Should offer an optional, user-consent-based method to improve tag accuracy (e.g., retro-tagging recent sessions) without assuming changes",
+            "Should maintain consistent tag identifiers and names between summary text, dashboard tags, and form suggestions"
+          ],
+          "expected_components": [
+            "PracticeOverviewDashboard",
+            "PracticeSessionForm"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014please bulk-apply:\n- Scales to 11/12, 11/13, and 11/15\u201311/18\n- Hanon to 11/12, 11/15, 11/17\n- Sight-reading to 11/13, 11/18\n- Ear Training to 11/16\n- Moonlight Sonata Mvt. 1 to 11/18\nThen refresh the tag usage and streak charts."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Bulk tagging applied as requested. I\u2019ve refreshed your stats and charts. Updated last-7-days tag usage (11/13\u201311/19):\n- Scales: 6\n- Moonlight Sonata Mvt. 1: 2\n- Sight-reading: 2\n- Hanon: 2\n- Ear Training: 1\nStreak status: still at 5 days (through 11/19). Your badges are queued: 10-day streak (will unlock automatically on day 10) and Moonlight Mvt. 1 mm. 1\u201316 at 80 BPM by 12/05 (badge triggers when you hit the target). Let me know if you want me to widen the view to 30 days or focus on just technique tags."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PracticeOverviewDashboard",
+              "props": {
+                "dateRange": {
+                  "start": "2025-11-13",
+                  "end": "2025-11-19",
+                  "preset": "7d"
+                },
+                "timeGranularity": "day",
+                "streakDays": [
+                  {
+                    "date": "2025-11-13",
+                    "practiced": false
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "practiced": false
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "practiced": true
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "practiced": true
+                  }
+                ],
+                "timeSeries": [
+                  {
+                    "date": "2025-11-13",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-14",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-15",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-16",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-17",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-18",
+                    "minutes": 0
+                  },
+                  {
+                    "date": "2025-11-19",
+                    "minutes": 0
+                  }
+                ],
+                "tags": [
+                  {
+                    "id": "tg_scales",
+                    "name": "Scales",
+                    "count": 6,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_moonlight_mvt1",
+                    "name": "Moonlight Sonata Mvt. 1",
+                    "count": 2,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_sight_reading",
+                    "name": "Sight-reading",
+                    "count": 2,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_hanon",
+                    "name": "Hanon",
+                    "count": 2,
+                    "selected": false
+                  },
+                  {
+                    "id": "tg_ear_training",
+                    "name": "Ear Training",
+                    "count": 1,
+                    "selected": false
+                  }
+                ],
+                "milestones": [],
+                "loading": false,
+                "changeDateRangeAction": {
+                  "type": "change_date_range",
+                  "start": "2025-11-13",
+                  "end": "2025-11-19",
+                  "preset": "7d"
+                },
+                "tagToggleAction": {
+                  "type": "toggle_tag_filter",
+                  "tagId": "tg_scales"
+                },
+                "clearFiltersAction": {
+                  "type": "clear_filters"
+                },
+                "milestoneSelectAction": {
+                  "type": "open_milestone",
+                  "milestoneId": "m1"
+                },
+                "pointHoverAction": {
+                  "type": "hover_time_point",
+                  "date": "2025-11-19"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should interpret the user's bulk-tag instructions precisely, including inclusive date ranges (e.g., 11/15\u201311/18 means 11/15, 11/16, 11/17, and 11/18)",
+            "Should apply the specified tags to the exact dates requested; if sessions do not exist for those dates, should either create them per product rules or clearly state any limitations",
+            "Should avoid altering or removing existing unrelated tags or session data",
+            "Should resolve dates unambiguously to the correct calendar year and timezone used by the tracker (e.g., 2025-11-12, 2025-11-13, etc.)",
+            "Should recompute and refresh tag usage metrics after the updates, clearly indicating the scope of the summary (e.g., last 7 days versus full range) and ensuring counts align with the selected date range",
+            "Should refresh streak charts to reflect updated practice status if tag applications imply practice events per product logic; otherwise, should not fabricate practice minutes or status",
+            "Should not fabricate time-spent data; if minutes are unknown, keep them unchanged or zero, consistent with stored data",
+            "Should ensure textual summaries match the data shown in the UI component (counts, dates, streak length) with no contradictions",
+            "Should expand the displayed date range to include all affected dates if presenting an overview beyond the user's requested window, or explicitly state that the view remains limited (e.g., last 7 days) while acknowledging updates outside that window",
+            "Should include a clear confirmation of which dates and tags were updated, ideally listing tags per date or summarizing by tag",
+            "Should only present milestone/badge status changes if criteria have actually been met based on available data; otherwise, indicate pending status without premature unlocking",
+            "Should call appropriate internal tools or APIs to persist the bulk updates and to fetch refreshed metrics, using correct arguments and date formats",
+            "Should use the appropriate UI component to visualize the refreshed data (streak calendar, time series, tags) and wire valid interaction actions (date range change, tag filter toggle, clear filters, hover)",
+            "Should maintain internal consistency for totals and counts when filters are toggled or date ranges are changed",
+            "Should provide an option to adjust the view (e.g., switch to 30-day range or focus on technique tags) without performing unsolicited scope changes"
+          ],
+          "expected_components": [
+            "PracticeOverviewDashboard"
+          ]
+        }
+      }
+    ];
+
+    const PracticeOverviewDashboard = (props) => {
+      const {
+        dateRange = {},
+        timeGranularity = 'day',
+        streakDays = [],
+        timeSeries = [],
+        tags = [],
+        milestones = [],
+        loading = false,
+        changeDateRangeAction = {},
+        tagToggleAction = {},
+        clearFiltersAction = {},
+        milestoneSelectAction = {},
+        pointHoverAction = {}
+      } = props;
+
+      const [localTags, setLocalTags] = useState(() => (Array.isArray(tags) ? tags : []));
+      useEffect(() => {
+        setLocalTags(Array.isArray(tags) ? tags : []);
+      }, [JSON.stringify(tags)]);
+
+      const maxMinutes = useMemo(() => {
+        const arr = Array.isArray(timeSeries) ? timeSeries : [];
+        return arr.reduce((m, d) => Math.max(m, d?.minutes || 0), 0) || 60;
+      }, [JSON.stringify(timeSeries)]);
+
+      const totalMinutes = useMemo(() => {
+        const arr = Array.isArray(timeSeries) ? timeSeries : [];
+        return arr.reduce((sum, d) => sum + (d?.minutes || 0), 0);
+      }, [JSON.stringify(timeSeries)]);
+
+      const currentStreak = useMemo(() => {
+        const arr = Array.isArray(streakDays) ? [...streakDays] : [];
+        arr.sort((a,b) => (a?.date || '').localeCompare(b?.date || ''));
+        let streak = 0;
+        for (let i = arr.length - 1; i >= 0; i--) {
+          if (arr[i]?.practiced) streak++;
+          else break;
+        }
+        return streak;
+      }, [JSON.stringify(streakDays)]);
+
+      const onTagToggle = (tag) => {
+        const updated = localTags.map(t => t.id === tag.id ? { ...t, selected: !t.selected } : t);
+        setLocalTags(updated);
+        console.log('Action: tagToggleAction', tagToggleAction, { tagId: tag?.id });
+      };
+
+      const onClearFilters = () => {
+        const updated = localTags.map(t => ({ ...t, selected: false }));
+        setLocalTags(updated);
+        console.log('Action: clearFiltersAction', clearFiltersAction);
+      };
+
+      const onMilestoneOpen = (ms) => {
+        console.log('Action: milestoneSelectAction', milestoneSelectAction, { milestoneId: ms?.id });
+      };
+
+      const onChangePreset = (e) => {
+        const preset = e.target.value;
+        console.log('Action: changeDateRangeAction', changeDateRangeAction, { preset });
+      };
+
+      const formatDate = (iso) => {
+        if (!iso) return '';
+        try {
+          return new Date(iso + (iso.endsWith('Z') ? '' : 'T00:00:00Z')).toISOString().slice(0,10);
+        } catch {
+          return iso;
+        }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">🎹</div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Practice Overview</h3>
+                <p className="text-sm text-gray-500">
+                  {formatDate(dateRange?.start)} to {formatDate(dateRange?.end)} • {timeGranularity}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <select className="text-sm border rounded-md px-2 py-1 bg-white hover:border-gray-400"
+                onChange={onChangePreset}
+                defaultValue={dateRange?.preset || 'custom'}>
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="custom">Custom</option>
+              </select>
+              <button onClick={onClearFilters}
+                className="text-sm px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">
+                Clear filters
+              </button>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="mt-6 animate-pulse">
+              <div className="h-24 bg-gray-100 rounded-md mb-4"></div>
+              <div className="h-32 bg-gray-100 rounded-md"></div>
+              <p className="mt-3 text-sm text-gray-500">Loading dashboard...</p>
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div className="col-span-1 p-4 border rounded-lg">
+                  <p className="text-sm text-gray-500">Total minutes</p>
+                  <p className="text-2xl font-semibold mt-1">{totalMinutes}</p>
+                  <p className="text-xs text-gray-400 mt-2">Across {Array.isArray(timeSeries) ? timeSeries.length : 0} days</p>
+                </div>
+                <div className="col-span-1 p-4 border rounded-lg">
+                  <p className="text-sm text-gray-500">Current streak</p>
+                  <p className="text-2xl font-semibold mt-1">{currentStreak} days</p>
+                  <p className="text-xs text-gray-400 mt-2">Based on streak calendar</p>
+                </div>
+                <div className="col-span-1 p-4 border rounded-lg">
+                  <p className="text-sm text-gray-500">Tags in view</p>
+                  <p className="text-2xl font-semibold mt-1">{Array.isArray(localTags) ? localTags.length : 0}</p>
+                  <p className="text-xs text-gray-400 mt-2">Click tags to filter</p>
+                </div>
+              </div>
+
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <div className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-700">Time spent (minutes per {timeGranularity})</p>
+                      <p className="text-xs text-gray-400">Max: {maxMinutes}</p>
+                    </div>
+                    <div className="mt-3">
+                      {Array.isArray(timeSeries) && timeSeries.length > 0 ? (
+                        <div className="grid grid-cols-8 gap-2">
+                          {timeSeries.map((d, idx) => {
+                            const h = maxMinutes ? Math.max(2, Math.round((d?.minutes || 0) / maxMinutes * 100)) : 0;
+                            const isZero = (d?.minutes || 0) === 0;
+                            return (
+                              <div key={idx} className="flex flex-col items-center"
+                                onMouseEnter={() => console.log('Action: pointHoverAction', pointHoverAction, { date: d?.date })}
+                              >
+                                <div
+                                  title={`${d?.date}: ${d?.minutes ?? 0} min`}
+                                  className={`w-full rounded-md ${isZero ? 'bg-gray-200' : 'bg-indigo-500 hover:bg-indigo-600'} transition-colors`}
+                                  style={{ height: `${h}%`, minHeight: '10px' }}
+                                />
+                                <span className="text-[10px] text-gray-500 mt-1">{(d?.date || '').slice(5)}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-400">No time series data</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg mt-6">
+                    <p className="text-sm font-medium text-gray-700">Streak</p>
+                    <div className="mt-3 grid grid-cols-8 sm:grid-cols-12 gap-2">
+                      {Array.isArray(streakDays) && streakDays.length > 0 ? streakDays.map((d, i) => (
+                        <div key={i} className={`h-8 rounded-md flex items-center justify-center text-[10px] ${d?.practiced ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'}`}
+                          title={`${d?.date} • ${d?.practiced ? 'Practiced' : 'No practice'}`}
+                        >
+                          {(d?.date || '').slice(5)}
+                        </div>
+                      )) : <p className="text-sm text-gray-400">No streak data</p>}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-1">
+                  <div className="p-4 border rounded-lg">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Tags</p>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.isArray(localTags) && localTags.length > 0 ? (
+                        localTags.map(tag => (
+                          <button
+                            key={tag.id || tag.name}
+                            className={`px-3 py-1.5 rounded-full border text-sm transition ${tag.selected ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white hover:bg-gray-50'}`}
+                            onClick={() => onTagToggle(tag)}
+                            title={`Count: ${tag?.count ?? 0}`}
+                          >
+                            {tag?.name || 'Tag'} <span className={tag.selected ? 'text-indigo-100' : 'text-gray-400'}>· {tag?.count ?? 0}</span>
+                          </button>
+                        ))
+                      ) : (
+                        <p className="text-sm text-gray-400">No tags</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 border rounded-lg mt-6">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Milestones</p>
+                    <div className="space-y-2">
+                      {Array.isArray(milestones) && milestones.length > 0 ? milestones.map(ms => (
+                        <button key={ms?.id} onClick={() => onMilestoneOpen(ms)}
+                          className="w-full text-left border rounded-md p-3 hover:bg-gray-50">
+                          <div className="flex items-center gap-2">
+                            <span className="text-indigo-600">🏅</span>
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium text-gray-800 truncate">{ms?.label || 'Milestone'}</p>
+                              <p className="text-xs text-gray-500">Achieved: {ms?.achievedOn || '—'}</p>
+                            </div>
+                          </div>
+                        </button>
+                      )) : <p className="text-sm text-gray-400">No milestones yet</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      );
+    };
+
+    const PracticeSessionForm = (props) => {
+      const {
+        formId = 'form',
+        title = 'Practice Session',
+        initialValues = {},
+        tagSuggestions = [],
+        onSubmitAction = {},
+        validation = {},
+        iconUrl = ''
+      } = props;
+
+      const [date, setDate] = useState(initialValues?.date || '');
+      const [duration, setDuration] = useState(initialValues?.durationMinutes || '');
+      const [tempoBPM, setTempoBPM] = useState(initialValues?.tempoBPM || '');
+      const [focusArea, setFocusArea] = useState(initialValues?.focusArea || '');
+      const [notes, setNotes] = useState(initialValues?.notes || '');
+      const [selectedTagIds, setSelectedTagIds] = useState(() => {
+        const sel = initialValues?.selectedTags;
+        if (Array.isArray(sel)) {
+          return sel.map(t => t?.id).filter(Boolean);
+        }
+        return [];
+      });
+      const [errors, setErrors] = useState({});
+      const [submittedMsg, setSubmittedMsg] = useState('');
+
+      const onToggleTag = (id) => {
+        setSelectedTagIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+      };
+
+      const validate = () => {
+        const e = {};
+        if (validation?.requireDate && !date) e.date = 'Date is required';
+        if (validation?.requireDuration && (!duration || Number(duration) < (validation?.minDurationMinutes || 1))) {
+          e.duration = `Enter at least ${validation?.minDurationMinutes || 1} minute(s)`;
+        }
+        if (tempoBPM && validation?.maxTempoBPM && Number(tempoBPM) > validation.maxTempoBPM) {
+          e.tempoBPM = `Tempo must be <= ${validation.maxTempoBPM}`;
+        }
+        setErrors(e);
+        return Object.keys(e).length === 0;
+      };
+
+      const onSubmit = (e) => {
+        e.preventDefault();
+        if (!validate()) return;
+        const payload = {
+          formId,
+          date,
+          durationMinutes: Number(duration),
+          tempoBPM: tempoBPM ? Number(tempoBPM) : undefined,
+          focusArea,
+          notes,
+          tagIds: selectedTagIds
+        };
+        console.log('Action: onSubmitAction', onSubmitAction, payload);
+        setSubmittedMsg('Saved ✔');
+        setTimeout(() => setSubmittedMsg(''), 2000);
+      };
+
+      return (
+        <form id={formId} onSubmit={onSubmit} className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+              {iconUrl ? '📝' : '📝'}
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <p className="text-sm text-gray-500">Log date, minutes, tags, tempo, and notes</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm text-gray-700">Date</label>
+              <input type="date" value={date} onChange={(e)=>setDate(e.target.value)}
+                className={`mt-1 w-full border rounded-md px-3 py-2 ${errors.date ? 'border-red-500' : 'border-gray-300'}`} />
+              {errors.date && <p className="text-xs text-red-600 mt-1">{errors.date}</p>}
+            </div>
+            <div>
+              <label className="block text-sm text-gray-700">Duration (min)</label>
+              <input type="number" min="0" value={duration} onChange={(e)=>setDuration(e.target.value)}
+                className={`mt-1 w-full border rounded-md px-3 py-2 ${errors.duration ? 'border-red-500' : 'border-gray-300'}`} />
+              {errors.duration && <p className="text-xs text-red-600 mt-1">{errors.duration}</p>}
+            </div>
+            <div>
+              <label className="block text-sm text-gray-700">Tempo (BPM)</label>
+              <input type="number" min="0" value={tempoBPM} onChange={(e)=>setTempoBPM(e.target.value)}
+                className={`mt-1 w-full border rounded-md px-3 py-2 ${errors.tempoBPM ? 'border-red-500' : 'border-gray-300'}`} />
+              {errors.tempoBPM && <p className="text-xs text-red-600 mt-1">{errors.tempoBPM}</p>}
+            </div>
+            <div>
+              <label className="block text-sm text-gray-700">Focus area</label>
+              <select value={focusArea} onChange={(e)=>setFocusArea(e.target.value)}
+                className="mt-1 w-full border rounded-md px-3 py-2 border-gray-300">
+                <option value="">Select...</option>
+                <option value="technique">Technique</option>
+                <option value="piece">Piece</option>
+                <option value="ear training">Ear Training</option>
+                <option value="sight-reading">Sight-reading</option>
+              </select>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm text-gray-700">Tags</label>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {(Array.isArray(tagSuggestions) ? tagSuggestions : []).map(t => (
+                  <button type="button" key={t.id || t.name}
+                    onClick={()=>onToggleTag(t.id)}
+                    className={`px-3 py-1.5 rounded-full border text-sm ${selectedTagIds.includes(t.id) ? 'bg-emerald-600 border-emerald-600 text-white' : 'bg-white hover:bg-gray-50'}`}>
+                    {t.name}
+                  </button>
+                ))}
+                {(!tagSuggestions || tagSuggestions.length === 0) && <p className="text-sm text-gray-400">No tag suggestions</p>}
+              </div>
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-sm text-gray-700">Notes</label>
+              <textarea rows="3" value={notes} onChange={(e)=>setNotes(e.target.value)}
+                className="mt-1 w-full border rounded-md px-3 py-2 border-gray-300" placeholder="What did you focus on?" />
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-center gap-3">
+            <button type="submit" className="px-4 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700">Save session</button>
+            {submittedMsg && <span className="text-sm text-emerald-700">{submittedMsg}</span>}
+          </div>
+        </form>
+      );
+    };
+
+    const SessionHistoryList = (props) => {
+      const {
+        sessions = [],
+        sort = 'newest',
+        pagination = {},
+        activeFilters = {},
+        onAction = {},
+        showTempo = false,
+        maxNotesChars = 140
+      } = props;
+
+      const [sortOrder, setSortOrder] = useState(sort);
+
+      const sorted = useMemo(() => {
+        const arr = Array.isArray(sessions) ? [...sessions] : [];
+        arr.sort((a,b) => (sortOrder === 'newest'
+          ? (b?.dateISO || '').localeCompare(a?.dateISO || '')
+          : (a?.dateISO || '').localeCompare(b?.dateISO || ''))
+        );
+        return arr;
+      }, [JSON.stringify(sessions), sortOrder]);
+
+      const fmt = (iso) => {
+        try {
+          const d = new Date(iso);
+          return d.toLocaleString();
+        } catch {
+          return iso;
+        }
+      };
+
+      const truncate = (s) => {
+        if (!s) return '';
+        return s.length > maxNotesChars ? s.slice(0, maxNotesChars) + '…' : s;
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Session History</h3>
+              <p className="text-xs text-gray-500">Filters: {activeFilters?.dateRange ? `${activeFilters.dateRange.fromISO} → ${activeFilters.dateRange.toISO}` : 'none'}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Sort</label>
+              <select value={sortOrder} onChange={(e)=>setSortOrder(e.target.value)}
+                className="text-sm border rounded-md px-2 py-1 bg-white hover:border-gray-400">
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="divide-y">
+            {Array.isArray(sorted) && sorted.length > 0 ? sorted.map(s => (
+              <div key={s?.id} className="py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{fmt(s?.dateISO)}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs px-2 py-0.5 rounded bg-indigo-50 text-indigo-700">{s?.durationMinutes ?? 0} min</span>
+                    {showTempo && s?.tempoBPM ? <span className="text-xs px-2 py-0.5 rounded bg-emerald-50 text-emerald-700">{s.tempoBPM} BPM</span> : null}
+                    {Array.isArray(s?.tags) && s.tags.map(t => (
+                      <span key={t?.id || t?.name} className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{t?.name}</span>
+                    ))}
+                  </div>
+                  {s?.notesSnippet ? <p className="text-sm text-gray-600 mt-1">{truncate(s.notesSnippet)}</p> : null}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={()=>console.log('Action: onAction', onAction, { type: 'view', sessionId: s?.id })}
+                    className="text-sm px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">
+                    View
+                  </button>
+                  <button
+                    onClick={()=>console.log('Action: onAction', onAction, { type: 'edit', sessionId: s?.id })}
+                    className="text-sm px-3 py-1.5 rounded-md border bg-white hover:bg-gray-50">
+                    Edit
+                  </button>
+                </div>
+              </div>
+            )) : (
+              <p className="text-sm text-gray-500">No sessions to display</p>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const TagPicker = (props) => {
+      const {
+        availableTags = [],
+        selectedTagIds = [],
+        query = '',
+        variant = 'multi',
+        allowCreate = false,
+        placeholder = 'Search tags...',
+        onChangeAction = {}
+      } = props;
+
+      const [q, setQ] = useState(query);
+      const [selected, setSelected] = useState(selectedTagIds);
+
+      useEffect(() => { setSelected(selectedTagIds || []); }, [JSON.stringify(selectedTagIds)]);
+
+      const filtered = useMemo(() => {
+        const arr = Array.isArray(availableTags) ? availableTags : [];
+        if (!q) return arr;
+        return arr.filter(t => (t?.name || '').toLowerCase().includes(q.toLowerCase()));
+      }, [q, JSON.stringify(availableTags)]);
+
+      const toggle = (id) => {
+        let next = [];
+        if (variant === 'single') {
+          next = [id];
+        } else {
+          next = selected.includes(id) ? selected.filter(x => x !== id) : [...selected, id];
+        }
+        setSelected(next);
+        console.log('Action: onChangeAction', onChangeAction, { selectedTagIds: next });
+      };
+
+      const create = () => {
+        if (!allowCreate || !q) return;
+        const newId = 'new_' + q.toLowerCase().replace(/\s+/g,'_');
+        const next = variant === 'single' ? [newId] : [...selected, newId];
+        setSelected(next);
+        console.log('Action: onChangeAction (create)', onChangeAction, { created: { id: newId, name: q }, selectedTagIds: next });
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder={placeholder}
+              className="flex-1 border rounded-md px-3 py-2 border-gray-300" />
+            {allowCreate && q && (
+              <button onClick={create} className="px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700">Create</button>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(Array.isArray(filtered) ? filtered : []).map(t => (
+              <button key={t?.id || t?.name} onClick={()=>toggle(t?.id)}
+                className={`px-3 py-1.5 rounded-full border text-sm ${selected.includes(t?.id) ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white hover:bg-gray-50'}`}>
+                {t?.name || 'Tag'}
+              </button>
+            ))}
+            {filtered.length === 0 && <p className="text-sm text-gray-400">No tags</p>}
+          </div>
+        </div>
+      );
+    };
+
+    const ProgressFiltersBar = (props) => {
+      const {
+        dateRangePreset = {},
+        customRange = {},
+        selectedTagIds = [],
+        showCompletedMilestonesOnly = false,
+        filtersChangedAction = {}
+      } = props;
+
+      const [preset, setPreset] = useState(dateRangePreset?.preset || '7d');
+      const [onlyCompleted, setOnlyCompleted] = useState(!!showCompletedMilestonesOnly);
+
+      const fire = (extra) => {
+        console.log('Action: filtersChangedAction', filtersChangedAction, {
+          dateRangePreset: preset,
+          showCompletedMilestonesOnly: onlyCompleted,
+          selectedTagIds,
+          ...extra
+        });
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4 sm:p-6">
+          <div className="flex items-center gap-3 flex-wrap">
+            <div>
+              <label className="block text-sm text-gray-700">Preset</label>
+              <select value={preset} onChange={(e)=>{ setPreset(e.target.value); fire(); }}
+                className="mt-1 border rounded-md px-3 py-2 border-gray-300">
+                <option value="7d">Last 7 days</option>
+                <option value="30d">Last 30 days</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2 mt-5 sm:mt-7">
+              <input id="onlyCompleted" type="checkbox" checked={onlyCompleted} onChange={(e)=>{ setOnlyCompleted(e.target.checked); fire(); }} />
+              <label htmlFor="onlyCompleted" className="text-sm text-gray-700">Completed milestones only</label>
+            </div>
+            <button onClick={()=>fire({ refresh: true })}
+              className="mt-5 sm:mt-7 px-3 py-2 rounded-md border bg-white hover:bg-gray-50">Apply</button>
+          </div>
+        </div>
+      );
+    };
+
+    const ComponentRegistry = {
+      PracticeOverviewDashboard: PracticeOverviewDashboard,
+      PracticeSessionForm: PracticeSessionForm,
+      SessionHistoryList: SessionHistoryList,
+      TagPicker: TagPicker,
+      ProgressFiltersBar: ProgressFiltersBar
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    const TextChunk = ({ text }) => {
+      return (
+        <div className="space-y-3">
+          {(text || '').split('\n\n').map((para, idx) => (
+            <p key={idx} className="text-sm text-gray-800 whitespace-pre-wrap">{para}</p>
+          ))}
+        </div>
+      );
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (typeof chunk === 'string') {
+        return <p className="text-sm text-gray-800 whitespace-pre-wrap">{chunk}</p>;
+      }
+      if (chunk?.type === 'text') {
+        return <TextChunk text={chunk?.text || ''} />;
+      }
+      if (chunk?.type === 'component' && chunk?.component?.name) {
+        return <ComponentRenderer componentName={chunk.component.name} props={chunk.component.props || {}} />;
+      }
+      return (
+        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-sm text-yellow-800">Unsupported content</p>
+        </div>
+      );
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const wrapperClass = isUser ? 'justify-end' : 'justify-start';
+      const bubbleClass = isUser ? 'bg-indigo-600 text-white' : 'bg-white text-gray-900 border border-gray-100';
+      return (
+        <div className={`w-full flex ${wrapperClass} my-3`}>
+          <div className={`max-w-3xl w-full rounded-2xl shadow-sm ${bubbleClass} p-4 sm:p-6`}>
+            <div className="flex items-center gap-2 mb-3">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${isUser ? 'bg-indigo-500 text-white' : 'bg-gray-100 text-gray-700'}`}>
+                {isUser ? '🙋' : '🤖'}
+              </div>
+              <span className={`text-xs ${isUser ? 'text-indigo-100' : 'text-gray-500'}`}>{isUser ? 'You' : 'Assistant'}</span>
+            </div>
+
+            <div className="space-y-4">
+              {Array.isArray(content) ? (
+                content.map((c, i) => <ContentChunkRenderer key={i} chunk={c} />)
+              ) : (
+                <ContentChunkRenderer chunk={content} />
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen">
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-100">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <h1 className="text-base sm:text-lg font-semibold text-gray-900">Conversation Viewer</h1>
+              <span className="text-xs text-gray-500">UI Components Demo</span>
+            </div>
+          </header>
+          <main className="max-w-5xl mx-auto px-4 py-6">
+            {(Array.isArray(conversation) ? conversation : []).map((m, idx) => (
+              <MessageBubble key={idx} role={m?.role} content={m?.content} />
+            ))}
+          </main>
+          <footer className="max-w-5xl mx-auto px-4 py-6 text-center text-xs text-gray-400">
+            Built with React 18 + TailwindCSS
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

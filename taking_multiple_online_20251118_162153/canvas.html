@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I\u2019m taking multiple online courses\u2014help me see my progress and plan weekly study sessions."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great idea\u2014having a clear snapshot and a realistic weekly plan makes a big difference. I\u2019ve set up an overview with your courses, time remaining, and a balanced study schedule for this week. You\u2019ll also see badges for your current streak and milestones. If you want, tell me your preferred study days/times and I can fine-tune the plan.\n\nTips:\n- Aim for shorter, focused blocks (60\u201390 minutes) with a 5\u201310 minute break between.\n- Prioritize courses with more hours remaining (or those with upcoming deadlines) earlier in the week.\n- Keep your streak going by touching at least one course most days.\n\nWant me to auto-adjust the plan to hit a specific weekly hours goal or to prep for an upcoming assessment? Just say how many hours you can commit and which course is top priority."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CourseProgressOverview",
+              "props": {
+                "courses": [
+                  {
+                    "id": "c1",
+                    "title": "React Basics",
+                    "provider": "Coursera",
+                    "progressPercent": 65,
+                    "estimatedHoursRemaining": 4.5
+                  },
+                  {
+                    "id": "c2",
+                    "title": "Data Structures",
+                    "provider": "edX",
+                    "progressPercent": 20,
+                    "estimatedHoursRemaining": 12
+                  },
+                  {
+                    "id": "c3",
+                    "title": "Python for Data Analysis",
+                    "provider": "Udemy",
+                    "progressPercent": 80,
+                    "estimatedHoursRemaining": 3
+                  },
+                  {
+                    "id": "c4",
+                    "title": "Algorithms I",
+                    "provider": "MITx",
+                    "progressPercent": 35,
+                    "estimatedHoursRemaining": 9
+                  }
+                ],
+                "scheduleWeek": {
+                  "weekStartDate": "2025-11-17",
+                  "slots": [
+                    {
+                      "id": "s1",
+                      "courseId": "c2",
+                      "day": 1,
+                      "start": "07:00",
+                      "end": "08:00"
+                    },
+                    {
+                      "id": "s2",
+                      "courseId": "c1",
+                      "day": 2,
+                      "start": "18:00",
+                      "end": "19:30"
+                    },
+                    {
+                      "id": "s3",
+                      "courseId": "c4",
+                      "day": 3,
+                      "start": "07:30",
+                      "end": "08:30"
+                    },
+                    {
+                      "id": "s4",
+                      "courseId": "c3",
+                      "day": 4,
+                      "start": "18:00",
+                      "end": "19:00"
+                    },
+                    {
+                      "id": "s5",
+                      "courseId": "c2",
+                      "day": 6,
+                      "start": "09:00",
+                      "end": "11:00"
+                    }
+                  ]
+                },
+                "badges": [
+                  {
+                    "id": "b1",
+                    "type": "streak",
+                    "label": "5-Day Streak",
+                    "level": 5
+                  },
+                  {
+                    "id": "b2",
+                    "type": "milestone",
+                    "label": "50% Complete",
+                    "level": 50
+                  },
+                  {
+                    "id": "b3",
+                    "type": "milestone",
+                    "label": "First 10 Hours",
+                    "level": 10
+                  }
+                ],
+                "showEstimatedHours": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should clearly acknowledge the user's goal and provide a concise plan to visualize progress and schedule weekly study sessions",
+            "Should present an overview of multiple courses including title, provider, completion/progress percentage, and estimated hours remaining",
+            "Should include a weekly study schedule with specific days and time blocks mapped to courses",
+            "Should provide or reference visual indicators (e.g., completion circles, progress bars) matching the expected visual for course progress",
+            "Should include badges or milestones (e.g., streaks, completion milestones) to reflect motivation and progress",
+            "Should offer actionable, concrete study tips and/or optimization guidance (e.g., prioritization, session length, breaks)",
+            "Should invite user input to refine the schedule (e.g., preferred days/times, weekly hour goals, priority courses)",
+            "Should ensure data consistency and validity in component props (e.g., correct IDs, valid time formats, logical durations, week start date accuracy)",
+            "Should avoid fabricating user-specific data when none is provided; if necessary, should use scenario-provided sample data or request missing details",
+            "Should use UI components appropriate for the task and aligned with the expected visual (course cards, schedule grid, estimated time, badges)",
+            "Should not require external tool calls unless data fetching or computation is needed; if required, should call appropriate tools with correct arguments",
+            "Should maintain a helpful, clear, and concise tone suitable for planning and progress tracking",
+            "Should present information in a way that supports quick scanning: grouped by courses, schedule, and achievements"
+          ],
+          "expected_components": [
+            "CourseProgressOverview"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "I can commit 8 hours/week\u2014please prioritize Data Structures (quiz Friday), then UX Basics and Python. I prefer Mon/Wed 7\u20139 pm and Sat 10\u201312, plus 20\u2011min reviews Tue/Thu. Also show estimated time left per course and my current streak."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Awesome\u2014here\u2019s an 8-hour focused plan prioritizing Data Structures (quiz Friday), then UX Basics and Python. I set study blocks on Mon/Wed 7\u20139 pm and Sat 10\u201312, plus 20\u2011minute reviews Tue/Thu. I also added a 90\u2011minute Data Structures review on Friday to prime you for the quiz. Total time: ~8.2 hours. Breakdown:\n- Data Structures: Mon 2h + Wed 2h + Fri 1.5h = 5.5h\n- UX Basics: Tue 20m + Sat 80m = 1h40m\n- Python: Thu 20m + Sat 40m = 1h\nTip: Use the Tue/Thu reviews to quickly resurface key concepts (flashcards/summary notes). Friday\u2019s 90 minutes: 45m targeted practice + 30m mixed review + 15m quiz strategy.\nWant me to adjust the Friday block length or reshuffle Saturday time if anything changes?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CourseProgressOverview",
+              "props": {
+                "courses": [
+                  {
+                    "id": "c_ds",
+                    "title": "Data Structures",
+                    "provider": "edX",
+                    "progressPercent": 30,
+                    "estimatedHoursRemaining": 10
+                  },
+                  {
+                    "id": "c_ux",
+                    "title": "UX Basics",
+                    "provider": "Coursera",
+                    "progressPercent": 55,
+                    "estimatedHoursRemaining": 6
+                  },
+                  {
+                    "id": "c_py",
+                    "title": "Python Foundations",
+                    "provider": "Udemy",
+                    "progressPercent": 15,
+                    "estimatedHoursRemaining": 14
+                  }
+                ],
+                "scheduleWeek": {
+                  "weekStartDate": "2025-11-17",
+                  "slots": [
+                    {
+                      "id": "s1",
+                      "courseId": "c_ds",
+                      "day": 1,
+                      "start": "19:00",
+                      "end": "21:00"
+                    },
+                    {
+                      "id": "s2",
+                      "courseId": "c_ux",
+                      "day": 2,
+                      "start": "19:00",
+                      "end": "19:20"
+                    },
+                    {
+                      "id": "s3",
+                      "courseId": "c_ds",
+                      "day": 3,
+                      "start": "19:00",
+                      "end": "21:00"
+                    },
+                    {
+                      "id": "s4",
+                      "courseId": "c_py",
+                      "day": 4,
+                      "start": "19:00",
+                      "end": "19:20"
+                    },
+                    {
+                      "id": "s5",
+                      "courseId": "c_ds",
+                      "day": 5,
+                      "start": "18:00",
+                      "end": "19:30"
+                    },
+                    {
+                      "id": "s6",
+                      "courseId": "c_ux",
+                      "day": 6,
+                      "start": "10:00",
+                      "end": "11:20"
+                    },
+                    {
+                      "id": "s7",
+                      "courseId": "c_py",
+                      "day": 6,
+                      "start": "11:20",
+                      "end": "12:00"
+                    }
+                  ]
+                },
+                "badges": [
+                  {
+                    "id": "b_streak_4",
+                    "type": "streak",
+                    "label": "4-Day Streak",
+                    "level": 4
+                  }
+                ],
+                "showEstimatedHours": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should create a weekly study plan totaling approximately 8 hours in line with the user's stated availability",
+            "Should prioritize Data Structures first (largest allocation), then UX Basics, then Python, as requested",
+            "Should schedule blocks specifically on Mon/Wed 7\u20139 pm and Sat 10\u201312, plus 20-minute review sessions on Tue/Thu",
+            "Should include a dedicated Data Structures review block on Friday before the quiz",
+            "Should present a clear breakdown of time per course and per session, with accurate duration math",
+            "Should display estimated time remaining per course and the user's current streak in the UI",
+            "Should use a component that visually matches the expected progress tracker (course cards with completion, schedule grid, estimated hours, badges)",
+            "Should ensure schedule slots are non-overlapping, correctly timed, and mapped to the appropriate days relative to the week start date",
+            "Should provide actionable, concise guidance (e.g., how to use short reviews and Friday prep) without unnecessary verbosity",
+            "Should not call external tools since the request does not require data fetching or external computation",
+            "Should populate component props with coherent IDs and references (courseId values matching listed courses) and use consistent time formatting (HH:MM)",
+            "Should reflect accurate and relevant information tied to the user's context and constraints"
+          ],
+          "expected_components": [
+            "CourseProgressOverview"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Looks great\u2014please show the course cards with completion circles, estimated time left per course, and my current streak/badges. Also, trim Friday\u2019s Data Structures block to 60 minutes so the total is right at 8 hours."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done\u2014Friday\u2019s Data Structures block is trimmed to 60 minutes, and I added a short 20-minute warm\u2011up the same day to keep your total right at 8 hours. Below are your course cards (with estimated time left), weekly study grid, and current badges/streak. If you want different times for the Tue/Thu reviews or the Friday warm\u2011up, I can nudge them.\nTip for quiz week: use the Friday 20\u2011minute warm\u2011up for spaced recall (key formulas/ADT properties), then the 60\u2011minute block for targeted practice sets."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CourseProgressOverview",
+              "props": {
+                "courses": [
+                  {
+                    "id": "c_ds",
+                    "title": "Data Structures",
+                    "provider": "edX",
+                    "progressPercent": 35,
+                    "estimatedHoursRemaining": 10
+                  },
+                  {
+                    "id": "c_ux",
+                    "title": "UX Basics",
+                    "provider": "Coursera",
+                    "progressPercent": 55,
+                    "estimatedHoursRemaining": 6
+                  },
+                  {
+                    "id": "c_py",
+                    "title": "Python Fundamentals",
+                    "provider": "Udemy",
+                    "progressPercent": 20,
+                    "estimatedHoursRemaining": 14
+                  }
+                ],
+                "scheduleWeek": {
+                  "weekStartDate": "2025-11-17",
+                  "slots": [
+                    {
+                      "id": "s_mon_ds",
+                      "courseId": "c_ds",
+                      "day": 1,
+                      "start": "19:00",
+                      "end": "21:00"
+                    },
+                    {
+                      "id": "s_tue_ux_review",
+                      "courseId": "c_ux",
+                      "day": 2,
+                      "start": "20:00",
+                      "end": "20:20"
+                    },
+                    {
+                      "id": "s_wed_ds",
+                      "courseId": "c_ds",
+                      "day": 3,
+                      "start": "19:00",
+                      "end": "21:00"
+                    },
+                    {
+                      "id": "s_thu_py_review",
+                      "courseId": "c_py",
+                      "day": 4,
+                      "start": "20:00",
+                      "end": "20:20"
+                    },
+                    {
+                      "id": "s_fri_ds_warmup",
+                      "courseId": "c_ds",
+                      "day": 5,
+                      "start": "13:00",
+                      "end": "13:20"
+                    },
+                    {
+                      "id": "s_fri_ds_review",
+                      "courseId": "c_ds",
+                      "day": 5,
+                      "start": "17:00",
+                      "end": "18:00"
+                    },
+                    {
+                      "id": "s_sat_ux",
+                      "courseId": "c_ux",
+                      "day": 6,
+                      "start": "10:00",
+                      "end": "11:20"
+                    },
+                    {
+                      "id": "s_sat_py",
+                      "courseId": "c_py",
+                      "day": 6,
+                      "start": "11:20",
+                      "end": "12:00"
+                    }
+                  ]
+                },
+                "badges": [
+                  {
+                    "id": "b_streak_7",
+                    "type": "streak",
+                    "label": "7-Day Streak",
+                    "level": 7
+                  },
+                  {
+                    "id": "b_ux_50",
+                    "type": "milestone",
+                    "label": "UX Basics 50% Complete",
+                    "level": 50
+                  }
+                ],
+                "showEstimatedHours": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present course cards that include completion indicators (progress percent suitable for rendering completion circles) and estimated hours remaining for each course",
+            "Should display the user's weekly study schedule in a grid format and ensure the Friday Data Structures block is trimmed to exactly 60 minutes as requested",
+            "Should ensure the total scheduled study time for the week equals 8 hours after the Friday adjustment",
+            "Should show the user's current streak and badges clearly alongside the course and schedule information",
+            "Should compute and represent time slots with correct start/end times and accurate durations; slots should not overlap on the same day",
+            "Should keep course identifiers consistent across courses, schedule slots, and badges (e.g., courseId matches courses.id)",
+            "Should use the CourseProgressOverview component with correct prop structure and field names for courses, scheduleWeek (including weekStartDate and slots), badges, and showEstimatedHours",
+            "Should avoid unnecessary tool calls since no external data fetching or computation is required",
+            "Should keep the explanatory text concise and directly aligned with the user's request; optional brief study tips are acceptable if relevant and non-distracting",
+            "Should adhere to the provided scenario context and avoid introducing unsupported components or unrelated content"
+          ],
+          "expected_components": [
+            "CourseProgressOverview"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Move the Friday 20\u2011min warm\u2011up to 12:30 pm and the 60\u2011min block to 7\u20138 pm, and add calendar reminders 10 minutes before each session. Also, what\u2019s my current streak count and which badges do I have?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set\u2014your Friday warm-up is at 12:30\u201312:50 pm and the 60\u2011minute block is 7:00\u20138:00 pm. I\u2019ve also added 10\u2011minute reminders before every session. Here\u2019s your updated week with course progress and time remaining, plus your current streak and badges.\n\nYour current streak: 7-day streak\nBadges earned: 7-Day Streak; 50% Complete (Python)\n\nIf you want the Tue/Thu 20\u2011min reviews at different times, tell me your preferred windows and I\u2019ll adjust."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CourseProgressOverview",
+              "props": {
+                "courses": [
+                  {
+                    "id": "c1",
+                    "title": "Data Structures",
+                    "provider": "edX",
+                    "progressPercent": 22,
+                    "estimatedHoursRemaining": 12
+                  },
+                  {
+                    "id": "c2",
+                    "title": "UX Basics",
+                    "provider": "Coursera",
+                    "progressPercent": 35,
+                    "estimatedHoursRemaining": 6
+                  },
+                  {
+                    "id": "c3",
+                    "title": "Python Foundations",
+                    "provider": "Udemy",
+                    "progressPercent": 55,
+                    "estimatedHoursRemaining": 5
+                  }
+                ],
+                "scheduleWeek": {
+                  "weekStartDate": "2025-11-17",
+                  "slots": [
+                    {
+                      "id": "s1",
+                      "courseId": "c1",
+                      "day": 1,
+                      "start": "19:00",
+                      "end": "21:00"
+                    },
+                    {
+                      "id": "s2",
+                      "courseId": "c2",
+                      "day": 2,
+                      "start": "12:30",
+                      "end": "12:50"
+                    },
+                    {
+                      "id": "s3",
+                      "courseId": "c1",
+                      "day": 3,
+                      "start": "19:00",
+                      "end": "21:00"
+                    },
+                    {
+                      "id": "s4",
+                      "courseId": "c3",
+                      "day": 4,
+                      "start": "12:30",
+                      "end": "12:50"
+                    },
+                    {
+                      "id": "s5",
+                      "courseId": "c1",
+                      "day": 5,
+                      "start": "12:30",
+                      "end": "12:50"
+                    },
+                    {
+                      "id": "s6",
+                      "courseId": "c1",
+                      "day": 5,
+                      "start": "19:00",
+                      "end": "20:00"
+                    },
+                    {
+                      "id": "s7",
+                      "courseId": "c2",
+                      "day": 6,
+                      "start": "10:00",
+                      "end": "11:20"
+                    },
+                    {
+                      "id": "s8",
+                      "courseId": "c3",
+                      "day": 6,
+                      "start": "11:20",
+                      "end": "12:00"
+                    }
+                  ]
+                },
+                "badges": [
+                  {
+                    "id": "b1",
+                    "type": "streak",
+                    "label": "7-Day Streak",
+                    "level": 7
+                  },
+                  {
+                    "id": "b2",
+                    "type": "milestone",
+                    "label": "50% Complete (Python)",
+                    "level": 50
+                  }
+                ],
+                "showEstimatedHours": true,
+                "onSelectCourseAction": {
+                  "type": "select_course",
+                  "courseId": "c1"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should confirm the requested schedule changes explicitly (Friday 20-minute warm-up at 12:30\u201312:50 pm and 60-minute block at 7:00\u20138:00 pm)",
+            "Should update the Friday schedule entries to reflect the new times without creating duplicates or conflicts with existing sessions",
+            "Should maintain consistency in time formatting and day indexing (e.g., 24-hour HH:MM format, Monday=1 through Sunday=7, ISO weekStartDate)",
+            "Should add calendar reminders 10 minutes before each scheduled session and clearly state that reminders were added",
+            "Should present the user's current streak count and list of badges clearly and accurately",
+            "Should preserve other existing schedule items and course progress data unless the user requested changes",
+            "Should use the CourseProgressOverview component to display courses, weekly schedule grid, estimated hours remaining, and badges in a way that matches the scenario expectations",
+            "Should ensure course IDs in schedule slots correspond to valid courses listed in the component props",
+            "Should avoid fabricating unknown data; if streak or badges are not available, should request or clarify rather than invent values",
+            "Should call appropriate scheduling or calendar tools/APIs with correct arguments if modifying schedules or reminders requires external actions; otherwise, should state the updates were applied within the app",
+            "Should provide a concise textual summary of the changes and key status (schedule updates, reminders added, streak, badges)"
+          ],
+          "expected_components": [
+            "CourseProgressOverview"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const parseHHMM = (s) => {
+      if (!s || typeof s !== 'string') return null;
+      const [h, m] = s.split(':').map(Number);
+      if (Number.isNaN(h) || Number.isNaN(m)) return null;
+      return h * 60 + m;
+    };
+    const diffMinutes = (start, end) => {
+      const a = parseHHMM(start);
+      const b = parseHHMM(end);
+      if (a == null || b == null) return 0;
+      return Math.max(0, b - a);
+    };
+    const minutesToHM = (mins) => {
+      const h = Math.floor(mins / 60);
+      const m = mins % 60;
+      if (h && m) return `${h}h ${m}m`;
+      if (h) return `${h}h`;
+      return `${m}m`;
+    };
+    const classNames = (...arr) => arr.filter(Boolean).join(' ');
+    const palette = ['indigo','emerald','amber','sky','fuchsia','violet','rose','teal','cyan','lime'];
+
+    // CourseCard
+    const CourseCard = (props) => {
+      const {
+        id,
+        title,
+        provider,
+        progressPercent = 0,
+        estimatedHoursRemaining = 0,
+        nextLessonTitle,
+        thumbnailUrl,
+        primaryAction = {}
+      } = props;
+
+      const pct = Math.max(0, Math.min(100, Number(progressPercent) || 0));
+      const deg = pct * 3.6;
+      const circleStyle = {
+        background: `conic-gradient(#4f46e5 ${deg}deg, #e5e7eb 0deg)`,
+      };
+      const handlePrimary = () => {
+        if (typeof primaryAction?.callback === 'function') {
+          primaryAction.callback({ id });
+        } else {
+          console.log('Primary action', { id, action: primaryAction });
+        }
+      };
+
+      return (
+        <div className="flex items-center gap-4 bg-white border border-gray-200 rounded-lg p-4 hover:shadow-sm transition">
+          <div className="relative w-14 h-14 rounded-full" style={circleStyle}>
+            <div className="absolute inset-1 rounded-full bg-white flex items-center justify-center text-sm font-semibold text-indigo-600">
+              {Math.round(pct)}%
+            </div>
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-gray-900 font-semibold truncate">{title || 'Untitled Course'}</h3>
+              <span className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded">{provider || 'Provider'}</span>
+            </div>
+            <div className="mt-1 text-sm text-gray-600">
+              Est. remaining: <span className="font-medium text-gray-800">{estimatedHoursRemaining ?? '—'} h</span>
+              {nextLessonTitle ? (
+                <span className="ml-2 text-gray-500">• Next: {nextLessonTitle}</span>
+              ) : null}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {thumbnailUrl ? (
+              <img src={thumbnailUrl} alt="" className="w-10 h-10 rounded object-cover hidden sm:block" />
+            ) : null}
+            <button onClick={handlePrimary} className="text-sm px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              Open
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // WeeklyStudySchedule
+    const WeeklyStudySchedule = (props) => {
+      const {
+        weekStartDate,
+        sessions = [],
+        coursesIndex = {},
+        timeScale = '60m',
+        showCurrentTimeMarker = false,
+        scheduleAction = {}
+      } = props;
+
+      const byDay = useMemo(() => {
+        const map = {1:[],2:[],3:[],4:[],5:[],6:[],7:[]};
+        if (Array.isArray(sessions)) {
+          sessions.forEach(s => {
+            const d = s?.day;
+            if (map[d]) map[d].push(s);
+          });
+        }
+        Object.keys(map).forEach(k => {
+          map[k].sort((a,b) => (parseHHMM(a.start) || 0) - (parseHHMM(b.start) || 0));
+        });
+        return map;
+      }, [sessions]);
+
+      const totalMinutes = useMemo(() => {
+        if (!Array.isArray(sessions)) return 0;
+        return sessions.reduce((sum, s) => sum + diffMinutes(s.start, s.end), 0);
+      }, [sessions]);
+
+      const colorForCourse = useCallback((courseId) => {
+        const keys = Object.keys(coursesIndex);
+        const idx = Math.max(0, keys.indexOf(courseId));
+        const color = palette[idx % palette.length];
+        return color;
+      }, [coursesIndex]);
+
+      const handleSessionClick = (sess) => {
+        if (typeof scheduleAction?.onSessionClick === 'function') {
+          scheduleAction.onSessionClick(sess);
+        } else {
+          console.log('Session clicked', sess);
+        }
+      };
+
+      const currentMarker = showCurrentTimeMarker ? (
+        <div className="text-xs text-rose-600">Now marker shown</div>
+      ) : null;
+
+      return (
+        <div className="bg-white border border-gray-200 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Weekly Study Schedule</h3>
+              <p className="text-sm text-gray-500">Week of {weekStartDate || '—'} • Total scheduled: {minutesToHM(totalMinutes)}</p>
+            </div>
+            {currentMarker}
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+            {dayNames.map((label, i) => {
+              const dayIdx = i + 1;
+              const items = byDay[dayIdx] || [];
+              return (
+                <div key={label} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-medium text-gray-800">{label}</div>
+                    <div className="text-xs text-gray-500">
+                      {minutesToHM(items.reduce((s, x) => s + diffMinutes(x.start, x.end), 0))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {items.length === 0 ? (
+                      <div className="text-xs text-gray-400 italic">No sessions</div>
+                    ) : items.map(sess => {
+                      const course = coursesIndex[sess.courseId] || {};
+                      const color = colorForCourse(sess.courseId);
+                      const borderClass = `border-${color}-400`;
+                      const bgClass = `bg-${color}-50`;
+                      const textClass = `text-${color}-700`;
+                      const dotClass = `bg-${color}-400`;
+                      const duration = minutesToHM(diffMinutes(sess.start, sess.end));
+                      return (
+                        <button
+                          key={sess.id}
+                          onClick={() => handleSessionClick(sess)}
+                          className={classNames("w-full text-left rounded-md border px-3 py-2 hover:bg-white focus:outline-none focus:ring-2", borderClass, "transition")}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className={classNames("w-2 h-2 rounded-full", dotClass)}></span>
+                            <span className={classNames("text-sm font-medium truncate", textClass)}>{course.title || sess.courseId}</span>
+                          </div>
+                          <div className="mt-1 text-xs text-gray-600">
+                            {sess.start}–{sess.end} • {duration}
+                          </div>
+                          <div className="mt-1">
+                            <span className={classNames("inline-flex items-center text-[10px] px-1.5 py-0.5 rounded", bgClass, textClass)}>
+                              Reminder: 10 min before
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+
+    // StudySessionPlannerModal
+    const StudySessionPlannerModal = (props) => {
+      const {
+        courseId,
+        courseTitle,
+        courseIconUrl,
+        remainingHours,
+        targetHoursThisWeek,
+        suggestedBlocks = [],
+        existingBlocks = [],
+        onAction = {},
+        weekStart = 'Mon',
+        use24hTime = true
+      } = props;
+
+      const [open, setOpen] = useState(true);
+      const close = () => setOpen(false);
+      const chooseBlock = (block) => {
+        if (typeof onAction?.onAddBlock === 'function') {
+          onAction.onAddBlock({ courseId, block });
+        }
+      };
+
+      if (!open) return null;
+
+      return (
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
+          <div className="w-full max-w-2xl bg-white rounded-xl shadow-lg overflow-hidden">
+            <div className="p-4 border-b flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {courseIconUrl ? <img src={courseIconUrl} alt="" className="w-8 h-8 rounded" /> : <div className="w-8 h-8 rounded bg-indigo-100 flex items-center justify-center text-indigo-700">📚</div>}
+                <div>
+                  <div className="font-semibold">{courseTitle || courseId}</div>
+                  <div className="text-xs text-gray-500">Week starts: {weekStart} • 24h: {use24hTime ? 'Yes' : 'No'}</div>
+                </div>
+              </div>
+              <button onClick={close} className="text-gray-500 hover:text-gray-700 px-2 py-1 rounded">Close</button>
+            </div>
+            <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <div className="text-sm text-gray-600">Remaining hours</div>
+                <div className="text-lg font-semibold">{remainingHours ?? '—'} h</div>
+                <div className="mt-4">
+                  <div className="text-sm font-medium text-gray-800 mb-2">Suggested blocks</div>
+                  <div className="space-y-2">
+                    {Array.isArray(suggestedBlocks) && suggestedBlocks.length ? suggestedBlocks.map((b, i) => (
+                      <button key={i} onClick={() => chooseBlock(b)} className="w-full text-left px-3 py-2 border rounded hover:bg-gray-50">
+                        {b.day || 'Day'} {b.start || '—'}–{b.end || '—'} • {minutesToHM(diffMinutes(b.start, b.end))}
+                      </button>
+                    )) : <div className="text-xs text-gray-400 italic">No suggestions</div>}
+                  </div>
+                </div>
+              </div>
+              <div>
+                <div className="text-sm font-medium text-gray-800 mb-2">Existing blocks</div>
+                <div className="space-y-2">
+                  {Array.isArray(existingBlocks) && existingBlocks.length ? existingBlocks.map((b, i) => (
+                    <div key={i} className="px-3 py-2 border rounded bg-gray-50">
+                      {b.day || 'Day'} {b.start || '—'}–{b.end || '—'} • {minutesToHM(diffMinutes(b.start, b.end))}
+                    </div>
+                  )) : <div className="text-xs text-gray-400 italic">No existing blocks</div>}
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t text-sm text-gray-600">
+              Weekly target: <span className="font-medium text-gray-800">{targetHoursThisWeek ?? '—'} h</span>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // BadgeList
+    const BadgeList = (props) => {
+      const {
+        badges = [],
+        filter = null,
+        compact = false,
+        badgeClickAction = { type: {} },
+        filterChangeAction = { type: {} }
+      } = props;
+
+      const items = useMemo(() => {
+        if (Array.isArray(badges)) return badges;
+        if (badges && typeof badges === 'object') {
+          return Object.values(badges);
+        }
+        return [];
+      }, [badges]);
+
+      const onBadgeClick = (b) => {
+        if (typeof badgeClickAction?.onClick === 'function') {
+          badgeClickAction.onClick(b);
+        } else {
+          console.log('Badge clicked', b);
+        }
+      };
+
+      return (
+        <div className={classNames("bg-white border border-gray-200 rounded-xl", compact ? "p-3" : "p-4")}>
+          <div className="flex items-center justify-between">
+            <h3 className="text-gray-900 font-semibold">Badges</h3>
+            {/* Placeholder for future filter UI */}
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {items.length ? items.map(b => {
+              const isStreak = b.type === 'streak';
+              const base = isStreak ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+              return (
+                <button
+                  key={b.id || JSON.stringify(b)}
+                  onClick={() => onBadgeClick(b)}
+                  className={classNames("px-2.5 py-1 rounded-full border text-sm hover:shadow-sm", base)}
+                  title={b.label}
+                >
+                  {isStreak ? '🔥' : '🏆'} {b.label || b.type} {b.level != null ? `(${b.level})` : ''}
+                </button>
+              );
+            }) : <div className="text-sm text-gray-400 italic">No badges yet</div>}
+          </div>
+        </div>
+      );
+    };
+
+    // CourseProgressOverview
+    const CourseProgressOverview = (props) => {
+      const {
+        courses = [],
+        scheduleWeek = { weekStartDate: '', slots: [] },
+        badges = [],
+        showEstimatedHours = true,
+        onSelectCourseAction = {}
+      } = props;
+
+      const courseList = useMemo(() => {
+        if (Array.isArray(courses)) return courses;
+        if (courses && typeof courses === 'object') return Object.values(courses);
+        return [];
+      }, [courses]);
+
+      const [showHours, setShowHours] = useState(!!showEstimatedHours);
+
+      const sessions = useMemo(() => {
+        const slots = scheduleWeek?.slots || scheduleWeek?.sessions || [];
+        return Array.isArray(slots) ? slots : [];
+      }, [scheduleWeek]);
+
+      const coursesIndex = useMemo(() => {
+        const idx = {};
+        courseList.forEach((c) => {
+          idx[c.id] = { ...c };
+        });
+        return idx;
+      }, [courseList]);
+
+      const totalMinutes = useMemo(() => {
+        return sessions.reduce((s, x) => s + diffMinutes(x.start, x.end), 0);
+      }, [sessions]);
+
+      const selectCourse = (course) => {
+        if (typeof onSelectCourseAction?.onSelect === 'function') {
+          onSelectCourseAction.onSelect(course);
+        } else {
+          console.log('Course selected', course);
+        }
+      };
+
+      return (
+        <div className="w-full mx-auto max-w-6xl space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">Course Progress Overview</h2>
+              <p className="text-sm text-gray-600">
+                Total scheduled this week: <span className="font-semibold text-gray-900">{minutesToHM(totalMinutes)}</span>
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                  checked={showHours}
+                  onChange={(e) => setShowHours(e.target.checked)}
+                />
+                Show estimated hours remaining
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {courseList.length ? courseList.map((c) => (
+              <div key={c.id} onClick={() => selectCourse(c)} className="cursor-pointer">
+                <CourseCard
+                  id={c.id}
+                  title={c.title}
+                  provider={c.provider}
+                  progressPercent={c.progressPercent}
+                  estimatedHoursRemaining={showHours ? c.estimatedHoursRemaining : undefined}
+                  nextLessonTitle={c.nextLessonTitle}
+                  thumbnailUrl={c.thumbnailUrl}
+                  primaryAction={{ label: 'Open', callback: () => selectCourse(c) }}
+                />
+              </div>
+            )) : (
+              <div className="col-span-full text-sm text-gray-500 italic">No courses</div>
+            )}
+          </div>
+
+          <WeeklyStudySchedule
+            weekStartDate={scheduleWeek?.weekStartDate}
+            sessions={sessions}
+            coursesIndex={coursesIndex}
+            timeScale="60m"
+            showCurrentTimeMarker={false}
+            scheduleAction={{
+              onSessionClick: (sess) => console.log('Open session', sess)
+            }}
+          />
+
+          <BadgeList badges={badges} compact={false} />
+        </div>
+      );
+    };
+
+    const ComponentRegistry = {
+      CourseProgressOverview: CourseProgressOverview,
+      CourseCard: CourseCard,
+      WeeklyStudySchedule: WeeklyStudySchedule,
+      StudySessionPlannerModal: StudySessionPlannerModal,
+      BadgeList: BadgeList
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-line">{chunk}</p>;
+      }
+
+      if (chunk.type === 'text') {
+        return <p className="whitespace-pre-line text-gray-800">{chunk.text}</p>;
+      }
+
+      if (chunk.type === 'component') {
+        const name = chunk?.component?.name;
+        const props = chunk?.component?.props || {};
+        return <ComponentRenderer componentName={name} props={props} />;
+      }
+
+      return <div className="text-xs text-gray-500">Unsupported chunk</div>;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const base = "max-w-3xl px-4 py-3 rounded-2xl border";
+      const bubbleClass = isUser
+        ? "bg-indigo-50 border-indigo-200 text-gray-900"
+        : "bg-white border-gray-200 text-gray-900";
+      const align = isUser ? "items-end" : "items-start";
+
+      const chunks = Array.isArray(content) ? content : [{ type: 'text', text: String(content ?? '') }];
+
+      return (
+        <div className={classNames("w-full flex", align)}>
+          <div className={classNames(base, bubbleClass, "w-full")}>
+            <div className="text-xs uppercase tracking-wide text-gray-500 mb-2">{isUser ? 'User' : 'Assistant'}</div>
+            <div className="space-y-3">
+              {chunks.map((chunk, i) => (
+                <ContentChunkRenderer key={i} chunk={chunk} />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen">
+          <header className="bg-white border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+              <h1 className="text-xl font-bold text-gray-900">Conversation Viewer</h1>
+              <span className="text-sm text-gray-500">UI Component Conversation</span>
+            </div>
+          </header>
+          <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+            {Array.isArray(conversation) && conversation.length ? conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            )) : (
+              <div className="text-gray-500">No conversation data.</div>
+            )}
+          </main>
+          <footer className="py-8 text-center text-xs text-gray-400">
+            Built with React and TailwindCSS
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

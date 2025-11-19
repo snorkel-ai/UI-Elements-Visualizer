@@ -1,0 +1,1248 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "IdeaItem": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "IdeaItem"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "price": {
+                "type": "number"
+              },
+              "currencyCode": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "planned",
+                  "in_cart",
+                  "purchased"
+                ]
+              },
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "url": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "onSelectAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "id",
+              "onSelectAction",
+              "status",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "GiftPlanningBoard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "GiftPlanningBoard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "totals": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "recipients": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "addRecipientAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "currencyCode": {
+                "type": "string"
+              },
+              "year": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "addRecipientAction",
+              "recipients",
+              "totals"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "RecipientCard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "RecipientCard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "occasion": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string"
+              },
+              "budget": {
+                "type": "number"
+              },
+              "spent": {
+                "type": "number"
+              },
+              "statusChips": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "action": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "budget",
+              "date",
+              "id",
+              "name",
+              "occasion",
+              "spent"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "BudgetSummaryBar": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "BudgetSummaryBar"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "currency": {
+                "type": "string"
+              },
+              "budgetTotal": {
+                "type": "number"
+              },
+              "estimatedTotal": {
+                "type": "number"
+              },
+              "purchasedTotal": {
+                "type": "number"
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "onViewReportAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "warningThresholdPercent": {
+                "type": "number"
+              },
+              "showRemainingAs": {
+                "type": "string",
+                "enum": [
+                  "amount",
+                  "percentage",
+                  "both"
+                ]
+              }
+            },
+            "required": [
+              "budgetTotal",
+              "currency",
+              "estimatedTotal",
+              "id",
+              "onViewReportAction",
+              "purchasedTotal",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "FilterSortBar": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "FilterSortBar"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "recipients",
+                  "ideas"
+                ]
+              },
+              "filters": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "sort": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "onChangeAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "quickPresets": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "hintText": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "filters",
+              "id",
+              "onChangeAction",
+              "scope",
+              "sort",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "IdeaList": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "IdeaList"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "recipientId": {
+                "type": "string"
+              },
+              "ideas": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "budget": {
+                "type": "number"
+              },
+              "spent": {
+                "type": "number"
+              },
+              "addIdeaAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "reorderIdeaAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "clearPurchasedAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "currencyCode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "addIdeaAction",
+              "budget",
+              "ideas",
+              "recipientId",
+              "reorderIdeaAction",
+              "spent"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/IdeaItem"
+          },
+          {
+            "$ref": "#/$defs/GiftPlanningBoard"
+          },
+          {
+            "$ref": "#/$defs/RecipientCard"
+          },
+          {
+            "$ref": "#/$defs/BudgetSummaryBar"
+          },
+          {
+            "$ref": "#/$defs/FilterSortBar"
+          },
+          {
+            "$ref": "#/$defs/IdeaList"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Help me plan gifts for birthdays and holidays this year with ideas, budgets, and purchase status."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great idea\u2014let\u2019s set up a simple gift planning board with recipients, budgets, and ideas you can track through purchase. I\u2019ve started a 2025 plan with a few example recipients and ideas. You can add more people or swap any details. Want me to tailor this with your actual recipients, occasions, and budgets?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "GiftPlanningBoard",
+            "props": {
+              "title": "2025 Gift Plan",
+              "totals": {
+                "budgetTotal": 450,
+                "plannedTotal": 455,
+                "purchasedTotal": 90
+              },
+              "recipients": [
+                {
+                  "id": "recp_mom",
+                  "name": "Mom",
+                  "occasion": "Birthday",
+                  "budget": 150,
+                  "plannedTotal": 140,
+                  "purchasedTotal": 60,
+                  "ideasCount": 3,
+                  "purchasedCount": 1,
+                  "avatarUrl": "https://cdn.example.com/avatars/mom.png",
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_mom"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_dad",
+                  "name": "Dad",
+                  "occasion": "Christmas",
+                  "budget": 200,
+                  "plannedTotal": 220,
+                  "purchasedTotal": 0,
+                  "ideasCount": 3,
+                  "purchasedCount": 0,
+                  "avatarUrl": "https://cdn.example.com/avatars/dad.png",
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_dad"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_sis",
+                  "name": "Sister",
+                  "occasion": "Birthday",
+                  "budget": 100,
+                  "plannedTotal": 95,
+                  "purchasedTotal": 30,
+                  "ideasCount": 3,
+                  "purchasedCount": 1,
+                  "avatarUrl": "https://cdn.example.com/avatars/sister.png",
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_sis"
+                    }
+                  }
+                }
+              ],
+              "addRecipientAction": {
+                "type": "add_recipient",
+                "payload": {
+                  "suggestedOccasion": "Christmas",
+                  "year": 2025
+                }
+              },
+              "currencyCode": "USD",
+              "year": 2025
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "IdeaList",
+            "props": {
+              "recipientId": "recp_mom",
+              "ideas": [
+                {
+                  "id": "idea_mom_blanket",
+                  "title": "Cozy Throw Blanket",
+                  "price": 60,
+                  "purchased": true,
+                  "note": "Soft knit, neutral color",
+                  "imageUrl": "https://cdn.example.com/images/blanket.jpg",
+                  "sourceUrl": "https://www.example.com/product/cozy-throw"
+                },
+                {
+                  "id": "idea_mom_herbs",
+                  "title": "Countertop Herb Garden Kit",
+                  "price": 35,
+                  "purchased": false,
+                  "note": "Basil, mint, parsley; compact size",
+                  "imageUrl": "https://cdn.example.com/images/herb-kit.jpg",
+                  "sourceUrl": "https://www.example.com/product/herb-garden-kit"
+                },
+                {
+                  "id": "idea_mom_giftcard",
+                  "title": "Dinner at Favorite Bistro (Gift Card)",
+                  "price": 45,
+                  "purchased": false,
+                  "note": "Target two-person appetizer + mains",
+                  "imageUrl": "https://cdn.example.com/images/gift-card.jpg",
+                  "sourceUrl": "https://www.example.com/product/bistro-gift-card"
+                }
+              ],
+              "budget": 150,
+              "spent": 60,
+              "addIdeaAction": {
+                "type": "add_idea",
+                "payload": {
+                  "recipientId": "recp_mom"
+                }
+              },
+              "reorderIdeaAction": {
+                "type": "reorder_idea",
+                "payload": {
+                  "ideaId": "idea_mom_blanket",
+                  "toIndex": 0
+                }
+              },
+              "clearPurchasedAction": {
+                "type": "clear_purchased",
+                "payload": {
+                  "recipientId": "recp_mom"
+                }
+              },
+              "currencyCode": "USD"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly acknowledge the user's goal of planning gifts for birthdays and holidays with ideas, budgets, and purchase status",
+          "Should present a clear, customizable plan structure that invites the user to provide recipients, occasions, and budgets",
+          "Should include a summary view with total budget, total planned, and total purchased amounts for the year",
+          "Should display per-recipient cards showing name, occasion, individual budget, planned total, purchased total, and idea/purchased counts",
+          "Should provide per-recipient idea lists containing idea titles, prices, purchase status, optional notes, and optional source links/images",
+          "Should indicate purchase status clearly for each idea (e.g., purchased boolean or status chip) and aggregate purchased totals accordingly",
+          "Should include actionable UI affordances to add recipients and ideas, select a recipient, reorder ideas, and clear purchased items",
+          "Should specify currency code and the planning year consistently across components",
+          "Should keep data internally consistent and plausible (e.g., totals align with per-recipient and per-idea values, budgets vs planned/purchased amounts are coherent)",
+          "Should use UI components suitable for the task (board for recipients/summary and idea list for detailed items) matching the expected visual in the scenario",
+          "Should avoid unnecessary tool calls; no external data fetching or computation is required for this setup",
+          "Should be concise and user-friendly in text, focusing on next steps for customization without excessive formatting"
+        ],
+        "expected_components": [
+          "GiftPlanningBoard",
+          "IdeaList"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Yes\u2014here are my 2025 recipients, occasions, budgets, and ideas:\n- Alex (spouse) \u2013 Birthday Mar, $150: smartwatch $120, cookbook $30 (not purchased)\n- Mom \u2013 Mother\u2019s Day May, $100: spa gift card $80 (purchased), flowers $30\n- Dad \u2013 Birthday Jul, $75: grilling tools $50, craft beer sampler $25 (not purchased)\n- Maya (sister) \u2013 Christmas Dec, $120: cozy throw $60, earrings $50 (not purchased)\n- Leo (nephew) \u2013 Birthday Oct, $40: LEGO set $35 (purchased)\n- Friends \u2013 Secret Santa Dec, $25: mug + hot cocoa $20 (not purchased)\nPlease add a total budget vs. planned spend summary and purchase status chips."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Awesome\u2014I've set up your 2025 gift plan with budgets, ideas, and purchase status. Highlights: total budget $510, planned $500, purchased $115. Mom is currently $10 over budget; everything else is at or under. Want me to open a different recipient\u2019s idea list or add links/images for any items?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "GiftPlanningBoard",
+            "props": {
+              "title": "2025 Gift Plan",
+              "totals": {
+                "budgetTotal": 510,
+                "plannedTotal": 500,
+                "purchasedTotal": 115
+              },
+              "recipients": [
+                {
+                  "id": "recp_alex",
+                  "name": "Alex",
+                  "occasion": "Birthday",
+                  "budget": 150,
+                  "plannedTotal": 150,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_alex"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_mom",
+                  "name": "Mom",
+                  "occasion": "Mother's Day",
+                  "budget": 100,
+                  "plannedTotal": 110,
+                  "purchasedTotal": 80,
+                  "ideasCount": 2,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_mom"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_dad",
+                  "name": "Dad",
+                  "occasion": "Birthday",
+                  "budget": 75,
+                  "plannedTotal": 75,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_dad"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_maya",
+                  "name": "Maya",
+                  "occasion": "Christmas",
+                  "budget": 120,
+                  "plannedTotal": 110,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_maya"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_leo",
+                  "name": "Leo",
+                  "occasion": "Birthday",
+                  "budget": 40,
+                  "plannedTotal": 35,
+                  "purchasedTotal": 35,
+                  "ideasCount": 1,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_leo"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_friends",
+                  "name": "Friends",
+                  "occasion": "Secret Santa",
+                  "budget": 25,
+                  "plannedTotal": 20,
+                  "purchasedTotal": 0,
+                  "ideasCount": 1,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_friends"
+                    }
+                  }
+                }
+              ],
+              "addRecipientAction": {
+                "type": "add_recipient",
+                "payload": {
+                  "suggestedOccasion": "Birthday",
+                  "year": 2025
+                }
+              },
+              "currencyCode": "USD",
+              "year": 2025
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "IdeaList",
+            "props": {
+              "recipientId": "recp_alex",
+              "ideas": [
+                {
+                  "id": "idea_alex_watch",
+                  "title": "Smartwatch",
+                  "price": 120,
+                  "purchased": false
+                },
+                {
+                  "id": "idea_alex_cookbook",
+                  "title": "Cookbook",
+                  "price": 30,
+                  "purchased": false
+                }
+              ],
+              "budget": 150,
+              "spent": 0,
+              "addIdeaAction": {
+                "type": "add_idea",
+                "payload": {
+                  "recipientId": "recp_alex"
+                }
+              },
+              "reorderIdeaAction": {
+                "type": "reorder_idea",
+                "payload": {
+                  "ideaId": "idea_alex_watch",
+                  "toIndex": 0
+                }
+              },
+              "clearPurchasedAction": {
+                "type": "clear_purchased",
+                "payload": {
+                  "recipientId": "recp_alex"
+                }
+              },
+              "currencyCode": "USD"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should parse the user's recipients, occasions, budgets, and ideas accurately and reflect them in the UI",
+          "Should compute and display correct totals: overall budget total, planned total, and purchased total",
+          "Should compute and display per-recipient planned and purchased totals and counts based on idea prices and purchase flags",
+          "Should include purchase status chips for each idea (purchased/not purchased) and indicate recipient-level status (e.g., at/under/over budget)",
+          "Should clearly flag any over-budget recipients (e.g., planned spend exceeding budget) in the board summary or recipient card",
+          "Should present a concise top-level summary comparing total budget vs. planned spend and highlighting purchase progress",
+          "Should use USD currency consistently in text and component props",
+          "Should use only the specified components with appropriate props to match the expected visual (recipient cards, idea lists, purchase chips, total summary)",
+          "Should maintain internal consistency between the textual summary and the component data (no mismatched numbers or statuses)",
+          "Should provide interactive actions consistent with the component APIs (e.g., select recipient, add idea, reorder ideas, clear purchased, add recipient)",
+          "Should avoid unnecessary tool calls; no external tools are required for this in-app data presentation",
+          "Should avoid fabricating links or images; if offering to add them, it should be framed as an option/request from the user",
+          "Should keep prop shapes valid and identifiers consistent across components (recipientId, ideaId, counts, totals, currencyCode)",
+          "Should include occasion labels per recipient and display month/occasion succinctly without introducing unsupported date logic"
+        ],
+        "expected_components": [
+          "GiftPlanningBoard",
+          "IdeaList"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Open Alex\u2019s idea list and add \u201cwine tasting for two\u201d $100; mark the smartwatch as purchased. For Mom, change the flowers from $30 to a $20 bouquet to get her under budget. Also, suggest 2 more Secret Santa ideas under $25."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "All set! I added \u201cwine tasting for two\u201d ($100) to Alex and marked the smartwatch as purchased. I also updated Mom\u2019s flowers to a $20 bouquet\u2014she\u2019s now on budget. Summary updates:\n- Totals: Budget $510, Planned $590, Purchased $235\n- Over budget: Alex is $100 over (planned $250 vs $150 budget)\n- Back on track: Mom is now at $100 planned vs $100 budget\nSecret Santa ideas under $25 (suggestions):\n- Scented candle + mini matches set ($18\u2013$22)\n- Gourmet popcorn trio sampler ($15\u2013$20)\nWant me to add either of those to the Friends list or keep them as ideas for later?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "GiftPlanningBoard",
+            "props": {
+              "title": "2025 Gift Plan",
+              "totals": {
+                "budgetTotal": 510,
+                "plannedTotal": 590,
+                "purchasedTotal": 235
+              },
+              "recipients": [
+                {
+                  "id": "recp_alex",
+                  "name": "Alex",
+                  "occasion": "Birthday",
+                  "budget": 150,
+                  "plannedTotal": 250,
+                  "purchasedTotal": 120,
+                  "ideasCount": 3,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_alex"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_mom",
+                  "name": "Mom",
+                  "occasion": "Mother\u2019s Day",
+                  "budget": 100,
+                  "plannedTotal": 100,
+                  "purchasedTotal": 80,
+                  "ideasCount": 2,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_mom"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_dad",
+                  "name": "Dad",
+                  "occasion": "Birthday",
+                  "budget": 75,
+                  "plannedTotal": 75,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_dad"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_maya",
+                  "name": "Maya",
+                  "occasion": "Christmas",
+                  "budget": 120,
+                  "plannedTotal": 110,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_maya"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_leo",
+                  "name": "Leo",
+                  "occasion": "Birthday",
+                  "budget": 40,
+                  "plannedTotal": 35,
+                  "purchasedTotal": 35,
+                  "ideasCount": 1,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_leo"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_friends",
+                  "name": "Friends",
+                  "occasion": "Secret Santa",
+                  "budget": 25,
+                  "plannedTotal": 20,
+                  "purchasedTotal": 0,
+                  "ideasCount": 1,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_friends"
+                    }
+                  }
+                }
+              ],
+              "addRecipientAction": {
+                "type": "add_recipient",
+                "payload": {
+                  "suggestedOccasion": "Christmas",
+                  "year": 2025
+                }
+              },
+              "currencyCode": "USD",
+              "year": 2025
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "IdeaList",
+            "props": {
+              "recipientId": "recp_alex",
+              "ideas": [
+                {
+                  "id": "idea_alex_watch",
+                  "title": "Smartwatch",
+                  "price": 120,
+                  "purchased": true,
+                  "note": "Primary gift"
+                },
+                {
+                  "id": "idea_alex_cookbook",
+                  "title": "Cookbook",
+                  "price": 30,
+                  "purchased": false,
+                  "note": "Add a personal note"
+                },
+                {
+                  "id": "idea_alex_winetasting",
+                  "title": "Wine tasting for two",
+                  "price": 100,
+                  "purchased": false,
+                  "note": "Local winery weekend"
+                }
+              ],
+              "budget": 150,
+              "spent": 120,
+              "addIdeaAction": {
+                "type": "add_idea",
+                "payload": {
+                  "recipientId": "recp_alex"
+                }
+              },
+              "reorderIdeaAction": {
+                "type": "reorder_idea",
+                "payload": {
+                  "ideaId": "idea_alex_watch",
+                  "toIndex": 0
+                }
+              },
+              "clearPurchasedAction": {
+                "type": "clear_purchased",
+                "payload": {
+                  "recipientId": "recp_alex"
+                }
+              },
+              "currencyCode": "USD"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should open and display Alex\u2019s idea list with the smartwatch marked as purchased and the new idea 'Wine tasting for two' added at $100",
+          "Should update Alex\u2019s planned and purchased totals to reflect the added idea and purchased smartwatch, maintaining data consistency across the IdeaList and GiftPlanningBoard",
+          "Should modify Mom\u2019s flowers idea price from $30 to $20 and update her planned total so she is within her $100 budget",
+          "Should update the GiftPlanningBoard totals (budgetTotal, plannedTotal, purchasedTotal) to accurately reflect all changes made to Alex and Mom",
+          "Should clearly indicate which recipients are over or under budget based on the new totals (e.g., Alex over budget, Mom on budget) using summary text or UI indicators",
+          "Should provide exactly two additional Secret Santa gift suggestions under $25 each, without adding them to the list unless explicitly instructed by the user",
+          "Should preserve existing recipients and ideas without unintended additions or deletions, only making the requested changes",
+          "Should use USD as the currency and ensure all amounts and summed totals are mathematically accurate",
+          "Should present a concise textual summary of changes made and current budget status for transparency",
+          "Should use the GiftPlanningBoard and IdeaList UI components appropriately and pass correct, updated props to reflect the current state",
+          "Should avoid unnecessary tool calls since the request is state updates and UI rendering only",
+          "Should include appropriate component actions (e.g., select_recipient, add_idea) where relevant to support further user interaction"
+        ],
+        "expected_components": [
+          "GiftPlanningBoard",
+          "IdeaList"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Add the scented candle + mini matches ($20) to Friends and mark it not purchased. For Alex, move \u201cwine tasting for two\u201d to a new Anniversary in June with a $100 budget and remove the cookbook so his birthday only has the smartwatch. Please refresh the total budget/planned/purchased summary."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Done! I added the scented candle + mini matches ($20) to Friends (not purchased), moved Alex\u2019s wine tasting to a new June Anniversary with a $100 budget, and removed the cookbook from his birthday. Updated summary:\n- Totals: Budget $610, Planned $580, Purchased $235\n- Over budget: Friends (Secret Santa) is $15 over ($40 planned vs $25 budget)\nEverything else is on or under budget. Want me to increase the Friends budget to $40, or replace one item to stay within $25?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "GiftPlanningBoard",
+            "props": {
+              "title": "2025 Gift Plan",
+              "totals": {
+                "budgetTotal": 610,
+                "plannedTotal": 580,
+                "purchasedTotal": 235
+              },
+              "recipients": [
+                {
+                  "id": "recp_alex_bday",
+                  "name": "Alex",
+                  "occasion": "Birthday",
+                  "budget": 150,
+                  "plannedTotal": 120,
+                  "purchasedTotal": 120,
+                  "ideasCount": 1,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_alex_bday"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_alex_anniv",
+                  "name": "Alex",
+                  "occasion": "Anniversary",
+                  "budget": 100,
+                  "plannedTotal": 100,
+                  "purchasedTotal": 0,
+                  "ideasCount": 1,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_alex_anniv"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_mom_may",
+                  "name": "Mom",
+                  "occasion": "Mother's Day",
+                  "budget": 100,
+                  "plannedTotal": 100,
+                  "purchasedTotal": 80,
+                  "ideasCount": 2,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_mom_may"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_dad_jul",
+                  "name": "Dad",
+                  "occasion": "Birthday",
+                  "budget": 75,
+                  "plannedTotal": 75,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_dad_jul"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_maya_dec",
+                  "name": "Maya",
+                  "occasion": "Christmas",
+                  "budget": 120,
+                  "plannedTotal": 110,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_maya_dec"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_leo_oct",
+                  "name": "Leo",
+                  "occasion": "Birthday",
+                  "budget": 40,
+                  "plannedTotal": 35,
+                  "purchasedTotal": 35,
+                  "ideasCount": 1,
+                  "purchasedCount": 1,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_leo_oct"
+                    }
+                  }
+                },
+                {
+                  "id": "recp_friends_ss",
+                  "name": "Friends",
+                  "occasion": "Secret Santa",
+                  "budget": 25,
+                  "plannedTotal": 40,
+                  "purchasedTotal": 0,
+                  "ideasCount": 2,
+                  "purchasedCount": 0,
+                  "selectAction": {
+                    "type": "select_recipient",
+                    "payload": {
+                      "id": "recp_friends_ss"
+                    }
+                  }
+                }
+              ],
+              "addRecipientAction": {
+                "type": "add_recipient",
+                "payload": {
+                  "suggestedOccasion": "Birthday",
+                  "year": 2025
+                }
+              },
+              "currencyCode": "USD",
+              "year": 2025
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "IdeaList",
+            "props": {
+              "recipientId": "recp_friends_ss",
+              "ideas": [
+                {
+                  "id": "idea_mug_cocoa",
+                  "title": "Mug + hot cocoa",
+                  "price": 20,
+                  "purchased": false
+                },
+                {
+                  "id": "idea_candle_matches",
+                  "title": "Scented candle + mini matches",
+                  "price": 20,
+                  "purchased": false
+                }
+              ],
+              "budget": 25,
+              "spent": 0,
+              "addIdeaAction": {
+                "type": "add_idea",
+                "payload": {
+                  "recipientId": "recp_friends_ss"
+                }
+              },
+              "reorderIdeaAction": {
+                "type": "reorder_idea",
+                "payload": {
+                  "ideaId": "idea_mug_cocoa",
+                  "toIndex": 1
+                }
+              },
+              "clearPurchasedAction": {
+                "type": "clear_purchased",
+                "payload": {
+                  "recipientId": "recp_friends_ss"
+                }
+              },
+              "currencyCode": "USD"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly confirm each requested change: add 'scented candle + mini matches' ($20) to Friends marked not purchased; move 'wine tasting for two' from Alex's birthday to a new June Anniversary with a $100 budget; remove the cookbook from Alex's birthday so only the smartwatch remains",
+          "Should create a new Anniversary recipient entry for Alex in June with the correct budget ($100) and include the moved 'wine tasting for two' idea with accurate price and not purchased status unless otherwise specified",
+          "Should remove 'wine tasting for two' and the cookbook from Alex's birthday list, ensuring only the smartwatch remains and adjusting planned/purchased totals, idea counts, and purchased counts accordingly",
+          "Should recompute and present the refreshed overall totals (Budget, Planned, Purchased) accurately based on all recipients after the updates",
+          "Should update per-recipient budgets, planned totals, purchased totals, and counts to reflect all modifications accurately",
+          "Should flag any categories that are over or under budget based on updated data and clearly indicate the amount over/under",
+          "Should ensure consistency between any textual summary and the data shown in UI component props (totals, budgets, item lists, prices, counts, and purchase statuses)",
+          "Should use appropriate UI components to present the updated board and the relevant idea list(s), matching the expected visual structure (recipient cards, idea lists, purchase statuses, and totals summary)",
+          "Should include correct metadata in components such as currency code and year when applicable",
+          "Should avoid unnecessary tool calls; only call tools with correct arguments if external data fetching or computation is required (not necessary for local state updates in this scenario)"
+        ],
+        "expected_components": [
+          "GiftPlanningBoard",
+          "IdeaList"
+        ]
+      }
+    }
+  ]
+}

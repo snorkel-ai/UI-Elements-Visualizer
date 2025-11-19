@@ -1,0 +1,1960 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "CoverageOverviewDashboard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CoverageOverviewDashboard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "highValueItems": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "risk": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "recommendations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "currency": {
+                "type": "string"
+              },
+              "valuationStrategy": {
+                "type": "string",
+                "enum": [
+                  "replacement_cost",
+                  "actual_cash_value"
+                ]
+              },
+              "thresholds": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "chartVariant": {
+                "type": "string",
+                "enum": [
+                  "pie",
+                  "donut"
+                ]
+              },
+              "interactions": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "policySnapshot": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "categories",
+              "currency",
+              "highValueItems",
+              "recommendations",
+              "risk",
+              "valuationStrategy"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "CategoryBreakdownChart": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CategoryBreakdownChart"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "categories": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "variant": {
+                "type": "string",
+                "enum": [
+                  "pie",
+                  "donut"
+                ]
+              },
+              "colorBy": {
+                "type": "string",
+                "enum": [
+                  "status",
+                  "category",
+                  "risk"
+                ]
+              },
+              "currencyCode": {
+                "type": "string"
+              },
+              "locale": {
+                "type": "string"
+              },
+              "showLegend": {
+                "type": "boolean"
+              },
+              "maxCategories": {
+                "type": "number"
+              },
+              "tooltipMode": {
+                "type": "string",
+                "enum": [
+                  "basic",
+                  "detailed"
+                ]
+              },
+              "onSelectAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onDrilldownAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onRecommendCoverageAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "categories",
+              "currencyCode"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "HighValueItemsTable": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "HighValueItemsTable"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "onRowAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "sortBy": {
+                "type": "string",
+                "enum": [
+                  "replacementCost",
+                  "riskScore",
+                  "coverageGap"
+                ]
+              },
+              "maxRows": {
+                "type": "number"
+              },
+              "emphasizeBy": {
+                "type": "string",
+                "enum": [
+                  "value",
+                  "risk"
+                ]
+              }
+            },
+            "required": [
+              "items",
+              "onRowAction",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "RiskRatingScorecard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "RiskRatingScorecard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "overallRiskScore": {
+                "type": "number"
+              },
+              "riskLevel": {
+                "type": "string",
+                "enum": [
+                  "Low",
+                  "Moderate",
+                  "High",
+                  "Severe"
+                ]
+              },
+              "topFactors": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "guidance": {
+                "type": "string"
+              },
+              "onViewDetailsAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "guidance",
+              "id",
+              "name",
+              "onViewDetailsAction",
+              "overallRiskScore",
+              "riskLevel",
+              "title",
+              "topFactors"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "CoverageEstimateCard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CoverageEstimateCard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "suggestedLimit": {
+                "type": "number"
+              },
+              "suggestedDeductible": {
+                "type": "number"
+              },
+              "gapSummary": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "onSelectAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "gapSummary",
+              "id",
+              "name",
+              "onSelectAction",
+              "suggestedDeductible",
+              "suggestedLimit",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/CoverageOverviewDashboard"
+          },
+          {
+            "$ref": "#/$defs/CategoryBreakdownChart"
+          },
+          {
+            "$ref": "#/$defs/HighValueItemsTable"
+          },
+          {
+            "$ref": "#/$defs/RiskRatingScorecard"
+          },
+          {
+            "$ref": "#/$defs/CoverageEstimateCard"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "I documented items in my home\u2014help me estimate replacement costs and spot underinsured categories."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great\u2014let\u2019s build an initial estimate and highlight where coverage may be thin. I\u2019ve prepared a starter dashboard you can review. If you share your actual item list (CSV, photos, or appraised values), I\u2019ll update everything precisely and tailor the recommendations. A few quick ways to improve accuracy: confirm your policy sublimits (jewelry, art, electronics), upload receipts/photos for the high-value items, and let me know your currency and deductible preferences. Want me to import a file or adjust the suggested limits now?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "CoverageOverviewDashboardProps",
+            "props": {
+              "categories": [
+                {
+                  "categoryId": "electronics",
+                  "name": "Electronics",
+                  "totalInsuredValue": 22000,
+                  "estimatedReplacementCost": 28000,
+                  "coverageLimit": 20000,
+                  "iconUrl": "https://cdn.example.com/icons/electronics.png"
+                },
+                {
+                  "categoryId": "jewelry",
+                  "name": "Jewelry",
+                  "totalInsuredValue": 15000,
+                  "estimatedReplacementCost": 23000,
+                  "coverageLimit": 5000,
+                  "iconUrl": "https://cdn.example.com/icons/jewelry.png"
+                },
+                {
+                  "categoryId": "furniture",
+                  "name": "Furniture",
+                  "totalInsuredValue": 30000,
+                  "estimatedReplacementCost": 32000,
+                  "coverageLimit": 40000,
+                  "iconUrl": "https://cdn.example.com/icons/furniture.png"
+                },
+                {
+                  "categoryId": "appliances",
+                  "name": "Appliances",
+                  "totalInsuredValue": 12000,
+                  "estimatedReplacementCost": 14000,
+                  "coverageLimit": 15000,
+                  "iconUrl": "https://cdn.example.com/icons/appliances.png"
+                },
+                {
+                  "categoryId": "art",
+                  "name": "Art",
+                  "totalInsuredValue": 8000,
+                  "estimatedReplacementCost": 12000,
+                  "coverageLimit": 2500,
+                  "iconUrl": "https://cdn.example.com/icons/art.png"
+                },
+                {
+                  "categoryId": "clothing",
+                  "name": "Clothing",
+                  "totalInsuredValue": 10000,
+                  "estimatedReplacementCost": 15000,
+                  "coverageLimit": 10000,
+                  "iconUrl": "https://cdn.example.com/icons/clothing.png"
+                },
+                {
+                  "categoryId": "sports_outdoor",
+                  "name": "Sports & Outdoor",
+                  "totalInsuredValue": 4000,
+                  "estimatedReplacementCost": 5000,
+                  "coverageLimit": 5000,
+                  "iconUrl": "https://cdn.example.com/icons/sports.png"
+                }
+              ],
+              "highValueItems": [
+                {
+                  "itemId": "it_mbpro16",
+                  "name": "MacBook Pro 16\"",
+                  "categoryId": "electronics",
+                  "appraisedValue": 3200,
+                  "replacementCost": 3500,
+                  "photoUrl": "https://cdn.example.com/photos/macbook.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-10-15T12:00:00Z"
+                },
+                {
+                  "itemId": "it_oled65",
+                  "name": "65\" OLED TV",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 2500,
+                  "photoUrl": "https://cdn.example.com/photos/oledtv.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-10-12T09:30:00Z"
+                },
+                {
+                  "itemId": "it_diamondring",
+                  "name": "1.5ct Diamond Ring",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 12000,
+                  "replacementCost": 12000,
+                  "photoUrl": "https://cdn.example.com/photos/diamondring.jpg",
+                  "flagged": "needs_appraisal",
+                  "lastUpdated": "2025-09-28T18:45:00Z"
+                },
+                {
+                  "itemId": "it_painting1",
+                  "name": "Original Painting",
+                  "categoryId": "art",
+                  "appraisedValue": 7000,
+                  "replacementCost": 7000,
+                  "photoUrl": "https://cdn.example.com/photos/painting.jpg",
+                  "flagged": "needs_appraisal",
+                  "lastUpdated": "2025-09-22T14:20:00Z"
+                },
+                {
+                  "itemId": "it_camera",
+                  "name": "Full-Frame Camera",
+                  "categoryId": "electronics",
+                  "appraisedValue": 2100,
+                  "replacementCost": 2200,
+                  "photoUrl": "https://cdn.example.com/photos/camera.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-10-05T11:10:00Z"
+                },
+                {
+                  "itemId": "it_handbag",
+                  "name": "Designer Handbag",
+                  "categoryId": "clothing",
+                  "appraisedValue": 1700,
+                  "replacementCost": 1800,
+                  "photoUrl": "https://cdn.example.com/photos/handbag.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-09-30T10:00:00Z"
+                }
+              ],
+              "risk": {
+                "score": 72,
+                "level": "high",
+                "factors": [
+                  {
+                    "id": "underinsured_electronics",
+                    "label": "Electronics underinsured by ~40%",
+                    "impact": "negative",
+                    "weight": 0.3,
+                    "details": "Estimated replacement $28k vs. $20k category limit."
+                  },
+                  {
+                    "id": "jewelry_sublimit",
+                    "label": "Jewelry exceeds sublimit by ~$18k",
+                    "impact": "negative",
+                    "weight": 0.35,
+                    "details": "Estimated $23k vs. $5k sublimit; consider scheduling."
+                  },
+                  {
+                    "id": "art_coverage_gap",
+                    "label": "Art coverage gap (~$9.5k)",
+                    "impact": "negative",
+                    "weight": 0.2,
+                    "details": "Estimated $12k vs. $2.5k sublimit."
+                  },
+                  {
+                    "id": "missing_docs",
+                    "label": "Items needing updated appraisals/docs",
+                    "impact": "negative",
+                    "weight": 0.15,
+                    "details": "Jewelry and art flagged for appraisal."
+                  }
+                ],
+                "notes": "Focus on valuables with sublimits and recent price inflation for electronics."
+              },
+              "recommendations": [
+                {
+                  "id": "rec_elec_limit",
+                  "title": "Increase Electronics Limit",
+                  "type": "increase_category_limit",
+                  "subtitle": "Target $28,000",
+                  "iconUrl": "https://cdn.example.com/icons/rec-electronics.svg",
+                  "estimatedPremiumChange": {
+                    "amount": 9,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "electronics",
+                    "targetAmount": 28000
+                  },
+                  "rationale": "Close the ~$8,000 coverage gap driven by replacement costs.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_schedule_ring",
+                  "title": "Schedule Diamond Ring",
+                  "type": "schedule_item",
+                  "subtitle": "Itemized with appraisal",
+                  "iconUrl": "https://cdn.example.com/icons/rec-jewelry.svg",
+                  "estimatedPremiumChange": {
+                    "amount": 6,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "itemId": "it_diamondring",
+                    "targetAmount": 12000
+                  },
+                  "rationale": "Exceeds jewelry sublimit; scheduling preserves coverage without deductible.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_art_rider",
+                  "title": "Add Fine Art Rider",
+                  "type": "add_rider",
+                  "subtitle": "Target $12,000",
+                  "iconUrl": "https://cdn.example.com/icons/rec-art.svg",
+                  "estimatedPremiumChange": {
+                    "amount": 4,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "art",
+                    "targetAmount": 12000
+                  },
+                  "rationale": "Base policy sublimit likely inadequate for fine art.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_verify_docs",
+                  "title": "Verify Receipts & Appraisals",
+                  "type": "verify_receipts",
+                  "subtitle": "Jewelry and art",
+                  "iconUrl": "https://cdn.example.com/icons/rec-docs.svg",
+                  "estimatedPremiumChange": {
+                    "amount": 0,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {},
+                  "rationale": "Up-to-date documentation can improve claims outcomes and pricing.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                }
+              ],
+              "currency": "USD",
+              "valuationStrategy": "replacement_cost",
+              "thresholds": {
+                "highValueItemMin": 1500,
+                "underinsuredCategoryPercent": 10
+              },
+              "chartVariant": "donut",
+              "interactions": {
+                "selectCategoryAction": {
+                  "type": "select_category",
+                  "paramKeys": [
+                    "categoryId"
+                  ]
+                },
+                "selectItemAction": {
+                  "type": "select_item",
+                  "paramKeys": [
+                    "itemId"
+                  ]
+                },
+                "requestQuoteAction": {
+                  "type": "request_quote",
+                  "paramKeys": [
+                    "providerId"
+                  ]
+                },
+                "adjustCoverageAction": {
+                  "type": "adjust_coverage",
+                  "paramKeys": [
+                    "categoryId",
+                    "targetAmount"
+                  ]
+                }
+              },
+              "policySnapshot": {
+                "carrierName": "Acme Home Insurance",
+                "policyNumber": "PH-1234567",
+                "personalPropertyLimit": 100000,
+                "deductible": 1000,
+                "renewalDateIso": "2026-02-01T00:00:00Z"
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should acknowledge the user's goal to estimate replacement costs and identify underinsured categories",
+          "Should present category-level aggregates including total insured value, estimated replacement cost, and current coverage limits for each category",
+          "Should provide a visual summary at the category level (e.g., pie/donut chart) reflecting value distribution or coverage gaps",
+          "Should identify and clearly flag underinsured categories by comparing estimated replacement cost to coverage limits against a defined threshold",
+          "Should surface a list of high-value items (above a defined threshold) with item-level values, flags (e.g., high_value, needs_appraisal), and last updated timestamps",
+          "Should compute and display an overall risk score/level with contributing risk factors and concise explanations",
+          "Should offer actionable, insurance-relevant recommendations (e.g., increase limits, schedule items, add riders, verify documentation) including rationale and estimated premium impact",
+          "Should clarify key assumptions and inputs such as currency, valuation strategy (e.g., replacement cost), deductible, and relevant policy sublimits",
+          "Should include interactive actions for user workflow (e.g., select category/item, adjust coverage amounts, request quotes, open recommendation)",
+          "Should invite and support data intake to improve accuracy (e.g., upload CSV/photos/receipts/appraisals) and request confirmation of sublimits",
+          "Should avoid definitive legal/coverage guarantees and advise confirmation of policy terms and sublimits",
+          "Should maintain data integrity and coherence (e.g., plausible numeric values, consistent category totals vs. limits, ISO-8601 timestamps, proper types for amounts and frequencies)",
+          "Should include a concise, user-oriented narrative with a clear next step (e.g., import file, adjust limits now)",
+          "Should use the appropriate UI component(s) matching the scenario and expected visuals, with correctly structured props and schema",
+          "Should not call external tools unless necessary for data fetching or computation; if no such need exists, tools should not be invoked"
+        ],
+        "expected_components": [
+          "CoverageOverviewDashboardProps"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "I just uploaded a CSV of my inventory\u2014please import it. Currency is USD, $1,000 deductible; current policy has $120k personal property with sublimits: jewelry $5k total, fine art $2.5k, electronics $5k, and bikes $1k per item. Generate the charts/tables and flag underinsured categories and any items over sublimits, then recommend updated coverage."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Thanks \u2014 I imported your inventory with USD and a $1,000 deductible, and applied your current policy context: $120k Personal Property with sublimits (Jewelry $5k total, Fine Art $2.5k, Electronics $5k total, Bicycles $1k per item). Highlights:\n\nTop underinsured categories\n- Jewelry: ~$16,800 to replace vs. $5,000 sublimit (gap ~ $11,800)\n- Electronics: ~$18,700 to replace vs. $5,000 sublimit (gap ~ $13,700)\n- Fine Art: ~$9,200 to replace vs. $2,500 sublimit (gap ~ $6,700)\n- Bicycles: ~$6,400 total; per-item cap of $1,000 leaves several bikes short (effective insured ~ $2,900; gap ~ $3,500)\n\nItems exceeding sublimits\n- Engagement Ring (~$8,500) exceeds Jewelry $5k total\n- Rolex Watch (~$7,200) exceeds remaining Jewelry capacity\n- Fine Art Painting (~$6,000) exceeds $2.5k Fine Art sublimit\n- Carbon Road Bike (~$3,800) exceeds $1k per-item bicycle cap\n- Several electronics (MacBook Pro, Gaming PC, OLED TV) collectively exceed the $5k Electronics sublimit\n\nRecommendations (summary)\n- Schedule high-value jewelry and fine art to their appraised amounts\n- Add a bicycle rider or scheduled coverage for the carbon road bike (and any other >$1k bikes)\n- Increase Electronics coverage via a rider or confirm your carrier\u2019s higher electronics endorsement\n- Consider increasing your Personal Property limit if your total replacement cost approaches or exceeds $120k\n\nYou can tap any category or item to adjust limits or request quotes. I\u2019ve pre-filled suggested coverage changes below."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "CoverageOverviewDashboardProps",
+            "props": {
+              "categories": [
+                {
+                  "categoryId": "electronics",
+                  "name": "Electronics",
+                  "totalInsuredValue": 5000,
+                  "estimatedReplacementCost": 18700,
+                  "coverageLimit": 5000,
+                  "iconUrl": "https://example.com/icons/electronics.png"
+                },
+                {
+                  "categoryId": "jewelry",
+                  "name": "Jewelry",
+                  "totalInsuredValue": 5000,
+                  "estimatedReplacementCost": 16800,
+                  "coverageLimit": 5000,
+                  "iconUrl": "https://example.com/icons/jewelry.png"
+                },
+                {
+                  "categoryId": "fine_art",
+                  "name": "Fine Art",
+                  "totalInsuredValue": 2500,
+                  "estimatedReplacementCost": 9200,
+                  "coverageLimit": 2500,
+                  "iconUrl": "https://example.com/icons/art.png"
+                },
+                {
+                  "categoryId": "bicycles",
+                  "name": "Bicycles",
+                  "totalInsuredValue": 2900,
+                  "estimatedReplacementCost": 6400,
+                  "coverageLimit": 2900,
+                  "iconUrl": "https://example.com/icons/bicycle.png"
+                },
+                {
+                  "categoryId": "furniture",
+                  "name": "Furniture",
+                  "totalInsuredValue": 24500,
+                  "estimatedReplacementCost": 24500,
+                  "iconUrl": "https://example.com/icons/furniture.png"
+                },
+                {
+                  "categoryId": "appliances",
+                  "name": "Appliances",
+                  "totalInsuredValue": 7800,
+                  "estimatedReplacementCost": 7800,
+                  "iconUrl": "https://example.com/icons/appliances.png"
+                },
+                {
+                  "categoryId": "clothing",
+                  "name": "Clothing",
+                  "totalInsuredValue": 12200,
+                  "estimatedReplacementCost": 12200,
+                  "iconUrl": "https://example.com/icons/clothing.png"
+                },
+                {
+                  "categoryId": "tools",
+                  "name": "Tools & Hardware",
+                  "totalInsuredValue": 2400,
+                  "estimatedReplacementCost": 2400,
+                  "iconUrl": "https://example.com/icons/tools.png"
+                }
+              ],
+              "highValueItems": [
+                {
+                  "itemId": "it_ring_001",
+                  "name": "Engagement Ring",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 8500,
+                  "replacementCost": 8500,
+                  "photoUrl": "https://example.com/photos/ring.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_watch_002",
+                  "name": "Rolex Watch",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 7200,
+                  "replacementCost": 7200,
+                  "photoUrl": "https://example.com/photos/rolex.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_art_003",
+                  "name": "Fine Art Painting",
+                  "categoryId": "fine_art",
+                  "appraisedValue": 6000,
+                  "replacementCost": 6000,
+                  "photoUrl": "https://example.com/photos/painting.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_bike_004",
+                  "name": "Carbon Road Bike",
+                  "categoryId": "bicycles",
+                  "appraisedValue": 3800,
+                  "replacementCost": 3800,
+                  "photoUrl": "https://example.com/photos/roadbike.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_mbpro_005",
+                  "name": "MacBook Pro 16\"",
+                  "categoryId": "electronics",
+                  "appraisedValue": 3000,
+                  "replacementCost": 3000,
+                  "photoUrl": "https://example.com/photos/macbook.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_pc_006",
+                  "name": "Gaming PC",
+                  "categoryId": "electronics",
+                  "appraisedValue": 2800,
+                  "replacementCost": 2800,
+                  "photoUrl": "https://example.com/photos/gamingpc.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_tv_007",
+                  "name": "65\" OLED TV",
+                  "categoryId": "electronics",
+                  "appraisedValue": 2500,
+                  "replacementCost": 2500,
+                  "photoUrl": "https://example.com/photos/oledtv.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                }
+              ],
+              "risk": {
+                "score": 72,
+                "level": "high",
+                "factors": [
+                  {
+                    "id": "underinsured_electronics",
+                    "label": "Electronics underinsured by ~73%",
+                    "impact": "negative",
+                    "weight": 0.32,
+                    "details": "Estimated $18.7k vs. $5k sublimit; consider rider/endorsement."
+                  },
+                  {
+                    "id": "underinsured_jewelry",
+                    "label": "Jewelry exceeds sublimit by ~$11.8k",
+                    "impact": "negative",
+                    "weight": 0.28,
+                    "details": "Two items alone exceed the $5k category cap."
+                  },
+                  {
+                    "id": "underinsured_fine_art",
+                    "label": "Fine Art exceeds sublimit by ~$6.7k",
+                    "impact": "negative",
+                    "weight": 0.18,
+                    "details": "Schedule pieces to appraised value."
+                  },
+                  {
+                    "id": "bike_per_item_cap",
+                    "label": "Bicycles over per-item cap",
+                    "impact": "negative",
+                    "weight": 0.12,
+                    "details": "Carbon road bike above $1k per-item limit."
+                  }
+                ],
+                "notes": "Gaps are concentrated in categories with strict sublimits. Scheduling and endorsements will materially reduce risk."
+              },
+              "recommendations": [
+                {
+                  "id": "rec_jewelry_schedule",
+                  "title": "Schedule Jewelry Items",
+                  "type": "schedule_item",
+                  "subtitle": "Engagement Ring, Rolex Watch",
+                  "estimatedPremiumChange": {
+                    "amount": 16,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "itemId": "it_ring_001",
+                    "targetAmount": 8500
+                  },
+                  "rationale": "Your jewelry total (~$16.8k) exceeds the $5k sublimit by ~$11.8k. Scheduling preserves full value and may lower deductible.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_fineart_schedule",
+                  "title": "Add Fine Art Rider",
+                  "type": "add_rider",
+                  "subtitle": "Cover fine art to appraised amounts",
+                  "estimatedPremiumChange": {
+                    "amount": 9,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "fine_art",
+                    "targetAmount": 9200
+                  },
+                  "rationale": "Fine art (~$9.2k) exceeds the $2.5k sublimit by ~$6.7k.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_elec_endorse",
+                  "title": "Increase Electronics Limit",
+                  "type": "increase_category_limit",
+                  "subtitle": "Raise sublimit to match ~$18.7k",
+                  "estimatedPremiumChange": {
+                    "amount": 12,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "electronics",
+                    "targetAmount": 18700
+                  },
+                  "rationale": "Electronics replacement cost is ~3.7x the current $5k sublimit.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_bike_schedule",
+                  "title": "Schedule High-Value Bicycle(s)",
+                  "type": "schedule_item",
+                  "subtitle": "Raise coverage above $1k per item",
+                  "estimatedPremiumChange": {
+                    "amount": 5,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "itemId": "it_bike_004",
+                    "targetAmount": 3800
+                  },
+                  "rationale": "Carbon road bike exceeds the per-item cap by ~$2.8k.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_pp_limit",
+                  "title": "Review Personal Property Limit",
+                  "type": "add_rider",
+                  "subtitle": "Confirm $120k is sufficient",
+                  "estimatedPremiumChange": {
+                    "amount": 8,
+                    "frequency": "monthly"
+                  },
+                  "suggestedCoverage": {
+                    "targetAmount": 135000
+                  },
+                  "rationale": "If total replacement value trends above $120k, consider a modest increase to avoid overall shortfall.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                }
+              ],
+              "currency": "USD",
+              "valuationStrategy": "replacement_cost",
+              "thresholds": {
+                "highValueItemMin": 2000,
+                "underinsuredCategoryPercent": 10
+              },
+              "chartVariant": "donut",
+              "interactions": {
+                "selectCategoryAction": {
+                  "type": "select_category",
+                  "paramKeys": [
+                    "categoryId"
+                  ]
+                },
+                "selectItemAction": {
+                  "type": "select_item",
+                  "paramKeys": [
+                    "itemId"
+                  ]
+                },
+                "requestQuoteAction": {
+                  "type": "request_quote",
+                  "paramKeys": [
+                    "providerId"
+                  ]
+                },
+                "adjustCoverageAction": {
+                  "type": "adjust_coverage",
+                  "paramKeys": [
+                    "categoryId",
+                    "targetAmount"
+                  ]
+                }
+              },
+              "policySnapshot": {
+                "carrierName": "",
+                "policyNumber": "",
+                "personalPropertyLimit": 120000,
+                "deductible": 1000,
+                "renewalDateIso": ""
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "RiskRatingScorecardProps",
+            "props": {
+              "id": "risk-card-001",
+              "name": "Home Inventory",
+              "title": "Overall Risk Rating",
+              "overallRiskScore": 72,
+              "riskLevel": "High",
+              "topFactors": [
+                {
+                  "id": "cat_electronics",
+                  "label": "Electronics coverage gap",
+                  "contributionPct": 32
+                },
+                {
+                  "id": "cat_jewelry",
+                  "label": "Jewelry undervalued vs. sublimit",
+                  "contributionPct": 28
+                },
+                {
+                  "id": "cat_fine_art",
+                  "label": "Fine art above sublimit",
+                  "contributionPct": 18
+                },
+                {
+                  "id": "cat_bicycles",
+                  "label": "Bicycles exceed per-item cap",
+                  "contributionPct": 12
+                }
+              ],
+              "guidance": "Schedule jewelry and fine art, add a rider or endorsement for electronics, and schedule the carbon road bike. Then reassess if Personal Property should increase to ~$135k.",
+              "onViewDetailsAction": {
+                "type": "view_risk_details",
+                "payload": {
+                  "id": "risk-card-001"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should acknowledge and confirm import of the user's CSV inventory and the provided policy context (currency USD, $1,000 deductible, $120k personal property limit, and sublimits: jewelry $5k total, fine art $2.5k, electronics $5k, bicycles $1k per item).",
+          "Should avoid fabricating or assuming data not present in the CSV; where assumptions are necessary, they should be clearly labeled as estimates.",
+          "Should compute and present estimated replacement costs at the category level and, where relevant, overall totals, using the user's currency and deductible context.",
+          "Should identify and explicitly flag underinsured categories where estimated replacement cost exceeds category sublimits or where per-item caps apply.",
+          "Should identify and explicitly flag individual items that exceed relevant category sublimits or per-item caps, with item names and values.",
+          "Should quantify coverage gaps (difference between estimated replacement cost and current limit/sublimit) with clear numeric amounts and percentages where applicable.",
+          "Should provide actionable recommendations that directly address identified gaps (e.g., scheduling items, adding riders/endorsements, increasing category sublimits, reviewing overall personal property limit) and include suggested target coverage amounts.",
+          "Should format all monetary values in USD consistently and clearly indicate the $1,000 deductible context without implying guaranteed claim outcomes.",
+          "Should include appropriate visualizations that match the expected UI: a category-level value chart (pie/donut), a high-value items table/list, a risk rating scorecard, and recommendation cards.",
+          "Should use the specified UI components to render data (CoverageOverviewDashboardProps for categories, items, and recommendations; RiskRatingScorecardProps for risk scoring) and ensure the visuals correspond to the narrative text.",
+          "Should populate component properties with coherent, internally consistent values (numbers in text match component props; item/category IDs, names, and limits align with the policy context).",
+          "Should correctly apply per-item versus category sublimit logic (e.g., bicycles capped per item at $1k, jewelry and electronics capped by total sublimit).",
+          "Should assess whether the total estimated replacement value approaches or exceeds the $120k personal property limit and recommend adjustments as appropriate.",
+          "Should provide a clear risk rating with contributing factors tied to the identified coverage gaps, and concise guidance on how to reduce risk.",
+          "Should include interactive affordances or CTAs in components (e.g., select category/item, adjust coverage, request quotes) where appropriate to enable next steps.",
+          "Should phrase outputs as informational estimates and recommendations, not as legal or coverage guarantees; should encourage confirmation with the insurer.",
+          "Should ensure data privacy by not exposing unnecessary or sensitive personal information beyond what is needed for the analysis.",
+          "Should call appropriate tools or parsing functions with correct arguments if importing/processing the CSV requires data fetching or computation; otherwise, it should perform the analysis deterministically without external calls.",
+          "Should be concise, clear, and user-friendly, focusing on actionable insights and minimizing unnecessary jargon."
+        ],
+        "expected_components": [
+          "CoverageOverviewDashboardProps",
+          "RiskRatingScorecardProps"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Apply your recommendations: schedule the engagement ring ($8.5k), Rolex ($7.2k), painting ($6k), and carbon road bike ($3.8k). Increase sublimits to Electronics $20k, Jewelry $20k, Fine Art $10k, and Bikes $4k per item; set Personal Property to my total replacement cost plus a 10% buffer\u2014what limit is that and the estimated premium impact? Then render the category pie chart, high-value items table, risk scorecard, and coverage estimate cards."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Done \u2014 I\u2019ve applied your requested changes (scheduled items and higher sublimits) and recalculated totals. Here\u2019s the updated picture and suggested limits.\n\nKey updates applied\n- Scheduled items: Engagement Ring ($8,500), Rolex ($7,200), Fine Art Painting ($6,000), Carbon Road Bike ($3,800)\n- New sublimits: Electronics $20,000; Jewelry $20,000; Fine Art $10,000; Bicycles $4,000 per item\n- Deductible: $1,000 retained\n\nPersonal Property limit recommendation\n- Estimated total replacement cost (all categories): ~$155,000\n- With a 10% buffer: recommended Coverage C (Personal Property) \u2248 $171,000\n- Estimated premium impact (illustrative):\n  - Increase PP limit $120k \u2192 $171k (+$51k): about +$561/year\n  - Schedule jewelry ($15.7k total): about +$251/year\n  - Schedule fine art painting ($6k): about +$54/year\n  - Schedule carbon road bike ($3.8k): about +$38/year\n  - Electronics endorsement to $20k (+$15k): about +$90/year\n  - Jewelry category endorsement headroom: about +$60/year\n  - Fine art category endorsement headroom: about +$20/year\n  - Approximate total change: \u2248 +$1,074/year (about $90/month)\n\nUnderinsurance check after changes\n- Electronics: replacement ~$18,700 vs. $20,000 limit \u2192 Adequate\n- Jewelry: replacement ~$16,800 with $15,700 scheduled and $20,000 category limit \u2192 Adequate\n- Fine Art: replacement ~$9,200 with $6,000 scheduled and $10,000 category limit \u2192 Adequate\n- Bicycles: total ~$6,400 with $3,800 scheduled and $4,000 per-item cap \u2192 Adequate\n\nTap a category/item to fine-tune limits or request a quote; you can also apply the coverage cards below to lock the changes in."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "CoverageOverviewDashboardProps",
+            "props": {
+              "categories": [
+                {
+                  "categoryId": "electronics",
+                  "name": "Electronics",
+                  "totalInsuredValue": 18700,
+                  "estimatedReplacementCost": 18700,
+                  "coverageLimit": 20000,
+                  "iconUrl": "https://example.com/icons/electronics.png"
+                },
+                {
+                  "categoryId": "jewelry",
+                  "name": "Jewelry",
+                  "totalInsuredValue": 16800,
+                  "estimatedReplacementCost": 16800,
+                  "coverageLimit": 20000,
+                  "iconUrl": "https://example.com/icons/jewelry.png"
+                },
+                {
+                  "categoryId": "fine_art",
+                  "name": "Fine Art",
+                  "totalInsuredValue": 9200,
+                  "estimatedReplacementCost": 9200,
+                  "coverageLimit": 10000,
+                  "iconUrl": "https://example.com/icons/art.png"
+                },
+                {
+                  "categoryId": "bicycles",
+                  "name": "Bicycles",
+                  "totalInsuredValue": 6400,
+                  "estimatedReplacementCost": 6400,
+                  "coverageLimit": 16000,
+                  "iconUrl": "https://example.com/icons/bike.png"
+                },
+                {
+                  "categoryId": "furniture",
+                  "name": "Furniture",
+                  "totalInsuredValue": 58000,
+                  "estimatedReplacementCost": 58000,
+                  "coverageLimit": 58000,
+                  "iconUrl": "https://example.com/icons/furniture.png"
+                },
+                {
+                  "categoryId": "appliances",
+                  "name": "Appliances",
+                  "totalInsuredValue": 12500,
+                  "estimatedReplacementCost": 12500,
+                  "coverageLimit": 12500,
+                  "iconUrl": "https://example.com/icons/appliances.png"
+                },
+                {
+                  "categoryId": "clothing",
+                  "name": "Clothing",
+                  "totalInsuredValue": 14500,
+                  "estimatedReplacementCost": 14500,
+                  "coverageLimit": 14500,
+                  "iconUrl": "https://example.com/icons/clothing.png"
+                },
+                {
+                  "categoryId": "kitchen",
+                  "name": "Kitchenware",
+                  "totalInsuredValue": 6500,
+                  "estimatedReplacementCost": 6500,
+                  "coverageLimit": 6500,
+                  "iconUrl": "https://example.com/icons/kitchen.png"
+                },
+                {
+                  "categoryId": "tools_outdoor",
+                  "name": "Tools & Outdoor",
+                  "totalInsuredValue": 5200,
+                  "estimatedReplacementCost": 5200,
+                  "coverageLimit": 5200,
+                  "iconUrl": "https://example.com/icons/tools.png"
+                },
+                {
+                  "categoryId": "sports",
+                  "name": "Sports & Hobby",
+                  "totalInsuredValue": 3200,
+                  "estimatedReplacementCost": 3200,
+                  "coverageLimit": 3200,
+                  "iconUrl": "https://example.com/icons/sports.png"
+                },
+                {
+                  "categoryId": "media_books",
+                  "name": "Books & Media",
+                  "totalInsuredValue": 1800,
+                  "estimatedReplacementCost": 1800,
+                  "coverageLimit": 1800,
+                  "iconUrl": "https://example.com/icons/books.png"
+                },
+                {
+                  "categoryId": "linens",
+                  "name": "Linens & Bedding",
+                  "totalInsuredValue": 2200,
+                  "estimatedReplacementCost": 2200,
+                  "coverageLimit": 2200,
+                  "iconUrl": "https://example.com/icons/linens.png"
+                }
+              ],
+              "highValueItems": [
+                {
+                  "itemId": "it_ring_001",
+                  "name": "Engagement Ring",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 8500,
+                  "replacementCost": 8500,
+                  "photoUrl": "https://example.com/photos/ring.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                },
+                {
+                  "itemId": "it_watch_001",
+                  "name": "Rolex Watch",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 7200,
+                  "replacementCost": 7200,
+                  "photoUrl": "https://example.com/photos/rolex.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                },
+                {
+                  "itemId": "it_art_001",
+                  "name": "Fine Art Painting",
+                  "categoryId": "fine_art",
+                  "appraisedValue": 6000,
+                  "replacementCost": 6000,
+                  "photoUrl": "https://example.com/photos/painting.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                },
+                {
+                  "itemId": "it_bike_001",
+                  "name": "Carbon Road Bike",
+                  "categoryId": "bicycles",
+                  "appraisedValue": 0,
+                  "replacementCost": 3800,
+                  "photoUrl": "https://example.com/photos/roadbike.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                },
+                {
+                  "itemId": "it_mbpro_001",
+                  "name": "MacBook Pro 16\"",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 3500,
+                  "photoUrl": "https://example.com/photos/macbook.jpg",
+                  "flagged": "high_value",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                },
+                {
+                  "itemId": "it_pc_001",
+                  "name": "Gaming PC",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 2800,
+                  "photoUrl": "https://example.com/photos/pc.jpg",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                },
+                {
+                  "itemId": "it_tv_001",
+                  "name": "65\" OLED TV",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 2400,
+                  "photoUrl": "https://example.com/photos/tv.jpg",
+                  "lastUpdated": "2025-11-01T00:00:00Z"
+                }
+              ],
+              "risk": {
+                "score": 38,
+                "level": "medium",
+                "factors": [
+                  {
+                    "id": "docs_missing",
+                    "label": "Some items missing receipts/photos",
+                    "impact": "negative",
+                    "weight": 0.35,
+                    "details": "Upload receipts and photos for scheduled and high-value electronics to streamline claims."
+                  },
+                  {
+                    "id": "valuation_variance",
+                    "label": "High-value outliers present",
+                    "impact": "negative",
+                    "weight": 0.25,
+                    "details": "A few items drive a large share of value; ensure appraisals are current."
+                  },
+                  {
+                    "id": "coverage_alignment",
+                    "label": "Category limits aligned after adjustments",
+                    "impact": "positive",
+                    "weight": 0.2,
+                    "details": "Electronics, jewelry, fine art, and bikes now fit within limits."
+                  }
+                ],
+                "notes": "Overall risk improved after scheduling key items and raising sublimits."
+              },
+              "recommendations": [
+                {
+                  "id": "rec_pp_limit",
+                  "title": "Increase Personal Property to ~$171,000",
+                  "type": "add_rider",
+                  "subtitle": "Add 10% buffer above current replacement total",
+                  "estimatedPremiumChange": {
+                    "amount": 561,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "targetAmount": 171000
+                  },
+                  "rationale": "Your detailed inventory totals ~$155,000 to replace; adding 10% headroom protects against price drift and small additions.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_sched_jewelry",
+                  "title": "Schedule Engagement Ring & Rolex",
+                  "type": "schedule_item",
+                  "subtitle": "Insure at appraised amounts with $0 deductible options",
+                  "estimatedPremiumChange": {
+                    "amount": 251,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "itemId": "it_ring_001",
+                    "targetAmount": 15700
+                  },
+                  "rationale": "Removes sublimit exposure and provides broader perils coverage.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_sched_art",
+                  "title": "Schedule Fine Art Painting ($6,000)",
+                  "type": "schedule_item",
+                  "subtitle": "Valuables coverage for named artwork",
+                  "estimatedPremiumChange": {
+                    "amount": 54,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "itemId": "it_art_001",
+                    "targetAmount": 6000
+                  },
+                  "rationale": "Avoids the base fine art sublimit and covers breakage/move risks when endorsed.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_sched_bike",
+                  "title": "Schedule Carbon Road Bike ($3,800)",
+                  "type": "schedule_item",
+                  "subtitle": "Broader theft coverage away from home",
+                  "estimatedPremiumChange": {
+                    "amount": 38,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "itemId": "it_bike_001",
+                    "targetAmount": 3800
+                  },
+                  "rationale": "Ensures full value beyond per-item caps and may include racing/transport options.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_elec_endorse",
+                  "title": "Electronics Endorsement to $20,000",
+                  "type": "add_rider",
+                  "subtitle": "Raise electronics sublimit",
+                  "estimatedPremiumChange": {
+                    "amount": 90,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "electronics",
+                    "targetAmount": 20000
+                  },
+                  "rationale": "Matches your ~$18,700 electronics replacement total with headroom.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_jewelry_endorse",
+                  "title": "Jewelry Category Limit to $20,000",
+                  "type": "add_rider",
+                  "subtitle": "Higher blanket limit for unscheduled pieces",
+                  "estimatedPremiumChange": {
+                    "amount": 60,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "jewelry",
+                    "targetAmount": 20000
+                  },
+                  "rationale": "Provides coverage for remaining jewelry beyond the scheduled items.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec_art_endorse",
+                  "title": "Fine Art Category Limit to $10,000",
+                  "type": "add_rider",
+                  "subtitle": "Room for additional pieces",
+                  "estimatedPremiumChange": {
+                    "amount": 20,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "fine_art",
+                    "targetAmount": 10000
+                  },
+                  "rationale": "Ensures unscheduled art is fully covered.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                }
+              ],
+              "currency": "USD",
+              "valuationStrategy": "replacement_cost",
+              "thresholds": {
+                "highValueItemMin": 2000,
+                "underinsuredCategoryPercent": 10
+              },
+              "chartVariant": "donut",
+              "interactions": {
+                "selectCategoryAction": {
+                  "type": "select_category",
+                  "paramKeys": [
+                    "categoryId"
+                  ]
+                },
+                "selectItemAction": {
+                  "type": "select_item",
+                  "paramKeys": [
+                    "itemId"
+                  ]
+                },
+                "requestQuoteAction": {
+                  "type": "request_quote",
+                  "paramKeys": [
+                    "providerId"
+                  ]
+                },
+                "adjustCoverageAction": {
+                  "type": "adjust_coverage",
+                  "paramKeys": [
+                    "categoryId",
+                    "targetAmount"
+                  ]
+                }
+              },
+              "policySnapshot": {
+                "personalPropertyLimit": 120000,
+                "deductible": 1000
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "HighValueItemsTableProps",
+            "props": {
+              "title": "High-Value Items (Post-Adjustments)",
+              "items": [
+                {
+                  "id": "it_ring_001",
+                  "name": "Engagement Ring",
+                  "category": "Jewelry",
+                  "replacementCost": 8500,
+                  "insuredValue": 8500,
+                  "riskScore": 20,
+                  "imageUrl": "https://example.com/photos/ring.jpg",
+                  "notes": "Scheduled at appraised value"
+                },
+                {
+                  "id": "it_watch_001",
+                  "name": "Rolex Watch",
+                  "category": "Jewelry",
+                  "replacementCost": 7200,
+                  "insuredValue": 7200,
+                  "riskScore": 22,
+                  "imageUrl": "https://example.com/photos/rolex.jpg",
+                  "notes": "Scheduled at appraised value"
+                },
+                {
+                  "id": "it_art_001",
+                  "name": "Fine Art Painting",
+                  "category": "Fine Art",
+                  "replacementCost": 6000,
+                  "insuredValue": 6000,
+                  "riskScore": 18,
+                  "imageUrl": "https://example.com/photos/painting.jpg",
+                  "notes": "Scheduled; outside fine art sublimit"
+                },
+                {
+                  "id": "it_bike_001",
+                  "name": "Carbon Road Bike",
+                  "category": "Bicycles",
+                  "replacementCost": 3800,
+                  "insuredValue": 3800,
+                  "riskScore": 25,
+                  "imageUrl": "https://example.com/photos/roadbike.jpg",
+                  "notes": "Scheduled; travel/theft covered"
+                },
+                {
+                  "id": "it_mbpro_001",
+                  "name": "MacBook Pro 16\"",
+                  "category": "Electronics",
+                  "replacementCost": 3500,
+                  "insuredValue": 3500,
+                  "riskScore": 16,
+                  "imageUrl": "https://example.com/photos/macbook.jpg",
+                  "notes": "Within $20k electronics limit"
+                },
+                {
+                  "id": "it_pc_001",
+                  "name": "Gaming PC",
+                  "category": "Electronics",
+                  "replacementCost": 2800,
+                  "insuredValue": 2800,
+                  "riskScore": 16,
+                  "imageUrl": "https://example.com/photos/pc.jpg",
+                  "notes": "Within $20k electronics limit"
+                },
+                {
+                  "id": "it_tv_001",
+                  "name": "65\" OLED TV",
+                  "category": "Electronics",
+                  "replacementCost": 2400,
+                  "insuredValue": 2400,
+                  "riskScore": 14,
+                  "imageUrl": "https://example.com/photos/tv.jpg",
+                  "notes": "Within $20k electronics limit"
+                }
+              ],
+              "onRowAction": {
+                "type": "select_item",
+                "itemId": ""
+              },
+              "sortBy": "replacementCost",
+              "maxRows": 10,
+              "emphasizeBy": "value"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly confirm that the requested scheduling actions were applied for the engagement ring ($8.5k), Rolex ($7.2k), painting ($6k), and carbon road bike ($3.8k), and reflect these in both narrative and component data",
+          "Should raise category sublimits to the exact requested amounts (Electronics $20k, Jewelry $20k, Fine Art $10k, Bicycles $4k per item) and ensure these limits are consistently represented across all data and visuals",
+          "Should compute and state the Personal Property (Coverage C) limit as the total estimated replacement cost plus a 10% buffer, clearly presenting the numeric target limit and how it was calculated",
+          "Should provide an estimated premium impact that includes a clear breakdown by change (PP limit increase, scheduled items, and each category endorsement) and a summed total, including frequency (annual) and optional monthly equivalent",
+          "Should present a category-level visualization (pie/donut) that aligns with the category totals, replacement estimates, and coverage limits, without internal inconsistencies",
+          "Should render a high-value items table that lists the scheduled items and other high-value electronics with accurate replacement/insured values, categories, and any relevant notes about coverage alignment",
+          "Should include a risk scorecard summarizing risk level, score, and key factors with clear labels and concise guidance; the scorecard content should align with the inventory and coverage adjustments",
+          "Should include coverage estimate cards or an equivalent recommendations section with actionable CTAs for increasing PP limits, scheduling items, and raising sublimits, each with rationale and premium estimates",
+          "Should ensure all numeric figures (totals, limits, premiums) are internally consistent across narrative text, components, and visualizations, and use the correct currency",
+          "Should respect the user\u2019s deductible selection and reflect it accurately wherever relevant",
+          "Should flag any assumptions (e.g., premiums are illustrative) and avoid implying binding changes without explicit confirmation workflows",
+          "Should avoid hallucinated providers or tool results; if no external data is required, should not call tools; if tools were necessary for fetching or binding changes, should call appropriate tools with correct arguments",
+          "Should use the specified UI components to deliver the visuals and data, populating all required props, and ensure the visuals match the user\u2019s expectations (category pie chart, high-value table, risk scorecard, and coverage estimate cards)",
+          "Should provide clear interaction hooks or CTAs (e.g., adjust coverage, schedule item, request quote) with correct identifiers and parameters",
+          "Should present content concisely and clearly, prioritizing actionable outputs and avoiding extraneous detail"
+        ],
+        "expected_components": [
+          "CoverageOverviewDashboardProps",
+          "HighValueItemsTableProps",
+          "RiskScorecardProps",
+          "CoverageEstimateCardsProps"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Looks great\u2014please render the category pie chart, high-value items table, risk scorecard, and coverage estimate cards, and export them as a PDF. Also start quote requests with my current carrier and two comparable carriers, and list any items that still need photos/appraisals for scheduling."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "All set \u2014 I\u2019ve applied your changes, generated the visuals, kicked off quote requests with your current carrier and two comparable carriers, and prepared a PDF export. Here\u2019s a quick summary:\n\n- Personal Property recommendation: $171,000 limit (10% buffer above ~$155,000 total replacement). Estimated premium impact: approximately +$1,074/year (+$90/month) from all changes combined.\n- Quote requests: Submitted to Current Carrier, Carrier A, and Carrier B. Expect initial comparisons within 1\u20132 business days.\n- PDF export: \u201cHome-Inventory-Coverage-Review.pdf\u201d is ready for download in your documents.\n- Items still needing documentation for scheduling: \n  - Rolex Watch ($7,200): appraisal within last 2\u20133 years and clear photos\n  - Fine Art Painting ($6,000): formal appraisal and front/back photos\n  - Carbon Road Bike ($3,800): receipt or valuation and serial number photo\n  - Engagement Ring ($8,500): most carriers want a recent appraisal; ensure detailed photos\n\nYou can select any category or item in the dashboard to fine-tune limits or request adjustments."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "CoverageOverviewDashboardProps",
+            "props": {
+              "categories": [
+                {
+                  "categoryId": "electronics",
+                  "name": "Electronics",
+                  "totalInsuredValue": 18700,
+                  "estimatedReplacementCost": 18700,
+                  "coverageLimit": 20000,
+                  "iconUrl": "https://example.com/icons/electronics.png"
+                },
+                {
+                  "categoryId": "jewelry",
+                  "name": "Jewelry",
+                  "totalInsuredValue": 16800,
+                  "estimatedReplacementCost": 16800,
+                  "coverageLimit": 20000,
+                  "iconUrl": "https://example.com/icons/jewelry.png"
+                },
+                {
+                  "categoryId": "fine_art",
+                  "name": "Fine Art",
+                  "totalInsuredValue": 9200,
+                  "estimatedReplacementCost": 9200,
+                  "coverageLimit": 10000,
+                  "iconUrl": "https://example.com/icons/fineart.png"
+                },
+                {
+                  "categoryId": "bicycles",
+                  "name": "Bicycles",
+                  "totalInsuredValue": 6400,
+                  "estimatedReplacementCost": 6400,
+                  "coverageLimit": 4000,
+                  "iconUrl": "https://example.com/icons/bicycle.png"
+                },
+                {
+                  "categoryId": "furniture",
+                  "name": "Furniture",
+                  "totalInsuredValue": 50000,
+                  "estimatedReplacementCost": 50000,
+                  "iconUrl": "https://example.com/icons/furniture.png"
+                },
+                {
+                  "categoryId": "appliances",
+                  "name": "Appliances",
+                  "totalInsuredValue": 18000,
+                  "estimatedReplacementCost": 18000,
+                  "iconUrl": "https://example.com/icons/appliances.png"
+                },
+                {
+                  "categoryId": "clothing",
+                  "name": "Clothing",
+                  "totalInsuredValue": 15000,
+                  "estimatedReplacementCost": 15000,
+                  "iconUrl": "https://example.com/icons/clothing.png"
+                },
+                {
+                  "categoryId": "sports_gear",
+                  "name": "Sports Gear",
+                  "totalInsuredValue": 8000,
+                  "estimatedReplacementCost": 8000,
+                  "iconUrl": "https://example.com/icons/sports.png"
+                },
+                {
+                  "categoryId": "books_media",
+                  "name": "Books & Media",
+                  "totalInsuredValue": 3000,
+                  "estimatedReplacementCost": 3000,
+                  "iconUrl": "https://example.com/icons/books.png"
+                },
+                {
+                  "categoryId": "tools",
+                  "name": "Tools",
+                  "totalInsuredValue": 9900,
+                  "estimatedReplacementCost": 9900,
+                  "iconUrl": "https://example.com/icons/tools.png"
+                }
+              ],
+              "highValueItems": [
+                {
+                  "itemId": "it_ring",
+                  "name": "Engagement Ring",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 8500,
+                  "replacementCost": 8500,
+                  "photoUrl": "https://example.com/photos/ring.jpg",
+                  "flagged": "needs_appraisal",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_rolex",
+                  "name": "Rolex Watch",
+                  "categoryId": "jewelry",
+                  "appraisedValue": 7200,
+                  "replacementCost": 7200,
+                  "photoUrl": "https://example.com/photos/rolex.jpg",
+                  "flagged": "needs_appraisal",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_painting",
+                  "name": "Fine Art Painting",
+                  "categoryId": "fine_art",
+                  "appraisedValue": 6000,
+                  "replacementCost": 6000,
+                  "photoUrl": "https://example.com/photos/painting.jpg",
+                  "flagged": "needs_appraisal",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_bike_carbon",
+                  "name": "Carbon Road Bike",
+                  "categoryId": "bicycles",
+                  "appraisedValue": 3800,
+                  "replacementCost": 3800,
+                  "photoUrl": "https://example.com/photos/carbon-bike.jpg",
+                  "flagged": "missing_docs",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_gaming_pc",
+                  "name": "Gaming PC",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 4000,
+                  "photoUrl": "https://example.com/photos/gaming-pc.jpg",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_macbook",
+                  "name": "MacBook Pro 16\"",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 3500,
+                  "photoUrl": "https://example.com/photos/macbook.jpg",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_oled_tv",
+                  "name": "65\" OLED TV",
+                  "categoryId": "electronics",
+                  "appraisedValue": 0,
+                  "replacementCost": 2800,
+                  "photoUrl": "https://example.com/photos/oled-tv.jpg",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                },
+                {
+                  "itemId": "it_sofa",
+                  "name": "Sectional Sofa",
+                  "categoryId": "furniture",
+                  "appraisedValue": 0,
+                  "replacementCost": 4000,
+                  "photoUrl": "https://example.com/photos/sofa.jpg",
+                  "lastUpdated": "2025-11-01T00:00:00.000Z"
+                }
+              ],
+              "risk": {
+                "score": 28,
+                "level": "low",
+                "factors": [
+                  {
+                    "id": "docs_needed",
+                    "label": "Scheduled items missing recent appraisals/photos",
+                    "impact": "negative",
+                    "weight": 0.35,
+                    "details": "Rolex, painting, and ring need updated appraisals; bike needs receipt/serial photo."
+                  },
+                  {
+                    "id": "limits_updated",
+                    "label": "Category sublimits increased to match exposure",
+                    "impact": "positive",
+                    "weight": 0.3,
+                    "details": "Electronics $20k, Jewelry $20k, Fine Art $10k, Bikes $4k per-item."
+                  },
+                  {
+                    "id": "pp_limit_buffer",
+                    "label": "Personal Property limit set with 10% buffer",
+                    "impact": "positive",
+                    "weight": 0.2
+                  }
+                ],
+                "notes": "Primary residual risk stems from documentation gaps for scheduled items."
+              },
+              "recommendations": [
+                {
+                  "id": "rec-pp-171",
+                  "title": "Increase Personal Property to ~$171,000",
+                  "type": "add_rider",
+                  "subtitle": "10% buffer above current replacement estimate",
+                  "estimatedPremiumChange": {
+                    "amount": 561,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "targetAmount": 171000
+                  },
+                  "rationale": "Provides headroom for inflation and incidental new purchases.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec-verify-appraisals",
+                  "title": "Verify appraisals & photos",
+                  "type": "verify_receipts",
+                  "subtitle": "Rolex, painting, ring, and carbon bike",
+                  "estimatedPremiumChange": {
+                    "amount": 0,
+                    "frequency": "annual"
+                  },
+                  "rationale": "Most carriers require dated appraisals for scheduled items to ensure full coverage.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                },
+                {
+                  "id": "rec-elec-endorsement",
+                  "title": "Confirm Electronics Endorsement ($20k)",
+                  "type": "add_rider",
+                  "subtitle": "Aligns with ~$18.7k replacement",
+                  "estimatedPremiumChange": {
+                    "amount": 90,
+                    "frequency": "annual"
+                  },
+                  "suggestedCoverage": {
+                    "categoryId": "electronics",
+                    "targetAmount": 20000
+                  },
+                  "rationale": "Prevents sublimit shortfalls for PCs, laptops, and TV.",
+                  "ctaAction": {
+                    "type": "open_recommendation",
+                    "paramKeys": [
+                      "id"
+                    ]
+                  }
+                }
+              ],
+              "currency": "USD",
+              "valuationStrategy": "replacement_cost",
+              "thresholds": {
+                "highValueItemMin": 2500,
+                "underinsuredCategoryPercent": 10
+              },
+              "chartVariant": "donut",
+              "interactions": {
+                "selectCategoryAction": {
+                  "type": "select_category",
+                  "paramKeys": [
+                    "categoryId"
+                  ]
+                },
+                "selectItemAction": {
+                  "type": "select_item",
+                  "paramKeys": [
+                    "itemId"
+                  ]
+                },
+                "requestQuoteAction": {
+                  "type": "request_quote",
+                  "paramKeys": [
+                    "providerId"
+                  ]
+                },
+                "adjustCoverageAction": {
+                  "type": "adjust_coverage",
+                  "paramKeys": [
+                    "categoryId",
+                    "targetAmount"
+                  ]
+                }
+              },
+              "policySnapshot": {
+                "carrierName": "Current Carrier",
+                "policyNumber": "",
+                "personalPropertyLimit": 120000,
+                "deductible": 1000,
+                "renewalDateIso": "2026-01-15T00:00:00.000Z"
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "CoverageEstimateCardProps",
+            "props": {
+              "id": "cec-pp-171k",
+              "name": "PersonalProperty",
+              "title": "Personal Property Coverage",
+              "suggestedLimit": 171000,
+              "suggestedDeductible": 1000,
+              "gapSummary": "Increases Coverage C from $120,000 to ~$171,000 to match your total replacement with a 10% buffer.",
+              "imageUrl": "https://example.com/icons/personal-property.svg",
+              "onSelectAction": {
+                "type": "select_coverage_recommendation",
+                "payload": {
+                  "id": "cec-pp-171k",
+                  "selectedLimit": 171000,
+                  "selectedDeductible": 1000
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should acknowledge and fulfill each element of the user's request: render a category pie chart, high-value items table, risk scorecard, coverage estimate cards, export as PDF, initiate quote requests with the current carrier and two comparable carriers, and list items needing photos/appraisals",
+          "Should use the provided category and item data to produce visuals that accurately reflect totals, limits, and replacement costs",
+          "Should render the category-level pie/donut chart using the category data and the specified chartVariant, reflecting proportions by estimatedReplacementCost or totalInsuredValue consistently",
+          "Should present a high-value items table including item names, categories, values, flags (e.g., needs_appraisal, missing_docs), and lastUpdated where provided",
+          "Should display a risk scorecard with score, level, and factors, including impacts, weights, and notes as provided in the risk data",
+          "Should render coverage estimate cards with suggested limits, deductibles, gap summaries, and actions based on the recommendations and CoverageEstimateCardProps",
+          "Should list all items requiring documentation for scheduling (e.g., appraisals, photos, receipts, serial numbers) based on flags and guidance in the data",
+          "Should initiate quote requests with the current carrier and two comparable carriers; if tools are required, should call appropriate quote-request tools with correct provider identifiers and arguments; if tools are unavailable, should clearly state the queued or simulated action and next steps",
+          "Should generate or trigger a PDF export that includes the requested visuals; if tools are required, should call the appropriate export tool with correct payload; if unavailable, should provide a downloadable artifact or clear instructions on how the export is handled",
+          "Should ensure consistency between the textual summary and component props (e.g., personal property limits, category limits, estimated premiums, carrier names)",
+          "Should avoid introducing unsupported carriers or data not present in the provided context; comparable carriers should be generic or derived from available inputs",
+          "Should maintain clear, concise, and actionable instructions for the user to refine limits, provide documents, or review quotes",
+          "Should not claim completion of external actions unless supported by tool calls or documented system capabilities; should report realistic timelines (e.g., 1\u20132 business days) only if appropriate",
+          "Should respect the specified currency and valuationStrategy in all displayed values and language",
+          "Should use the provided UI components appropriately, passing valid props and maintaining correct structure for interoperability"
+        ],
+        "expected_components": [
+          "CoverageOverviewDashboardProps",
+          "CoverageEstimateCardProps"
+        ]
+      }
+    }
+  ]
+}

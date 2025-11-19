@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I\u2019m running 3 workshops next month. Help me schedule without instructor conflicts and room overlaps."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great\u2014let\u2019s set you up with a clear, conflict-free view for next month. I\u2019ve laid out a draft schedule you can drag/drop to adjust. If you share your exact titles, preferred dates/times, instructors, rooms, and capacities, I\u2019ll lock it in and run strict conflict checks. You can also export once it looks right.\n\nQuestions to confirm:\n- Workshop titles and durations\n- Instructor assignments for each\n- Room preferences and seat limits\n- Any blackout dates/times\n- Do you want conflicts to be blocked or just warned?\n\nUse the filter bar to narrow by room/instructor or tweak the date range. When you select a slot or adjust a block, the actions will fire so we can save changes."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScheduleCalendarBoard",
+              "props": {
+                "sessions": [
+                  {
+                    "id": "sess_001",
+                    "title": "Workshop: Design Thinking",
+                    "start": "2025-12-03T15:00:00Z",
+                    "end": "2025-12-03T17:00:00Z",
+                    "roomId": "r101",
+                    "instructorId": "inst-1",
+                    "capacity": 30,
+                    "registered": 12,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_002",
+                    "title": "Workshop: Intro to Python",
+                    "start": "2025-12-10T14:00:00Z",
+                    "end": "2025-12-10T17:00:00Z",
+                    "roomId": "r102",
+                    "instructorId": "inst-2",
+                    "capacity": 25,
+                    "registered": 20,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_003",
+                    "title": "Workshop: Data Visualization",
+                    "start": "2025-12-17T16:00:00Z",
+                    "end": "2025-12-17T18:00:00Z",
+                    "roomId": "r101",
+                    "instructorId": "inst-3",
+                    "capacity": 30,
+                    "registered": 5,
+                    "category": "workshop"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "r101",
+                    "name": "Room 101",
+                    "seatCapacity": 30
+                  },
+                  {
+                    "id": "r102",
+                    "name": "Lab A",
+                    "seatCapacity": 25
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst-1",
+                    "name": "Dr. Kim"
+                  },
+                  {
+                    "id": "inst-2",
+                    "name": "Alex Rivera"
+                  },
+                  {
+                    "id": "inst-3",
+                    "name": "Priya Shah"
+                  }
+                ],
+                "view": "month",
+                "selectedDate": "2025-12-01",
+                "timezone": "America/New_York",
+                "conflictMode": "warn",
+                "allowDragResize": true,
+                "showCapacityMeters": true,
+                "onSelectSlotAction": {
+                  "type": "scheduler/select_slot"
+                },
+                "onSelectSessionAction": {
+                  "type": "scheduler/select_session"
+                },
+                "onSessionDropAction": {
+                  "type": "scheduler/session_dropped"
+                },
+                "onSessionResizeAction": {
+                  "type": "scheduler/session_resized"
+                },
+                "onToggleViewAction": {
+                  "type": "scheduler/toggle_view"
+                },
+                "onExportAction": {
+                  "type": "scheduler/export_schedule"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ResourceFilterBar",
+              "props": {
+                "rooms": [
+                  {
+                    "id": "r101",
+                    "name": "Room 101"
+                  },
+                  {
+                    "id": "r102",
+                    "name": "Lab A"
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst-1",
+                    "name": "Dr. Kim"
+                  },
+                  {
+                    "id": "inst-2",
+                    "name": "Alex Rivera"
+                  },
+                  {
+                    "id": "inst-3",
+                    "name": "Priya Shah"
+                  }
+                ],
+                "selectedRoomId": null,
+                "selectedInstructorId": null,
+                "dateRange": {
+                  "start": "2025-12-01",
+                  "end": "2025-12-31"
+                },
+                "showOnlyAvailable": false,
+                "onFilterAction": {
+                  "type": "apply_filters",
+                  "payload": {}
+                },
+                "dateDisplayFormat": "MMM d, yyyy"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly align with the user's goal to schedule three workshops next month without instructor conflicts or room overlaps",
+            "Should request or confirm all required inputs to finalize scheduling (titles, durations, instructor assignments, room preferences and capacities, blackout dates/times, conflict handling preference)",
+            "Should present a draft schedule scoped to the correct next-month date range and indicate or respect a clear timezone",
+            "Should explain how conflicts will be detected and prevented (no overlapping times for the same instructor or the same room) and state whether conflicts will be blocked or warned",
+            "Should provide actionable guidance for adjusting the schedule (e.g., drag-and-drop, resizing, selecting slots) and for exporting the schedule",
+            "Should show attendee capacity and current registrations for each session and avoid exceeding room seat capacities",
+            "Should use appropriate UI components to visualize the calendar, resources, and filters consistent with the user's expectations (month view, conflict alerts, resource chips, capacity meters, export option)",
+            "Should include event handlers or actions for selecting slots/sessions, dragging/resizing, toggling views, filtering, and exporting",
+            "Should ensure the component properties are coherent and correctly typed (valid ISO datetimes, matching room/instructor IDs, correct date range for next month)",
+            "Should avoid unnecessary tool calls and not hallucinate external actions when none are required",
+            "Should provide a clear next step for the user to supply missing details so the assistant can lock and validate the schedule",
+            "Should maintain internal consistency between rooms' seat capacities and session capacities",
+            "Should keep the content concise and task-focused without introducing unrelated information"
+          ],
+          "expected_components": [
+            "ScheduleCalendarBoard",
+            "ResourceFilterBar"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Here are the details: \n- Intro to Python (3h), Dana Lee, Fri Dec 5, 10:00\u201313:00, Room A (cap 24; Room B alt cap 18); Data Visualization Basics (2h), Sam Ortiz, Fri Dec 5, 12:00\u201314:00, Room B (cap 18); Excel Power Tips (2.5h), Dana Lee, Fri Dec 5, 13:30\u201316:00, Room A (cap 24). \nBlackouts: Dec 24\u201326, and Dec 31 after 15:00. Please block conflicts (auto-move to the nearest available slot if needed) and show attendee cap meters."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thanks\u2014I've placed your three workshops on Friday, Dec 5, and set conflict handling to block. There are no instructor or room overlaps, and your blackout dates are noted for later in the month. If you drag or resize a session into a conflict, drops will be blocked and the UI will suggest the nearest available slot. Capacity meters are enabled so you can track sign-ups versus caps. You can toggle week/month, filter, and export the visible range anytime. If you'd like, I can also pre-hold Room B as a fallback for Intro to Python if Room A becomes unavailable."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScheduleCalendarBoard",
+              "props": {
+                "sessions": [
+                  {
+                    "id": "sess_py",
+                    "title": "Intro to Python",
+                    "start": "2025-12-05T15:00:00Z",
+                    "end": "2025-12-05T18:00:00Z",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 24,
+                    "registered": 0,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_dv",
+                    "title": "Data Visualization Basics",
+                    "start": "2025-12-05T17:00:00Z",
+                    "end": "2025-12-05T19:00:00Z",
+                    "roomId": "room_b",
+                    "instructorId": "inst_sam",
+                    "capacity": 18,
+                    "registered": 0,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_excel",
+                    "title": "Excel Power Tips",
+                    "start": "2025-12-05T18:30:00Z",
+                    "end": "2025-12-05T21:00:00Z",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 24,
+                    "registered": 0,
+                    "category": "workshop"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "room_a",
+                    "name": "Room A",
+                    "seatCapacity": 24
+                  },
+                  {
+                    "id": "room_b",
+                    "name": "Room B",
+                    "seatCapacity": 18
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst_dana",
+                    "name": "Dana Lee"
+                  },
+                  {
+                    "id": "inst_sam",
+                    "name": "Sam Ortiz"
+                  }
+                ],
+                "view": "week",
+                "selectedDate": "2025-12-05",
+                "timezone": "America/New_York",
+                "conflictMode": "block",
+                "allowDragResize": true,
+                "showCapacityMeters": true,
+                "onSelectSlotAction": {
+                  "type": "scheduler/select_slot"
+                },
+                "onSelectSessionAction": {
+                  "type": "scheduler/select_session"
+                },
+                "onSessionDropAction": {
+                  "type": "scheduler/session_dropped"
+                },
+                "onSessionResizeAction": {
+                  "type": "scheduler/session_resized"
+                },
+                "onToggleViewAction": {
+                  "type": "scheduler/toggle_view"
+                },
+                "onExportAction": {
+                  "type": "scheduler/export"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should schedule all three workshops on Friday, Dec 5 at the exact times and durations specified by the user, preserving the user's timezone",
+            "Should ensure no instructor conflicts (same instructor not scheduled in overlapping times) and no room overlaps (same room not double-booked)",
+            "Should respect blackout dates Dec 24\u201326 and Dec 31 after 15:00 by configuring the calendar to prevent scheduling in those periods",
+            "Should set conflict handling to block and configure behavior to auto-move or suggest the nearest available slot when a conflict would occur",
+            "Should enable and display attendee capacity meters for each session to track registrations versus capacity",
+            "Should include and correctly reference room resources with capacities, ensuring session capacities do not exceed room seat capacities",
+            "Should include and correctly reference instructor resources for each session",
+            "Should accurately represent session times in ISO format aligned with the specified timezone, so that displayed local times match the user\u2019s request",
+            "Should present an interactive, drag-and-drop calendar with resize support and conflict-aware drop/resize handlers",
+            "Should provide expected UI controls: week/month toggle, filtering (if supported), and export of the visible range",
+            "Should include a mechanism or note for an alternate room (Room B) as a fallback for Intro to Python if Room A becomes unavailable",
+            "Should initialize sessions with appropriate identifiers, titles, start/end times, roomId, instructorId, capacity, and optional registered counts",
+            "Should set the calendar\u2019s selected date to the requested scheduling date and the view to a relevant mode (e.g., week) that matches user expectations",
+            "Should not call external tools unless real-time data fetching or external system updates are necessary; local configuration and rendering should be done directly",
+            "Should provide clear, actionable configuration that allows the user to drag/resize sessions while preventing invalid placements through conflict rules"
+          ],
+          "expected_components": [
+            "ScheduleCalendarBoard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014please pre-hold Room B as a fallback for Intro to Python. Add a 15-minute room buffer before/after each session, open registration with the listed caps and a waitlist of 5 each, and keep the cap meters visible. Then export Dec 1\u20137 to PDF and push all three sessions to my Google Calendar."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "On it\u2014setting buffers, fallback, registration, and export/calendar options now."
+          },
+          {
+            "type": "text",
+            "text": "All set. Here\u2019s your Dec 1\u20137 view with your three Dec 5 workshops placed, conflict mode set to block, 15-minute room buffers enforced on both sides of each session (used in conflict checks), and capacity meters visible. I\u2019ve also flagged Room B as the fallback for Intro to Python\u2014if Room A becomes unavailable, the scheduler will auto-suggest the nearest open Room B slot without instructor or buffer conflicts.\n\nRegistration is open with the specified caps and a waitlist of 5 for each session. To export Dec 1\u20137 to PDF, click Export on the board; choose PDF in your export dialog. To push the three sessions to Google Calendar, use the calendar export/integration flow after selecting the visible range\u2014if your Google account isn\u2019t connected yet, you\u2019ll be prompted to authorize.\n\nIf you want me to pre-block additional buffer time or adjust any durations/rooms, say the word."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScheduleCalendarBoard",
+              "props": {
+                "sessions": [
+                  {
+                    "id": "sess_py",
+                    "title": "Intro to Python",
+                    "start": "2025-12-05T10:00:00-05:00",
+                    "end": "2025-12-05T13:00:00-05:00",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 24,
+                    "registered": 0,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_dataviz",
+                    "title": "Data Visualization Basics",
+                    "start": "2025-12-05T12:00:00-05:00",
+                    "end": "2025-12-05T14:00:00-05:00",
+                    "roomId": "room_b",
+                    "instructorId": "inst_sam",
+                    "capacity": 18,
+                    "registered": 0,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_excel",
+                    "title": "Excel Power Tips",
+                    "start": "2025-12-05T13:30:00-05:00",
+                    "end": "2025-12-05T16:00:00-05:00",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 24,
+                    "registered": 0,
+                    "category": "workshop"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "room_a",
+                    "name": "Room A",
+                    "seatCapacity": 24
+                  },
+                  {
+                    "id": "room_b",
+                    "name": "Room B",
+                    "seatCapacity": 18
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst_dana",
+                    "name": "Dana Lee"
+                  },
+                  {
+                    "id": "inst_sam",
+                    "name": "Sam Ortiz"
+                  }
+                ],
+                "view": "week",
+                "selectedDate": "2025-12-01",
+                "timezone": "America/New_York",
+                "conflictMode": "block",
+                "allowDragResize": true,
+                "showCapacityMeters": true,
+                "onSelectSlotAction": {
+                  "type": "scheduler/select_slot"
+                },
+                "onSelectSessionAction": {
+                  "type": "scheduler/select_session"
+                },
+                "onSessionDropAction": {
+                  "type": "scheduler/session_dropped"
+                },
+                "onSessionResizeAction": {
+                  "type": "scheduler/session_resized"
+                },
+                "onToggleViewAction": {
+                  "type": "scheduler/toggle_view"
+                },
+                "onExportAction": {
+                  "type": "scheduler/export"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ResourceFilterBar",
+              "props": {
+                "rooms": [
+                  {
+                    "id": "room_a",
+                    "name": "Room A"
+                  },
+                  {
+                    "id": "room_b",
+                    "name": "Room B"
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst_dana",
+                    "name": "Dana Lee"
+                  },
+                  {
+                    "id": "inst_sam",
+                    "name": "Sam Ortiz"
+                  }
+                ],
+                "dateRange": {
+                  "start": "2025-12-01",
+                  "end": "2025-12-07"
+                },
+                "showOnlyAvailable": false,
+                "onFilterAction": {
+                  "type": "apply_filters",
+                  "payload": {
+                    "dateRange": {
+                      "start": "2025-12-01",
+                      "end": "2025-12-07"
+                    }
+                  }
+                },
+                "dateDisplayFormat": "MMM d, yyyy"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should confirm and configure Room B as the designated fallback for the 'Intro to Python' session, with logic that auto-suggests the nearest open Room B slot that respects instructor availability and buffer constraints",
+            "Should apply a 15-minute room buffer before and after each session and use these buffers in conflict detection to prevent room and instructor overlaps",
+            "Should open registration for all three sessions with the listed capacity caps and a waitlist size of 5 per session",
+            "Should keep capacity/cap meters visible in the calendar UI to reflect registration status",
+            "Should display the week view for Dec 1\u20137 in the specified timezone and ensure the sessions are placed at the correct times, rooms, and instructors",
+            "Should set conflict handling to a blocking mode that prevents scheduling conflicts, including those arising from buffers",
+            "Should provide or trigger an export of the Dec 1\u20137 range to PDF, using the calendar\u2019s export control with the correct date range",
+            "Should initiate or guide the push of all three sessions to Google Calendar; if authorization is required, should prompt for or explain the authorization flow",
+            "Should use appropriate UI components to render the schedule, resources, and filters, and wire relevant actions (select, drag-drop, resize, export) needed for interaction",
+            "Should avoid fabricating external actions; when tool calls or integrations are necessary (e.g., calendar export or Google Calendar push), should either execute via available tools or explicitly outline the steps and required permissions",
+            "Should ensure that all actionable outputs (schedule state, buffers, fallback designation, registration settings, export and calendar actions) are represented in component properties or clearly described instructions",
+            "Should maintain clarity and concision while covering all requested configuration steps and actions"
+          ],
+          "expected_components": [
+            "ScheduleCalendarBoard",
+            "ResourceFilterBar"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Great\u2014please finalize the Dec 1\u20137 PDF export and email it to me, then push the three sessions to my Google Calendar under \u201cWorkshops\u201d with 24\u2011hour reminders for both instructors and attendees. Also share the public registration links and color\u2011code the calendar by instructor."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "I can set all of that up\u2014just a couple of confirmations so I don\u2019t misfire anything:\n- PDF export + email: What email address should I send the Dec 1\u20137 PDF to? If your address is already on file, I can use that.\n- Google Calendar push: Is your Google account already connected? I can create/use a calendar named \u201cWorkshops,\u201d color-code by instructor (e.g., Dana = blue, Sam = green), and add 24-hour reminders. For attendee reminders, do you want me to 1) add registered attendees as event guests so Google sends them the 24\u2011hour reminder, or 2) send the 24\u2011hour reminder via your registration system email instead?\n- Public registration links: If you have a preferred registration platform, I can generate and attach the 3 public links (one per workshop). If not, I can provision simple hosted sign-up pages and share those URLs.\n\nWhat I have ready on the schedule now:\n- 15-minute room buffers enforced before/after each session (used in conflict checks; drops that violate buffers are blocked, with nearest open suggestions).\n- Room B pre-held as fallback for Intro to Python (the system will suggest Room B if Room A becomes unavailable).\n- Registration caps set as requested and a waitlist of 5 for each session; capacity meters are visible on the board.\n\nOnce you confirm the email address and calendar preference for attendee reminders, I\u2019ll finalize the PDF export, email it, and push all three events to your Google Calendar under \u201cWorkshops\u201d with the color-coding and 24\u2011hour reminders."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScheduleCalendarBoard",
+              "props": {
+                "sessions": [
+                  {
+                    "id": "sess_python",
+                    "title": "Intro to Python",
+                    "start": "2025-12-05T15:00:00Z",
+                    "end": "2025-12-05T18:00:00Z",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 24,
+                    "registered": 0,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_dataviz",
+                    "title": "Data Visualization Basics",
+                    "start": "2025-12-05T17:00:00Z",
+                    "end": "2025-12-05T19:00:00Z",
+                    "roomId": "room_b",
+                    "instructorId": "inst_sam",
+                    "capacity": 18,
+                    "registered": 0,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_excel",
+                    "title": "Excel Power Tips",
+                    "start": "2025-12-05T18:30:00Z",
+                    "end": "2025-12-05T21:00:00Z",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 24,
+                    "registered": 0,
+                    "category": "workshop"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "room_a",
+                    "name": "Room A",
+                    "seatCapacity": 24
+                  },
+                  {
+                    "id": "room_b",
+                    "name": "Room B",
+                    "seatCapacity": 18
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst_dana",
+                    "name": "Dana Lee"
+                  },
+                  {
+                    "id": "inst_sam",
+                    "name": "Sam Ortiz"
+                  }
+                ],
+                "view": "week",
+                "selectedDate": "2025-12-01",
+                "timezone": "America/New_York",
+                "conflictMode": "block",
+                "allowDragResize": true,
+                "showCapacityMeters": true,
+                "onSelectSlotAction": {
+                  "type": "scheduler/select_slot"
+                },
+                "onSelectSessionAction": {
+                  "type": "scheduler/select_session"
+                },
+                "onSessionDropAction": {
+                  "type": "scheduler/session_dropped"
+                },
+                "onSessionResizeAction": {
+                  "type": "scheduler/session_resized"
+                },
+                "onToggleViewAction": {
+                  "type": "scheduler/toggle_view"
+                },
+                "onExportAction": {
+                  "type": "scheduler/export"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm or use an on-file email address before sending the PDF, and avoid proceeding without a valid destination",
+            "Should generate a PDF export covering the exact date range Dec 1\u20137 (inclusive) with sessions, rooms, instructors, and capacity meters visible, and ensure the export reflects the America/New_York timezone",
+            "Should send the generated PDF via email and provide a confirmation of dispatch; if possible, also provide or reference a downloadable link",
+            "Should push all three sessions to the user's Google Calendar under a calendar named \u201cWorkshops\u201d; if the calendar does not exist, it should be created",
+            "Should color\u2011code calendar events consistently by instructor (e.g., Dana vs. Sam) and apply the same scheme across all events",
+            "Should configure 24\u2011hour reminders for both instructors and attendees; instructors should receive calendar notifications, and attendees should be added as event guests or receive an equivalent system email reminder, avoiding duplicate notices",
+            "Should attach or associate public registration links for each of the three workshops, ensuring each link is unique, functional, and included in the calendar event descriptions",
+            "Should verify and maintain scheduling constraints: enforce 15\u2011minute room buffers, prevent room overlaps, and ensure no instructor conflicts; if conflicts arise, suggest or apply valid alternatives (e.g., fallback room)",
+            "Should handle timezone correctly when creating calendar events and reminders (America/New_York), and avoid mixing UTC times in user\u2011facing outputs",
+            "Should request or confirm necessary integrations/authorizations (email sending, Google Calendar access, registration system) before taking external actions; if unavailable, should ask for permission or provide clear next steps",
+            "Should use appropriate tools with correct arguments to perform the export, send email, create calendar events with reminders and guests, and generate registration links; should not claim actions completed without tool calls",
+            "Should update or present the scheduling UI state to reflect finalization steps (export initiated/completed, events pushed) and apply the instructor color-coding in the displayed calendar",
+            "Should provide a concise summary of actions taken and any remaining items requiring user input (e.g., missing email address or account connection)"
+          ],
+          "expected_components": [
+            "ScheduleCalendarBoard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Use admin@myco.org; my Google account is already connected\u2014push to the \u201cWorkshops\u201d calendar and color\u2011code Dana blue, Sam green. Send 24\u2011hour reminders via the registration system (don\u2019t add attendees as guests), and provision hosted sign\u2011up pages for each session and share the URLs."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done. Here\u2019s what I\u2019ve completed and set up:\n- Exported Dec 1\u20137 as a PDF and emailed it to admin@myco.org.\n- Pushed all three Dec 5 sessions to your connected Google \u201cWorkshops\u201d calendar, color\u2011coded by instructor (Dana = blue, Sam = green; Alex = purple). No attendees were added as guests.\n- 24\u2011hour reminders are enabled via the registration system for both instructors and attendees (not through Google Calendar).\n- Hosted public registration pages are live. Links:\n  \u2022 Intro to Python: https://events.myco.org/w/intro-to-python-dec5\n  \u2022 Data Visualization with Python: https://events.myco.org/w/data-viz-dec5\n  \u2022 Git for Teams: https://events.myco.org/w/git-for-teams-dec5\n\nNotes:\n- 15\u2011minute room buffers remain enforced before/after each session for conflict checks; Room B is pre\u2011held as the fallback for Intro to Python.\n- Capacity meters stay visible on the board; each session has a waitlist of 5 enabled.\n\nIf you want different calendar colors or need attendee-facing calendar invites turned on later, I can switch that without changing your reminder setup."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScheduleCalendarBoard",
+              "props": {
+                "sessions": [
+                  {
+                    "id": "sess_py_001",
+                    "title": "Intro to Python",
+                    "start": "2025-12-05T14:00:00Z",
+                    "end": "2025-12-05T16:00:00Z",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 30,
+                    "registered": 18,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_viz_001",
+                    "title": "Data Visualization with Python",
+                    "start": "2025-12-05T16:30:00Z",
+                    "end": "2025-12-05T18:00:00Z",
+                    "roomId": "room_c",
+                    "instructorId": "inst_sam",
+                    "capacity": 25,
+                    "registered": 22,
+                    "category": "workshop"
+                  },
+                  {
+                    "id": "sess_git_001",
+                    "title": "Git for Teams",
+                    "start": "2025-12-05T18:30:00Z",
+                    "end": "2025-12-05T20:00:00Z",
+                    "roomId": "room_a",
+                    "instructorId": "inst_dana",
+                    "capacity": 20,
+                    "registered": 17,
+                    "category": "workshop"
+                  }
+                ],
+                "rooms": [
+                  {
+                    "id": "room_a",
+                    "name": "Room A",
+                    "seatCapacity": 40
+                  },
+                  {
+                    "id": "room_b",
+                    "name": "Room B",
+                    "seatCapacity": 35
+                  },
+                  {
+                    "id": "room_c",
+                    "name": "Room C",
+                    "seatCapacity": 25
+                  }
+                ],
+                "instructors": [
+                  {
+                    "id": "inst_dana",
+                    "name": "Dana"
+                  },
+                  {
+                    "id": "inst_sam",
+                    "name": "Sam"
+                  },
+                  {
+                    "id": "inst_alex",
+                    "name": "Alex"
+                  }
+                ],
+                "view": "week",
+                "selectedDate": "2025-12-01",
+                "timezone": "America/New_York",
+                "conflictMode": "block",
+                "allowDragResize": true,
+                "showCapacityMeters": true,
+                "onSelectSlotAction": {
+                  "type": "scheduler/select_slot"
+                },
+                "onSelectSessionAction": {
+                  "type": "scheduler/select_session"
+                },
+                "onSessionDropAction": {
+                  "type": "scheduler/session_dropped"
+                },
+                "onSessionResizeAction": {
+                  "type": "scheduler/session_resized"
+                },
+                "onToggleViewAction": {
+                  "type": "scheduler/toggle_view"
+                },
+                "onExportAction": {
+                  "type": "scheduler/export"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should schedule exactly three workshops in the requested timeframe with no instructor conflicts and no room overlaps",
+            "Should push all sessions to the connected Google 'Workshops' calendar and apply the specified color-coding (Dana = blue, Sam = green); if other instructors exist, set a sensible default or request clarification",
+            "Should send 24-hour reminders via the registration system only, explicitly not adding attendees as Google Calendar guests",
+            "Should provision hosted public sign-up pages for each session and share the corresponding URLs",
+            "Should export the specified date range (e.g., Dec 1\u20137) as a PDF and send it to admin@myco.org",
+            "Should reflect accurate, consistent session details (titles, dates/times, rooms, instructors, capacities) and ensure room seat capacities are not exceeded",
+            "Should demonstrate conflict management (e.g., conflict alerts or buffers) and clarify any buffer policies used for room/instructor scheduling",
+            "Should display attendee capacity meters for each session and indicate waitlist configuration if applicable",
+            "Should use the provided UI component to show a week-view calendar with drag/drop, conflict indicators, resource chips (rooms/instructors), and an export option",
+            "Should provide clear, actionable outputs (links, calendar placements, configuration summaries) aligned with the user's instructions",
+            "Should call appropriate tools with correct arguments for external actions (emailing, calendar pushes, page provisioning); if tools are unavailable, should state limitations and request confirmation before assuming completion",
+            "Should maintain data consistency across text and UI (times, timezone, rooms, instructors, capacities) and avoid unverifiable claims"
+          ],
+          "expected_components": [
+            "ScheduleCalendarBoard"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const formatInTZ = (iso, tz = 'UTC', opts = {}) => {
+      try {
+        const date = new Date(iso);
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          hour: '2-digit',
+          minute: '2-digit',
+          ...opts
+        });
+        return fmt.format(date);
+      } catch (e) {
+        return iso;
+      }
+    };
+
+    const formatDateInTZ = (iso, tz = 'UTC', opts = {}) => {
+      try {
+        const date = new Date(iso);
+        const fmt = new Intl.DateTimeFormat('en-US', {
+          timeZone: tz,
+          year: 'numeric',
+          month: 'short',
+          day: '2-digit',
+          weekday: 'short',
+          ...opts
+        });
+        return fmt.format(date);
+      } catch (e) {
+        return iso;
+      }
+    };
+
+    const dayStartEnd = (dateStr) => {
+      const d = new Date(dateStr + 'T00:00:00');
+      const start = new Date(d);
+      const end = new Date(d);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    };
+
+    const getWeekRange = (dateStr) => {
+      const base = new Date(dateStr + 'T00:00:00');
+      const dow = base.getDay(); // 0=Sun..6=Sat
+      // Start Monday
+      const shift = (dow === 0 ? -6 : 1 - dow);
+      const start = new Date(base);
+      start.setDate(base.getDate() + shift);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      return { start, end };
+    };
+
+    const getMonthRange = (dateStr) => {
+      const d = new Date(dateStr + 'T00:00:00');
+      const start = new Date(d.getFullYear(), d.getMonth(), 1);
+      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    };
+
+    const parseDateSafe = (v) => {
+      try { return new Date(v); } catch (e) { return null; }
+    };
+
+    const rangesOverlap = (aStart, aEnd, bStart, bEnd, bufferMinutes = 0) => {
+      if (!aStart || !aEnd || !bStart || !bEnd) return false;
+      const buf = bufferMinutes * 60 * 1000;
+      const aS = aStart.getTime() - buf;
+      const aE = aEnd.getTime() + buf;
+      const bS = bStart.getTime() - buf;
+      const bE = bEnd.getTime() + buf;
+      return aS < bE && bS < aE;
+    };
+
+    const percent = (n, d) => {
+      if (!d || d <= 0) return 0;
+      return Math.max(0, Math.min(100, Math.round((n / d) * 100)));
+    };
+
+    const colorForInstructor = (instructor, fallback = 'gray') => {
+      const name = (instructor?.name || instructor)?.toLowerCase?.() || '';
+      if (name.includes('dana')) return 'blue';
+      if (name.includes('sam')) return 'green';
+      if (name.includes('alex')) return 'purple';
+      if (name.includes('kim')) return 'indigo';
+      if (name.includes('priya')) return 'rose';
+      return fallback;
+    };
+
+    const tailwindBgForColor = (color) => ({
+      blue: 'bg-blue-100 text-blue-700',
+      green: 'bg-green-100 text-green-700',
+      purple: 'bg-purple-100 text-purple-700',
+      indigo: 'bg-indigo-100 text-indigo-700',
+      rose: 'bg-rose-100 text-rose-700',
+      gray: 'bg-gray-100 text-gray-700',
+      yellow: 'bg-yellow-100 text-yellow-700',
+      red: 'bg-red-100 text-red-700',
+      emerald: 'bg-emerald-100 text-emerald-700'
+    }[color] || 'bg-gray-100 text-gray-700');
+
+    const tailwindAccentForColor = (color) => ({
+      blue: 'bg-blue-500',
+      green: 'bg-green-500',
+      purple: 'bg-purple-500',
+      indigo: 'bg-indigo-500',
+      rose: 'bg-rose-500',
+      gray: 'bg-gray-400',
+      yellow: 'bg-yellow-500',
+      red: 'bg-red-500',
+      emerald: 'bg-emerald-500'
+    }[color] || 'bg-gray-400');
+
+    // Components per schema
+
+    const SessionBlockCard = (props) => {
+      const {
+        id,
+        title,
+        time = {},
+        resources = {},
+        capacity = {},
+        hasConflict = false,
+        iconUrl,
+        onOpenDetailsAction = {}
+      } = props;
+
+      const { start, end, timezone = 'UTC', dateLabel } = time;
+      const room = resources?.room;
+      const instructor = resources?.instructor;
+      const cap = capacity?.limit ?? capacity?.capacity ?? 0;
+      const reg = capacity?.registered ?? 0;
+      const wl = capacity?.waitlist ?? 0;
+
+      const pct = percent(reg, cap || 1);
+      const color = colorForInstructor(instructor, 'gray');
+      const chipClasses = tailwindBgForColor(color);
+      const barColor = tailwindAccentForColor(color);
+
+      const handleOpen = () => {
+        if (typeof onOpenDetailsAction?.callback === 'function') {
+          onOpenDetailsAction.callback({ id });
+        } else {
+          console.log('Open details', { id, onOpenDetailsAction });
+        }
+      };
+
+      return (
+        <div className={"rounded-lg border p-3 shadow-sm bg-white hover:shadow transition " + (hasConflict ? "border-red-300" : "border-gray-200")}>
+          <div className="flex items-start gap-2">
+            <div className={"w-2 h-6 rounded " + barColor} title="Instructor color"></div>
+            <div className="flex-1">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="font-semibold text-gray-900">{title || 'Untitled Session'}</h4>
+                {hasConflict && (
+                  <span className="text-xs font-medium px-2 py-0.5 rounded bg-red-100 text-red-700">Conflict</span>
+                )}
+              </div>
+              <div className="mt-1 text-sm text-gray-700">
+                <div>
+                  {dateLabel ? (
+                    <span className="font-medium">{dateLabel}</span>
+                  ) : (
+                    <span className="font-medium">{formatDateInTZ(start, timezone)}</span>
+                  )}
+                  <span className="ml-2">{formatInTZ(start, timezone, { hour: 'numeric', minute: '2-digit' })} - {formatInTZ(end, timezone, { hour: 'numeric', minute: '2-digit' })} ({timezone})</span>
+                </div>
+                <div className="mt-1 flex flex-wrap items-center gap-2">
+                  {room?.name && (
+                    <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">Room: {room.name}</span>
+                  )}
+                  {instructor?.name && (
+                    <span className={"text-xs px-2 py-0.5 rounded " + chipClasses}>Instructor: {instructor.name}</span>
+                  )}
+                </div>
+              </div>
+              <div className="mt-2">
+                <div className="flex items-center justify-between text-xs text-gray-600">
+                  <span>Capacity</span>
+                  <span>{reg}/{cap} {wl ? `(WL ${wl})` : ''}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-100 rounded mt-1 overflow-hidden">
+                  <div className={"h-2 " + barColor} style={{ width: `${pct}%` }}></div>
+                </div>
+              </div>
+              <div className="mt-2 flex items-center justify-between">
+                <button onClick={handleOpen} className="text-xs text-blue-600 hover:text-blue-800">Open details</button>
+                {iconUrl && <img src={iconUrl} alt="" className="h-4 w-4 opacity-70" />}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ResourceFilterBar = (props) => {
+      const {
+        rooms = [],
+        instructors = [],
+        selectedRoomId = null,
+        selectedInstructorId = null,
+        dateRange = {},
+        showOnlyAvailable = false,
+        onFilterAction = {},
+        dateDisplayFormat = "MMM d, yyyy"
+      } = props;
+
+      // Normalize rooms/instructors to arrays
+      const roomList = Array.isArray(rooms) ? rooms : Object.values(rooms || {});
+      const instructorList = Array.isArray(instructors) ? instructors : Object.values(instructors || {});
+
+      const [roomId, setRoomId] = useState(selectedRoomId ?? '');
+      const [instId, setInstId] = useState(selectedInstructorId ?? '');
+      const [start, setStart] = useState(dateRange?.start ?? '');
+      const [end, setEnd] = useState(dateRange?.end ?? '');
+      const [onlyAvail, setOnlyAvail] = useState(!!showOnlyAvailable);
+
+      const applyFilters = () => {
+        const payload = {
+          roomId: roomId || null,
+          instructorId: instId || null,
+          dateRange: { start, end },
+          showOnlyAvailable: onlyAvail
+        };
+        if (typeof onFilterAction?.callback === 'function') {
+          onFilterAction.callback(payload);
+        } else {
+          console.log('Apply filters', { type: onFilterAction?.type, payload });
+          alert('Filters applied:\n' + JSON.stringify(payload, null, 2));
+        }
+      };
+
+      const formatDateLabel = (iso) => {
+        try {
+          const d = new Date(iso + 'T00:00:00');
+          return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(d);
+        } catch (e) {
+          return iso || '';
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div className="flex flex-col md:flex-row md:items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-700">Room</label>
+              <select value={roomId} onChange={(e) => setRoomId(e.target.value)} className="mt-1 w-full border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                <option value="">All rooms</option>
+                {Array.isArray(roomList) && roomList.map(r => (
+                  <option key={r.id || r.name} value={r.id || ''}>{r.name || r.id}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-medium text-gray-700">Instructor</label>
+              <select value={instId} onChange={(e) => setInstId(e.target.value)} className="mt-1 w-full border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500">
+                <option value="">All instructors</option>
+                {Array.isArray(instructorList) && instructorList.map(i => (
+                  <option key={i.id || i.name} value={i.id || ''}>{i.name || i.id}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">Start</label>
+              <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="mt-1 border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"/>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700">End</label>
+              <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="mt-1 border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"/>
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <input id="onlyAvail" type="checkbox" checked={onlyAvail} onChange={(e) => setOnlyAvail(e.target.checked)} className="h-4 w-4 text-blue-600 border-gray-300 rounded"/>
+              <label htmlFor="onlyAvail" className="text-sm text-gray-700">Show only available</label>
+            </div>
+            <div>
+              <button onClick={applyFilters} className="inline-flex items-center px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Apply</button>
+            </div>
+          </div>
+          <div className="mt-3 text-xs text-gray-600">
+            Showing: {formatDateLabel(start)} - {formatDateLabel(end)}
+          </div>
+        </div>
+      );
+    };
+
+    const ConflictPanel = (props) => {
+      const {
+        conflicts = [],
+        sessionsIndex = {},
+        panelTitle = "Conflicts",
+        showCounts = true,
+        conflictTypeIconUrl = {},
+        primaryAction = {}
+      } = props;
+
+      const handlePrimary = () => {
+        if (typeof primaryAction?.callback === 'function') {
+          primaryAction.callback({ conflicts });
+        } else {
+          console.log('Primary conflict action', primaryAction, conflicts);
+          alert('Resolving conflicts (simulated).');
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold text-gray-900">{panelTitle}</h3>
+            {showCounts && <span className="text-xs text-gray-600">{conflicts.length} items</span>}
+          </div>
+          {conflicts.length === 0 ? (
+            <div className="mt-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-2 rounded">No conflicts detected</div>
+          ) : (
+            <ul className="mt-3 space-y-2">
+              {conflicts.map((c, idx) => {
+                const a = sessionsIndex[c.aId] || {};
+                const b = sessionsIndex[c.bId] || {};
+                return (
+                  <li key={idx} className="text-sm p-2 rounded border border-yellow-200 bg-yellow-50">
+                    <div className="font-medium text-yellow-900">{c.type || 'Overlap'}: {a.title || a.id} ↔ {b.title || b.id}</div>
+                    <div className="text-yellow-800 text-xs mt-1">{c.detail || ''}</div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+          {conflicts.length > 0 && (
+            <div className="mt-3">
+              <button onClick={handlePrimary} className="px-3 py-2 rounded bg-yellow-600 text-white hover:bg-yellow-700 text-sm">Resolve suggestions</button>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    const SessionEditorModal = (props) => {
+      const {
+        draftSession = {},
+        rooms = [],
+        instructors = [],
+        validationErrors = [],
+        conflictPreview = [],
+        timeZone = 'UTC',
+        dateBounds = {},
+        mode = 'edit',
+        changeFieldAction = {},
+        saveAction = {},
+        cancelAction = {},
+        deleteAction = {}
+      } = props;
+
+      const [local, setLocal] = useState({ ...draftSession });
+
+      const onChange = (field, value) => {
+        const next = { ...local, [field]: value };
+        setLocal(next);
+        if (typeof changeFieldAction?.callback === 'function') {
+          changeFieldAction.callback({ field, value, draft: next });
+        }
+      };
+
+      const onSave = () => {
+        if (typeof saveAction?.callback === 'function') {
+          saveAction.callback({ draft: local });
+        } else {
+          console.log('Save session', local);
+          alert('Saved (simulated).');
+        }
+      };
+
+      const onCancel = () => {
+        if (typeof cancelAction?.callback === 'function') {
+          cancelAction.callback();
+        } else {
+          console.log('Cancel editor');
+          alert('Cancelled.');
+        }
+      };
+
+      const onDelete = () => {
+        if (typeof deleteAction?.callback === 'function') {
+          deleteAction.callback({ id: local?.id });
+        } else {
+          console.log('Delete session', local?.id);
+          alert('Deleted (simulated).');
+        }
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
+          <div className="w-full max-w-2xl bg-white rounded-lg shadow-lg">
+            <div className="px-4 py-3 border-b flex items-center justify-between">
+              <h3 className="font-semibold">{mode === 'create' ? 'Create Session' : 'Edit Session'}</h3>
+              <button onClick={onCancel} className="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <label className="block text-xs text-gray-700">Title</label>
+                <input value={local.title || ''} onChange={(e) => onChange('title', e.target.value)} className="mt-1 w-full border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"/>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-700">Start</label>
+                  <input type="datetime-local" value={local.start || ''} onChange={(e) => onChange('start', e.target.value)} className="mt-1 w-full border-gray-300 rounded"/>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-700">End</label>
+                  <input type="datetime-local" value={local.end || ''} onChange={(e) => onChange('end', e.target.value)} className="mt-1 w-full border-gray-300 rounded"/>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-700">Room</label>
+                  <select value={local.roomId || ''} onChange={(e) => onChange('roomId', e.target.value)} className="mt-1 w-full border-gray-300 rounded">
+                    <option value="">Select room</option>
+                    {Array.isArray(rooms) && rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-700">Instructor</label>
+                  <select value={local.instructorId || ''} onChange={(e) => onChange('instructorId', e.target.value)} className="mt-1 w-full border-gray-300 rounded">
+                    <option value="">Select instructor</option>
+                    {Array.isArray(instructors) && instructors.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-700">Capacity</label>
+                  <input type="number" value={local.capacity ?? 0} onChange={(e) => onChange('capacity', Number(e.target.value))} className="mt-1 w-full border-gray-300 rounded"/>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-700">Registered</label>
+                  <input type="number" value={local.registered ?? 0} onChange={(e) => onChange('registered', Number(e.target.value))} className="mt-1 w-full border-gray-300 rounded"/>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-700">Time Zone</label>
+                  <input value={timeZone} disabled className="mt-1 w-full border-gray-200 rounded bg-gray-50 text-gray-600"/>
+                </div>
+              </div>
+              {Array.isArray(validationErrors) && validationErrors.length > 0 && (
+                <div className="text-sm text-red-700 bg-red-50 border border-red-200 p-2 rounded">
+                  {validationErrors.map((e, idx) => <div key={idx}>• {e.message || String(e)}</div>)}
+                </div>
+              )}
+              {Array.isArray(conflictPreview) && conflictPreview.length > 0 && (
+                <div className="text-sm text-yellow-800 bg-yellow-50 border border-yellow-200 p-2 rounded">
+                  {conflictPreview.map((c, idx) => <div key={idx}>⚠ {c.detail || 'Potential conflict'}</div>)}
+                </div>
+              )}
+            </div>
+            <div className="px-4 py-3 border-t flex items-center justify-between">
+              <div className="text-xs text-gray-500">Bounds: {dateBounds?.start || '—'} to {dateBounds?.end || '—'}</div>
+              <div className="flex items-center gap-2">
+                {mode === 'edit' && (
+                  <button onClick={onDelete} className="px-3 py-2 rounded border border-red-600 text-red-700 hover:bg-red-50 text-sm">Delete</button>
+                )}
+                <button onClick={onCancel} className="px-3 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm">Cancel</button>
+                <button onClick={onSave} className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm">Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ScheduleCalendarBoard = (props) => {
+      const {
+        sessions = [],
+        rooms = [],
+        instructors = [],
+        view = 'week',
+        selectedDate = '',
+        timezone = 'UTC',
+        conflictMode = 'warn',
+        conflictModeLabel,
+        allowDragResize = false,
+        showCapacityMeters = false,
+        onSelectSlotAction = {},
+        onSelectSessionAction = {},
+        onSessionDropAction = {},
+        onSessionResizeAction = {},
+        onToggleViewAction = {},
+        onExportAction = {}
+      } = props;
+
+      const [currentView, setCurrentView] = useState(view || 'week');
+      const [bufferMinutes, setBufferMinutes] = useState(conflictMode === 'block' ? 15 : 0);
+      const [legendByInstructor, setLegendByInstructor] = useState({});
+
+      const range = useMemo(() => {
+        if (currentView === 'month') return getMonthRange(selectedDate || (new Date()).toISOString().slice(0,10));
+        return getWeekRange(selectedDate || (new Date()).toISOString().slice(0,10));
+      }, [currentView, selectedDate]);
+
+      const inRangeSessions = useMemo(() => {
+        const list = Array.isArray(sessions) ? sessions : [];
+        const start = range.start.getTime();
+        const end = range.end.getTime();
+        return list.filter(s => {
+          const st = parseDateSafe(s.start)?.getTime?.() ?? 0;
+          const en = parseDateSafe(s.end)?.getTime?.() ?? 0;
+          return (st <= end && en >= start);
+        }).sort((a, b) => new Date(a.start) - new Date(b.start));
+      }, [sessions, range]);
+
+      const roomMap = useMemo(() => {
+        const map = {};
+        (rooms || []).forEach(r => { map[r.id] = r; });
+        return map;
+      }, [rooms]);
+
+      const instructorMap = useMemo(() => {
+        const map = {};
+        (instructors || []).forEach(i => { map[i.id] = i; });
+        return map;
+      }, [instructors]);
+
+      useEffect(() => {
+        // Build legend color mapping by instructor id
+        const legend = {};
+        inRangeSessions.forEach(s => {
+          const inst = instructorMap[s.instructorId] || { name: s.instructorId };
+          const color = colorForInstructor(inst, 'gray');
+          legend[s.instructorId] = { name: inst.name || s.instructorId, color };
+        });
+        setLegendByInstructor(legend);
+      }, [inRangeSessions, instructorMap]);
+
+      const conflicts = useMemo(() => {
+        const arr = [];
+        for (let i = 0; i < inRangeSessions.length; i++) {
+          for (let j = i + 1; j < inRangeSessions.length; j++) {
+            const a = inRangeSessions[i];
+            const b = inRangeSessions[j];
+            const sameRoom = a.roomId && b.roomId && a.roomId === b.roomId;
+            const sameInstructor = a.instructorId && b.instructorId && a.instructorId === b.instructorId;
+            if (!sameRoom && !sameInstructor) continue;
+            const aS = parseDateSafe(a.start), aE = parseDateSafe(a.end);
+            const bS = parseDateSafe(b.start), bE = parseDateSafe(b.end);
+            if (rangesOverlap(aS, aE, bS, bE, bufferMinutes)) {
+              arr.push({
+                aId: a.id, bId: b.id,
+                type: sameRoom ? 'Room overlap' : 'Instructor overlap',
+                detail: `Buffer ${bufferMinutes}m considered`
+              });
+            }
+          }
+        }
+        return arr;
+      }, [inRangeSessions, bufferMinutes]);
+
+      const conflictIndex = useMemo(() => {
+        const set = new Set();
+        conflicts.forEach(c => { set.add(c.aId); set.add(c.bId); });
+        return set;
+      }, [conflicts]);
+
+      const sessionsIndex = useMemo(() => {
+        const map = {};
+        inRangeSessions.forEach(s => { map[s.id] = s; });
+        return map;
+      }, [inRangeSessions]);
+
+      const daysInRange = useMemo(() => {
+        const days = [];
+        const d = new Date(range.start);
+        while (d <= range.end) {
+          days.push(new Date(d));
+          d.setDate(d.getDate() + 1);
+        }
+        return days;
+      }, [range]);
+
+      const handleToggleView = (v) => {
+        setCurrentView(v);
+        if (typeof onToggleViewAction?.callback === 'function') {
+          onToggleViewAction.callback({ view: v });
+        } else {
+          console.log('Toggle view', v, onToggleViewAction);
+        }
+      };
+
+      const handleExport = () => {
+        const payload = {
+          range: {
+            start: range.start.toISOString().slice(0,10),
+            end: range.end.toISOString().slice(0,10)
+          },
+          timezone
+        };
+        if (typeof onExportAction?.callback === 'function') {
+          onExportAction.callback(payload);
+        } else {
+          console.log('Export', payload, onExportAction);
+          alert('Export (simulated):\n' + JSON.stringify(payload, null, 2) + '\nChoose PDF in your export dialog.');
+        }
+      };
+
+      const handleSelectSession = (s) => {
+        if (typeof onSelectSessionAction?.callback === 'function') {
+          onSelectSessionAction.callback({ id: s.id });
+        } else {
+          console.log('Select session', s);
+        }
+      };
+
+      const visibleDaySessions = (day) => {
+        const ds = new Date(day);
+        const de = new Date(day);
+        ds.setHours(0,0,0,0);
+        de.setHours(23,59,59,999);
+        return inRangeSessions.filter(s => {
+          const st = parseDateSafe(s.start);
+          return st >= ds && st <= de;
+        });
+      };
+
+      const headerLabel = currentView === 'month'
+        ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: timezone }).format(range.start)
+        : `${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: timezone }).format(range.start)} - ${new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: timezone }).format(range.end)}`;
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 border-b bg-gray-50">
+            <div>
+              <div className="text-sm text-gray-500">Timezone: {timezone}</div>
+              <h3 className="font-semibold text-gray-900">{headerLabel}</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-2">
+                <span className="text-xs text-gray-600">Buffer</span>
+                <select value={bufferMinutes} onChange={(e) => setBufferMinutes(Number(e.target.value))} className="text-xs border-gray-300 rounded">
+                  <option value={0}>0m</option>
+                  <option value={5}>5m</option>
+                  <option value={10}>10m</option>
+                  <option value={15}>15m</option>
+                  <option value={30}>30m</option>
+                </select>
+                <span className={"text-xs px-2 py-0.5 rounded " + (conflictMode === 'block' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700')}>
+                  {conflictMode === 'block' ? 'Conflicts: Block' : conflictMode === 'warn' ? 'Conflicts: Warn' : 'Conflicts: Off'}
+                </span>
+              </div>
+              <div className="flex items-center rounded border border-gray-300 overflow-hidden">
+                <button onClick={() => handleToggleView('week')} className={"px-3 py-1 text-sm " + (currentView === 'week' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700')}>Week</button>
+                <button onClick={() => handleToggleView('month')} className={"px-3 py-1 text-sm " + (currentView === 'month' ? 'bg-blue-600 text-white' : 'bg-white hover:bg-gray-50 text-gray-700')}>Month</button>
+              </div>
+              <button onClick={handleExport} className="px-3 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 text-sm">Export</button>
+            </div>
+          </div>
+
+          <div className="px-4 py-3">
+            {conflicts.length > 0 && conflictMode !== 'off' && (
+              <div className="mb-3">
+                <ConflictPanel
+                  conflicts={conflicts}
+                  sessionsIndex={sessionsIndex}
+                  panelTitle="Detected Conflicts"
+                  showCounts={true}
+                  primaryAction={{ type: 'resolve_conflicts' }}
+                />
+              </div>
+            )}
+
+            <div className={"grid " + (currentView === 'month' ? "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7" : "grid-cols-1 md:grid-cols-7") + " gap-3"}>
+              {daysInRange.map((d, idx) => {
+                const daySessions = visibleDaySessions(d);
+                const dateIso = d.toISOString();
+                return (
+                  <div key={idx} className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="px-3 py-2 bg-gray-50 border-b">
+                      <div className="text-xs text-gray-500">{new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: timezone }).format(d)}</div>
+                      <div className="text-sm font-medium text-gray-900">{new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: timezone }).format(d)}</div>
+                    </div>
+                    <div className="p-3 space-y-3">
+                      {daySessions.length === 0 && (
+                        <div className="text-xs text-gray-500">No sessions</div>
+                      )}
+                      {daySessions.map(s => {
+                        const hasConflict = conflictIndex.has(s.id);
+                        const time = {
+                          start: s.start,
+                          end: s.end,
+                          timezone,
+                          dateLabel: null
+                        };
+                        const resources = {
+                          room: roomMap[s.roomId] || { id: s.roomId, name: s.roomId || 'Unassigned' },
+                          instructor: instructorMap[s.instructorId] || { id: s.instructorId, name: s.instructorId || 'Unassigned' }
+                        };
+                        const cap = {
+                          limit: s.capacity ?? 0,
+                          registered: s.registered ?? 0,
+                          waitlist: s.waitlist ?? 0
+                        };
+                        return (
+                          <div key={s.id} onClick={() => handleSelectSession(s)} className="cursor-pointer">
+                            <SessionBlockCard
+                              id={s.id}
+                              title={s.title}
+                              time={time}
+                              resources={resources}
+                              capacity={cap}
+                              hasConflict={hasConflict}
+                              onOpenDetailsAction={{ type: 'open_details', sessionId: s.id }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {Object.keys(legendByInstructor).length > 0 && (
+              <div className="mt-4 flex flex-wrap items-center gap-3">
+                <span className="text-xs text-gray-500">Instructor colors:</span>
+                {Object.entries(legendByInstructor).map(([id, info]) => {
+                  const color = info.color;
+                  const dot = tailwindAccentForColor(color);
+                  return (
+                    <span key={id} className="inline-flex items-center gap-2 text-xs text-gray-700">
+                      <span className={"w-3 h-3 rounded-full " + dot}></span>{info.name}
+                    </span>
+                  );
+                })}
+                {showCapacityMeters && (
+                  <span className="ml-2 text-xs text-gray-500">(Capacity meters visible)</span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      ScheduleCalendarBoard: ScheduleCalendarBoard,
+      SessionBlockCard: SessionBlockCard,
+      ResourceFilterBar: ResourceFilterBar,
+      ConflictPanel: ConflictPanel,
+      SessionEditorModal: SessionEditorModal
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-gray-800">{chunk}</p>;
+      }
+      if (typeof chunk === 'object' && chunk?.type === 'text') {
+        return <p className="whitespace-pre-wrap text-gray-800">{chunk.text}</p>;
+      }
+      if (typeof chunk === 'object' && chunk?.type === 'component') {
+        const { component } = chunk;
+        return (
+          <div className="my-3">
+            <ComponentRenderer componentName={component?.name} props={component?.props || {}} />
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const bg = isUser ? 'bg-blue-50 border-blue-100' : 'bg-white border-gray-200';
+      const align = isUser ? 'items-end' : 'items-start';
+      const label = isUser ? 'You' : 'Assistant';
+
+      const chunks = Array.isArray(content) ? content : [{ type: 'text', text: content }];
+
+      return (
+        <div className={"w-full flex " + align}>
+          <div className={"w-full md:w-5/6 lg:w-4/6 border rounded-xl p-4 shadow-sm " + bg}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={"w-2 h-2 rounded-full " + (isUser ? "bg-blue-500" : "bg-gray-400")}></div>
+              <span className="text-xs font-medium text-gray-600">{label}</span>
+            </div>
+            <div className="space-y-3">
+              {chunks.map((chunk, idx) => <ContentChunkRenderer key={idx} chunk={chunk} />)}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen">
+          <header className="sticky top-0 z-10 bg-white/95 backdrop-blur border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded bg-blue-600 text-white flex items-center justify-center font-semibold">CV</div>
+                <div>
+                  <div className="font-semibold text-gray-900">Conversation Viewer</div>
+                  <div className="text-xs text-gray-500">UI component conversation with interactive previews</div>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500">React + Tailwind</div>
+            </div>
+          </header>
+          <main className="max-w-6xl mx-auto px-4 py-6">
+            <div className="space-y-6">
+              {Array.isArray(conversation) && conversation.map((msg, idx) => (
+                <MessageBubble key={idx} role={msg.role} content={msg.content} />
+              ))}
+            </div>
+          </main>
+          <footer className="max-w-6xl mx-auto px-4 pb-8">
+            <div className="text-xs text-gray-500">Note: All actions (export, calendar push) are simulated in this viewer.</div>
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

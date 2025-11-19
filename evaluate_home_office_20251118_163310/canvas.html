@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "Evaluate my home office setup and give me a checklist to improve ergonomics."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great — here’s an initial ergonomics assessment and a practical checklist you can start using right away. If you can share your desk/chair measurements or a quick photo later, I can refine the recommendations and desk height precisely."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ErgonomicsChecklistDashboard",
+              "props": {
+                "title": "Home Office Ergonomics Checklist",
+                "checklistItems": [
+                  {
+                    "id": "monitor-eye-level",
+                    "label": "Top of monitor at or slightly below eye level",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Use a riser or books if needed; keep the screen about an arm’s length away.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "monitor-eye-level"
+                    }
+                  },
+                  {
+                    "id": "chair-lumbar-support",
+                    "label": "Chair provides firm lumbar support",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Add a small lumbar cushion or rolled towel if your chair lacks support.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "chair-lumbar-support"
+                    }
+                  },
+                  {
+                    "id": "elbows-90",
+                    "label": "Elbows ~90–100° when typing, shoulders relaxed",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Adjust chair height and armrests; fine-tune desk height or keyboard tray.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "elbows-90"
+                    }
+                  },
+                  {
+                    "id": "wrists-neutral",
+                    "label": "Wrists neutral, not bent up or down",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Use a low-profile keyboard and keep wrists floating or lightly supported.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "wrists-neutral"
+                    }
+                  },
+                  {
+                    "id": "feet-supported",
+                    "label": "Feet flat on the floor or on a footrest",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "If you raise your chair, add a footrest to keep knees ~90–100°.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "feet-supported"
+                    }
+                  },
+                  {
+                    "id": "screen-glare",
+                    "label": "Minimize screen glare and adjust brightness",
+                    "completed": false,
+                    "impact": "low",
+                    "note": "Reposition monitor perpendicular to windows; use dark mode where helpful.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "screen-glare"
+                    }
+                  },
+                  {
+                    "id": "breaks-2020",
+                    "label": "Take micro-breaks: 20-20-20 rule",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Every 20 minutes, look 20 feet away for 20 seconds and stand/stretch hourly.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "breaks-2020"
+                    }
+                  }
+                ],
+                "postureRecommendation": {
+                  "summary": "Sit back in the chair with hips slightly above knees, elbows ~90–100°, shoulders relaxed, head over shoulders.",
+                  "action": "Adjust chair height and armrests so forearms are supported lightly while typing.",
+                  "estimatedRiskReduction": 0.28
+                },
+                "deskHeightRecommendation": {
+                  "currentHeightCm": 75,
+                  "recommendedHeightCm": 73.5,
+                  "adjustmentSteps": [
+                    "Set desk height to ~73.5 cm (measure from floor to desktop).",
+                    "Sit with shoulders relaxed; check that elbows are ~90–100° at the keyboard.",
+                    "If elbows are too open (>100°), lower desk by 1–2 cm; if too closed (<90°), raise desk by 1–2 cm.",
+                    "Re-check wrist neutrality; consider a low-profile keyboard if wrists extend upward."
+                  ]
+                },
+                "riskLevel": "moderate",
+                "scores": {
+                  "before": 62,
+                  "after": 84,
+                  "scaleMax": 100
+                },
+                "applyRecommendationsAction": {
+                  "type": "apply_recommendations"
+                },
+                "displayOptions": {
+                  "showRiskLegend": true,
+                  "showCompletionProgress": true
+                },
+                "infoLinks": {
+                  "postureGuideUrl": "https://www.cdc.gov/niosh/topics/ergonomics/default.html",
+                  "deskHeightGuideUrl": "https://ergo.human.cornell.edu/ergoguide.html"
+                },
+                "assessmentDate": "2025-11-19"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "DeskHeightCalculatorCard",
+              "props": {
+                "id": "desk_height_calc_primary",
+                "name": "desk_height_calc_primary",
+                "title": "Ideal Desk Height Calculator",
+                "currentDeskHeightCm": 75,
+                "recommendedDeskHeightCm": 73.5,
+                "userMetrics": {
+                  "heightCm": 175,
+                  "chairSeatHeightCm": 45,
+                  "keyboardThicknessMm": 18
+                },
+                "adjustmentSteps": [
+                  "Set desk to 73.5 cm as a starting point.",
+                  "Re-measure elbow angle while typing; aim for ~90–100°.",
+                  "If using a thick keyboard (>20 mm), lower desk by ~0.5–1 cm.",
+                  "Shorter users: consider lowering chair and adding a footrest."
+                ],
+                "description": "Align desk so your elbows are at ~90–100° when typing. Adjust a few millimeters at a time and re-test.",
+                "onRecalculateAction": {
+                  "type": "recalculate_desk_height",
+                  "payload": {
+                    "userMetrics": {
+                      "heightCm": 175,
+                      "chairSeatHeightCm": 45,
+                      "keyboardThicknessMm": 18
+                    }
+                  }
+                },
+                "units": {
+                  "length": "cm",
+                  "keyboardThickness": "mm"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should acknowledge the user's request to evaluate a home office setup and set expectations for refinement if more details (photos/measurements) are provided",
+            "Should provide a clear, actionable ergonomics checklist with concise labels, impact priority, and brief notes for how to fix each item",
+            "Should include posture guidance with specific, measurable targets (e.g., elbow angle ~90–100°, monitor at or slightly below eye level, wrists neutral)",
+            "Should include a desk height recommendation with numeric values, units, and step-by-step adjustment instructions tailored to typing posture",
+            "Should present an estimated risk level and a before/after score or improvement metric to indicate expected impact",
+            "Should use interactive UI elements (e.g., checklist item toggles and an apply recommendations action) to support user progress tracking",
+            "Should provide a calculator or clear method to recalculate desk height based on user metrics (e.g., height, chair seat height, keyboard thickness) with an explicit recalc action",
+            "Should ensure all component props are populated with appropriate data types, sensible defaults, and units (cm/mm) where applicable",
+            "Should include brief, credible references or links for further ergonomics guidance without overwhelming the user",
+            "Should avoid medical claims or diagnoses and frame guidance as general ergonomics best practices",
+            "Should not call external tools unless data fetching or computation beyond the provided components is required; all calculations shown should be explainable from given inputs",
+            "Should maintain clarity and brevity in the textual introduction and avoid unnecessary jargon",
+            "Should ensure the visual layout aligns with expectations: checklist with toggles, posture and desk height recommendation cards, risk indicator, and before/after score",
+            "Should not expose sensitive or private information and should not request unnecessary personal data"
+          ],
+          "expected_components": [
+            "ErgonomicsChecklistDashboard",
+            "DeskHeightCalculatorCard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "I’m 5'8\" (173 cm). My desk is 30\" (76 cm) high; chair seat is 18\" (46 cm) with no lumbar support; 27\" monitor with the top ~3\" above eye level at ~26\" viewing distance; keyboard/mouse on the desk, no wrist rest. I get neck/shoulder tightness by afternoon—can you calculate ideal desk/chair/monitor heights and give me a checklist with toggles, a risk level, and a before/after score?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Let me run the numbers for your ideal desk height and then I’ll build your checklist."
+          },
+          {
+            "type": "text",
+            "text": "Thanks — here’s your tailored ergonomics plan. Your ideal desk surface is about 69.5 cm given your height, current seat height, and a typical keyboard thickness. Your main hotspots are desk height, monitor top position, and lumbar support. Apply the steps below to reduce neck/shoulder strain."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ErgonomicsChecklistDashboard",
+              "props": {
+                "title": "Home Office Ergonomics Checklist",
+                "checklistItems": [
+                  {
+                    "id": "desk-height-adjust",
+                    "label": "Set desk/home-row height to match elbow height (~69.5 cm surface)",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Lower desk or add a keyboard tray; otherwise raise chair and use a footrest.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "desk-height-adjust"
+                    }
+                  },
+                  {
+                    "id": "chair-height-elbows-90",
+                    "label": "Adjust chair so elbows are ~90–100° when typing",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "If you raise the chair, ensure feet are fully supported (footrest if needed).",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "chair-height-elbows-90"
+                    }
+                  },
+                  {
+                    "id": "lumbar-support",
+                    "label": "Add lumbar support to maintain neutral spine",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Use a lumbar pillow or rolled towel at the small of your back.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "lumbar-support"
+                    }
+                  },
+                  {
+                    "id": "monitor-top-eye-level",
+                    "label": "Lower monitor so the top is at or slightly below eye level",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Your top edge is ~7–8 cm above eye level; lower by ~8–10 cm.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "monitor-top-eye-level"
+                    }
+                  },
+                  {
+                    "id": "monitor-distance",
+                    "label": "Keep monitor 60–75 cm away",
+                    "completed": true,
+                    "impact": "low",
+                    "note": "You’re at ~66 cm, which is within range for a 27\" display.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "monitor-distance"
+                    }
+                  },
+                  {
+                    "id": "neutral-wrists",
+                    "label": "Type with neutral wrists (no upward bend)",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Consider a thin wrist rest only if you hover/stretch; avoid pressing on the heel of the palm.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "neutral-wrists"
+                    }
+                  },
+                  {
+                    "id": "armrest-support",
+                    "label": "Set armrests to lightly support forearms without shrugging shoulders",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "If armrests don’t adjust, slide chair closer and keep shoulders relaxed.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "armrest-support"
+                    }
+                  },
+                  {
+                    "id": "movement-breaks",
+                    "label": "Take micro-breaks: 30–60 seconds every 30 minutes",
+                    "completed": false,
+                    "impact": "low",
+                    "note": "Do 3–4 gentle neck/shoulder rolls and stand briefly.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "movement-breaks"
+                    }
+                  }
+                ],
+                "postureRecommendation": {
+                  "summary": "Keep ears over shoulders, shoulders relaxed, elbows ~90–100°, and wrists neutral.",
+                  "action": "Adjust chair height and armrests so your forearms are supported and parallel to the floor.",
+                  "estimatedRiskReduction": 0.3
+                },
+                "deskHeightRecommendation": {
+                  "currentHeightCm": 76,
+                  "recommendedHeightCm": 69.5,
+                  "adjustmentSteps": [
+                    "Lower desk to 69.5 cm (or as close as possible).",
+                    "If desk isn’t adjustable, install a keyboard tray set to ~69.5 cm.",
+                    "Alternatively, raise chair until home-row keys align with elbow height, then add a footrest.",
+                    "Re-test elbow angle while typing; target ~90–100°."
+                  ]
+                },
+                "riskLevel": "moderate",
+                "scores": {
+                  "before": 62,
+                  "after": 85
+                },
+                "applyRecommendationsAction": {
+                  "type": "apply_recommendations"
+                },
+                "displayOptions": {
+                  "showRiskLegend": true,
+                  "showCompletionProgress": true
+                },
+                "infoLinks": {
+                  "postureGuideUrl": "https://www.osha.gov/etools/computer-workstations/components",
+                  "deskHeightGuideUrl": "https://ergo.human.cornell.edu/ergoguide.html"
+                },
+                "assessmentDate": "2025-11-19"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "DeskHeightCalculatorCard",
+              "props": {
+                "id": "desk_height_calc_primary",
+                "name": "desk_height_calc_primary",
+                "title": "Ideal Desk Height Calculator",
+                "currentDeskHeightCm": 76,
+                "recommendedDeskHeightCm": 69.5,
+                "userMetrics": {
+                  "heightCm": 173,
+                  "chairSeatHeightCm": 46,
+                  "keyboardThicknessMm": 18
+                },
+                "adjustmentSteps": [
+                  "Set desk surface to 69.5 cm (target).",
+                  "Confirm home-row key height ≈ elbow height.",
+                  "If you cannot lower desk, raise chair and add a footrest so feet are fully supported.",
+                  "Recheck shoulder relaxation and wrist neutrality."
+                ],
+                "description": "Align desk so your elbows are at ~90° when typing; keyboard thickness accounted for.",
+                "onRecalculateAction": {
+                  "type": "recalculate_desk_height",
+                  "payload": {
+                    "userMetrics": {
+                      "heightCm": 173,
+                      "chairSeatHeightCm": 46,
+                      "keyboardThicknessMm": 18
+                    }
+                  }
+                },
+                "units": {
+                  "length": "cm",
+                  "keyboardThickness": "mm"
+                }
+              }
+            }
+          }
+        ],
+        "toolCalls": [
+          {
+            "id": "sx8skaqmm",
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "arguments": "{\"expression\": \"46 + (173 * 0.146) - 1.8\"}"
+            },
+            "tool_executed": true
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should fully interpret the user's measurements (height, desk height, chair height, monitor size/position, viewing distance, keyboard thickness) and convert units consistently (inches to cm/mm) where needed",
+            "Should calculate ideal desk height based on elbow-height typing posture and account for keyboard thickness, and present both current and recommended values",
+            "Should provide clear chair adjustment guidance (seat height relative to desk/home-row, elbow angle ~90–100°, foot support if chair is raised, and lumbar support recommendation)",
+            "Should provide monitor adjustment guidance including top-of-screen at or slightly below eye level and recommended viewing distance range appropriate for a 27\" monitor",
+            "Should present a structured, interactive checklist with unique IDs, clear labels, impact levels, notes, initial completion states, and toggle actions for each item",
+            "Should include a posture recommendation summary with a succinct action step and an estimated risk reduction value",
+            "Should present an explicit risk level and numeric before/after scores showing expected improvement",
+            "Should include a desk height recommendation section with current and recommended heights and step-by-step adjustment instructions, including alternatives when the desk is not adjustable",
+            "Should use appropriate UI components to present the checklist and calculator, including action handlers (toggle, apply recommendations, recalculate) with correctly structured payloads",
+            "Should call any necessary calculation tools with correct arguments to derive recommended measurements and populate component props",
+            "Should ensure internal consistency between narrative text and component data (values, units, recommendations, and risk/score figures)",
+            "Should provide credible references or info links for ergonomics guidance when included, using clear URLs",
+            "Should avoid medical diagnoses and provide practical, safe, and non-prescriptive advice suitable for general ergonomic guidance",
+            "Should reflect the scenario context by summarizing hotspots (e.g., desk height, monitor position, lumbar support) and align the checklist items to address reported neck/shoulder tightness",
+            "Should include an assessment date and display options if the UI supports them, enhancing clarity without distracting from core recommendations"
+          ],
+          "expected_components": [
+            "ErgonomicsChecklistDashboard",
+            "DeskHeightCalculatorCard"
+          ]
+        }
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "sx8skaqmm",
+        "content": "{\n  \"expression\": \"46 + (173 * 0.146) - 1.8\",\n  \"result\": 69.458,\n  \"roundedResult\": 69.46,\n  \"units\": \"cm\",\n  \"variables\": {\n    \"seat_height_cm\": 46,\n    \"stature_cm\": 173,\n    \"forearm_factor\": 0.146,\n    \"keyboard_thickness_cm\": 1.8\n  },\n  \"breakdown\": [\n    {\n      \"step\": \"Multiply stature by forearm factor\",\n      \"calculation\": \"173 * 0.146\",\n      \"value\": 25.258\n    },\n    {\n      \"step\": \"Add seat height\",\n      \"calculation\": \"46 + 25.258\",\n      \"value\": 71.258\n    },\n    {\n      \"step\": \"Subtract keyboard thickness\",\n      \"calculation\": \"71.258 - 1.8\",\n      \"value\": 69.458\n    }\n  ],\n  \"derived\": {\n    \"recommended_desk_surface_height_cm\": 69.46\n  },\n  \"timestamp\": \"2025-11-19T14:32:10Z\"\n}"
+      },
+      {
+        "role": "user",
+        "content": "Great—please show the checklist with toggles, my current risk level, and the before/after score. Also give exact targets for seat height, armrest height, monitor top height and viewing distance, and what to do since my desk is fixed at 76 cm (keyboard tray vs raising chair + footrest). If you recommend add-ons (lumbar cushion, wrist rest), include size/thickness guidance."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Let me crunch the exact targets for seat and armrest height, the keyboard-tray drop for your fixed desk, and how much to lower the monitor."
+          },
+          {
+            "type": "text",
+            "text": "Here are your exact targets and a checklist you can toggle through. I’ve optimized for your fixed 76 cm desk and current chair.\n\nExact targets\n- Desk/keyboard surface: 69.5 cm ideal for typing (current desk is 76 cm; see two options below)\n- Seat height:\n  - If you add a keyboard tray: keep seat around 46–48 cm (your current 46 cm is fine)\n  - If you keep desk at 76 cm: raise seat to about 52.5 cm and use a footrest\n- Armrest height: about 25 cm above the seat pan; set so forearms are level with the typing surface and shoulders relaxed\n- Monitor top height: lower by about 8–10 cm so the top is at eye level or up to 2 cm below\n- Viewing distance: 60–75 cm for a 27\" monitor (you’re around 66 cm now—good)\n- Wrist support: low-profile gel/foam wrist rest ~5–10 mm tall for keyboard; avoid thick rests that bend wrists up; optional thin mouse rest (3–5 mm) if you tend to hover\n- Lumbar support: cushion depth 3–5 cm placed at mid-lumbar (roughly L3–L4, a hand-width above the beltline)\n\nFixed-desk path (choose one)\n1) Preferred: Install a keyboard tray\n   - Target tray surface: ~69.5 cm (drop about 6.5 cm from the 76 cm desk)\n   - Keep chair near 46–48 cm; add a slim wrist rest if needed\n2) Alternate: Raise chair + add footrest\n   - Raise seat to ~52.5 cm so elbows are ~90–100° at the 76 cm desk\n   - Use a footrest tall enough to keep knees ~90° and feet supported (typically 6–10 cm adjustable)\n\nI set your risk to high due to the tall desk relative to elbow height, monitor top above eye level, and no lumbar support. The checklist prioritizes the biggest risk reducers first.\n"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ErgonomicsChecklistDashboard",
+              "props": {
+                "title": "Home Office Ergonomics Checklist",
+                "checklistItems": [
+                  {
+                    "id": "keyboard-tray-or-chair-footrest",
+                    "label": "Fix desk typing height: add keyboard tray to 69.5 cm OR raise chair to 52.5 cm + footrest",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Tray drop ≈ 6.5 cm from a 76 cm desk. If raising chair, add a 6–10 cm adjustable footrest.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "keyboard-tray-or-chair-footrest"
+                    }
+                  },
+                  {
+                    "id": "monitor-top-at-eye",
+                    "label": "Lower monitor top to eye level (up to 2 cm below)",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Lower by about 8–10 cm from your current position.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "monitor-top-at-eye"
+                    }
+                  },
+                  {
+                    "id": "lumbar-support",
+                    "label": "Add lumbar cushion (3–5 cm depth) at mid-lumbar",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Place around L3–L4, about a hand-width above the beltline.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "lumbar-support"
+                    }
+                  },
+                  {
+                    "id": "armrest-height",
+                    "label": "Set armrests ≈25 cm above seat; support forearms lightly",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Armrests should meet elbow height with shoulders relaxed.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "armrest-height"
+                    }
+                  },
+                  {
+                    "id": "seat-height",
+                    "label": "Set seat height: 46–48 cm with tray, or 52.5 cm if keeping 76 cm desk",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Aim for hips slightly above knees; use footrest if seat is raised.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "seat-height"
+                    }
+                  },
+                  {
+                    "id": "viewing-distance",
+                    "label": "Set viewing distance to 60–75 cm",
+                    "completed": true,
+                    "impact": "low",
+                    "note": "You’re already ~66 cm—within target.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "viewing-distance"
+                    }
+                  },
+                  {
+                    "id": "wrist-rest",
+                    "label": "Use a low-profile wrist rest (5–10 mm) for keyboard",
+                    "completed": false,
+                    "impact": "low",
+                    "note": "Keep wrists neutral; avoid thick rests that cause extension.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "wrist-rest"
+                    }
+                  },
+                  {
+                    "id": "mouse-keyboard-reach",
+                    "label": "Bring keyboard and mouse close to reduce reach",
+                    "completed": false,
+                    "impact": "low",
+                    "note": "Keep elbows near your sides; avoid shoulder protraction.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "mouse-keyboard-reach"
+                    }
+                  }
+                ],
+                "postureRecommendation": {
+                  "summary": "Keep ears over shoulders, shoulders relaxed, elbows ~90–100°, wrists neutral.",
+                  "action": "After adjusting desk/seat, fine-tune armrests so forearms are lightly supported without lifting shoulders.",
+                  "estimatedRiskReduction": 0.3
+                },
+                "deskHeightRecommendation": {
+                  "currentHeightCm": 76,
+                  "recommendedHeightCm": 69.46,
+                  "adjustmentSteps": [
+                    "Preferred: Install a keyboard tray and set its surface to ~69.5 cm (drop ≈ 6.5 cm).",
+                    "Alternate: Keep desk at 76 cm, raise chair to ~52.5 cm, and add a 6–10 cm adjustable footrest.",
+                    "Recheck elbow angle while typing; target 90–100° with shoulders relaxed."
+                  ]
+                },
+                "riskLevel": "high",
+                "scores": {
+                  "before": 60,
+                  "after": 85,
+                  "scaleMax": 100
+                },
+                "applyRecommendationsAction": {
+                  "type": "apply_recommendations"
+                },
+                "displayOptions": {
+                  "showRiskLegend": true,
+                  "showCompletionProgress": true
+                },
+                "infoLinks": {
+                  "postureGuideUrl": "https://www.osha.gov/etools/computer-workstations/components/neutral-posture",
+                  "deskHeightGuideUrl": "https://ergo.human.cornell.edu/ergonomic guidelines.html"
+                },
+                "assessmentDate": "2025-11-19"
+              }
+            }
+          }
+        ],
+        "toolCalls": [
+          {
+            "id": "DI67QS4h7",
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "arguments": "{\"expression\": \"76 + 1.8 - (0.146 * 173)\", \"variables\": {\"desk_height_cm\": 76, \"keyboard_thickness_cm\": 1.8, \"forearm_factor\": 0.146, \"stature_cm\": 173}}"
+            },
+            "tool_executed": true
+          },
+          {
+            "id": "2AqrNFc7s",
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "arguments": "{\"expression\": \"76 - 69.458\", \"variables\": {\"current_desk_cm\": 76, \"recommended_cm\": 69.458}}"
+            },
+            "tool_executed": true
+          },
+          {
+            "id": "lQkjS1CQJ",
+            "type": "function",
+            "function": {
+              "name": "convert_units",
+              "arguments": "{\"value\": 3, \"fromUnit\": \"in\", \"toUnit\": \"cm\"}"
+            },
+            "tool_executed": true
+          },
+          {
+            "id": "3abB0mGT0",
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "arguments": "{\"expression\": \"x + 0 to 2\", \"variables\": {\"x\": 7.62}}"
+            },
+            "tool_executed": true
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should address the user's request completely, including: a checklist with completion toggles, current risk level, before/after score, exact numeric targets for seat height, armrest height, monitor top height, and viewing distance, and clear guidance for a fixed 76 cm desk (keyboard tray vs raising chair + footrest), plus size/thickness guidance for recommended add-ons (lumbar cushion, wrist rest).",
+            "Should provide accurate, ergonomically sound, and internally consistent measurements and recommendations (e.g., units in cm, realistic ranges, coherent relationships between desk, seat, armrests, and elbow angles).",
+            "Should clearly present two fixed-desk paths: preferred keyboard tray with specific drop/target height, and alternate raise-chair plus footrest with specific seat height and footrest range, including when to use each and how to verify elbow angle.",
+            "Should include actionable checklist items with clear labels, impact levels, optional notes, and toggle actions, covering desk typing height, monitor top height, lumbar support, armrest height, seat height, viewing distance, wrist rest use, and keyboard/mouse reach.",
+            "Should include a visible risk level indicator with an appropriate qualitative label and a rationale-focused posture recommendation card with a concise summary, action step, and estimated risk reduction.",
+            "Should include a desk height recommendation card containing the current desk height in cm, a specific recommended typing surface height in cm, and step-by-step adjustment guidance that aligns with the fixed-desk options.",
+            "Should include before/after scores on a defined scale with scale max; scores should be numeric and plausible given the recommendations.",
+            "Should use the specified UI component to display the checklist and related cards, with valid and well-formed component props (e.g., title, checklistItems with unique ids and toggleAction objects, postureRecommendation, deskHeightRecommendation, riskLevel, scores, actions, display options, info links, ISO-formatted assessment date).",
+            "Should ensure all action identifiers and item ids are consistent and uniquely referenceable for toggling and applying recommendations.",
+            "Should provide add-on size guidance that is specific and practical (e.g., lumbar cushion depth in cm, wrist rest thickness in mm) and avoid prescriptive medical claims.",
+            "Should include properly formatted informational links relevant to ergonomics guidance and neutral posture, using valid URL strings.",
+            "Should present concise text blocks that are easy to scan, avoiding unnecessary formatting and jargon, and aligning with the expected visual layout."
+          ],
+          "expected_components": [
+            "ErgonomicsChecklistDashboard"
+          ]
+        }
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "DI67QS4h7",
+        "content": "{\n  \"expression\": \"76 + 1.8 - (0.146 * 173)\",\n  \"variables\": {\n    \"desk_height_cm\": 76,\n    \"keyboard_thickness_cm\": 1.8,\n    \"forearm_factor\": 0.146,\n    \"stature_cm\": 173\n  },\n  \"steps\": [\n    \"keyboard_surface_height = 76 + 1.8 = 77.8 cm\",\n    \"forearm_to_elbow_height = 0.146 * 173 = 25.258 cm\",\n    \"target_seat_height = 77.8 - 25.258 = 52.542 cm\"\n  ],\n  \"result\": 52.542,\n  \"result_rounded_cm\": 52.5,\n  \"units\": \"cm\",\n  \"precision\": 0.001,\n  \"interpretation\": \"Target seat height for elbows ~90–100° at a 76 cm desk with 1.8 cm keyboard thickness for a 173 cm user.\",\n  \"timestamp\": \"2025-11-19T10:15:00Z\"\n}"
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "2AqrNFc7s",
+        "content": "{\n  \"expression\": \"76 - 69.458\",\n  \"variables\": {\n    \"current_desk_cm\": 76,\n    \"recommended_cm\": 69.458\n  },\n  \"steps\": [\n    \"difference = current_desk_cm - recommended_cm\",\n    \"difference = 76 - 69.458 = 6.542 cm\"\n  ],\n  \"result\": 6.542,\n  \"result_rounded_cm\": 6.5,\n  \"units\": \"cm\",\n  \"precision\": 0.001,\n  \"interpretation\": \"Desk/tray needs a drop of approximately 6.5 cm from the current 76 cm surface to reach the recommended 69.458 cm keyboard height.\",\n  \"timestamp\": \"2025-11-19T10:22:00Z\"\n}"
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "lQkjS1CQJ",
+        "content": "{\n  \"data\": {\n    \"value\": 3,\n    \"fromUnit\": \"in\",\n    \"toUnit\": \"cm\",\n    \"result\": 7.62,\n    \"resultRounded\": 7.6,\n    \"conversionFactor\": 2.54,\n    \"precision\": 0.01,\n    \"timestamp\": \"2025-11-19T10:25:00Z\",\n    \"context\": \"3 inches (e.g., typical keyboard tray drop) equals 7.62 cm\"\n  }\n}"
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "3abB0mGT0",
+        "content": "{\n  \"expression\": \"x + 0 to 2\",\n  \"variables\": {\n    \"x\": 7.62\n  },\n  \"assumptions\": {\n    \"units\": \"cm\",\n    \"rangeAddition\": \"Inclusive range from adding 0 to 2 cm\"\n  },\n  \"steps\": [\n    \"Given x = 7.62 cm\",\n    \"Lower bound: 7.62 + 0 = 7.62 cm\",\n    \"Upper bound: 7.62 + 2 = 9.62 cm\",\n    \"Midpoint: (7.62 + 9.62) / 2 = 8.62 cm\",\n    \"Span: 9.62 - 7.62 = 2.00 cm\"\n  ],\n  \"result_min\": 7.62,\n  \"result_max\": 9.62,\n  \"result_mid\": 8.62,\n  \"result_range\": [\n    7.62,\n    9.62\n  ],\n  \"resultRounded\": {\n    \"min\": 7.6,\n    \"max\": 9.6,\n    \"mid\": 8.6\n  },\n  \"units\": \"cm\",\n  \"precision\": 0.01,\n  \"context\": {\n    \"reference_needed_drop_cm\": 6.5,\n    \"overdrop_vs_needed_min_cm\": 1.12,\n    \"overdrop_vs_needed_max_cm\": 3.12\n  },\n  \"interpretation\": \"Adding 0–2 cm to a 7.62 cm (3 in) tray drop yields a total drop of 7.62–9.62 cm, which exceeds the recommended 6.5 cm drop by 1.12–3.12 cm.\",\n  \"timestamp\": \"2025-11-19T10:27:00Z\"\n}"
+      },
+      {
+        "role": "user",
+        "content": "I’ll go with the keyboard tray path—please show the interactive checklist with toggles plus my numeric risk level and before/after scores. Can you recommend a tray that gets me ~6.5 cm drop (mount type, rail length, min under‑desk clearance), a 3–5 cm lumbar cushion, and low-profile wrist rests, and confirm exactly how to lower the monitor (VESA arm vs adjusting stand)? Also, if a common 3\" drop tray over-shoots, how do I shim it up to hit 69.5 cm?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great choice going with the keyboard tray. Below is your interactive checklist plus your current risk and projected improvement. After the component, I’ve included specific gear/spec recommendations and how to shim a 3\" tray to hit 69.5 cm exactly.\n\nRecommended hardware/specs\n- Keyboard tray (target ~6.5 cm drop):\n  - Mount type: Under‑desk slide/rail tray with adjustable vertical spacers or an articulating mechanism that can be set to a fixed drop. Prefer a low‑profile track so knees have room.\n  - Rail/track length: 45–55 cm (18–22 in) lets the tray fully retract under most desks and clears crossbars.\n  - Min under‑desk clearance needed: At least 7–8 cm clear behind the desk front edge to fit the track and allow tray movement; avoid crossbars/brackets in the first 50 cm under the desktop. Tray thickness ≤ 2.5 cm helps knee clearance.\n  - Vertical adjustability: Choose a tray with at least ±2 cm fine height adjustment or use 5–12 mm spacers/shims so you can tune drop precisely.\n- Lumbar cushion: 3–5 cm thickness, medium‑firm. Target a cushion that fills the natural curve at L3–L5 without pushing your hips forward. Strap‑mounted cushions hold position; breathable mesh or memory foam are comfortable for long sessions.\n- Wrist rests (low-profile): 5–10 mm tall, gel or foam, separate pieces for keyboard and mouse so they don’t force wrist extension. Goal: wrists neutral, not pitched up.\n- Monitor lowering: \n  - If your stand is height‑adjustable and can bring the top of the screen to eye level (or slightly below), use the stand first—it’s simplest and stable.\n  - If the stand can’t go low enough or you want finer control/arm reach, use a VESA arm. Set the top bezel around eye height; tilt the screen 10–20° back to avoid chin tuck.\n\nHow to shim a 3\" (7.62 cm) drop tray to hit 69.5 cm\n- Your target drop is ~6.5 cm. A 3\" tray drops 7.62 cm, which overshoots by about 1.1 cm.\n- Solution: Raise the keyboard platform relative to the tray bracket using spacers between the platform and the mounting plate.\n  1) Measure: With the tray installed, measure the home‑row key height. If it’s 68.4 cm, you need +1.1 cm lift to reach 69.5 cm.\n  2) Shim pack: Use nylon spacers or stacked rubber washers totaling 10–12 mm. Common stacks: 2 × 5 mm + 1 × 2 mm. Start with 10 mm; test; add 1–2 mm if needed.\n  3) Hardware: Use longer machine screws to maintain ≥ 6 full thread turns of engagement after adding spacers. Add thread‑locker (medium strength) to prevent loosening.\n  4) Fine‑tune with tilt: After shimming, set slight negative tilt (−5° to −10°) so wrists stay neutral.\n  5) Re‑check: Sit with elbows ~90–100° and confirm home‑row height ≈ 69.5 cm.\n\nSafety/fit notes\n- Ensure at least 2–3 cm clearance above your thighs with the tray in typing position. If tight, raise chair slightly and add a footrest.\n- Keep the mouse on the same surface level as the keyboard and close to your shoulder line.\n\nWant me to source example products that match these specs? I can list options by price range."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ErgonomicsChecklistDashboard",
+              "props": {
+                "title": "Home Office Ergonomics Checklist",
+                "checklistItems": [
+                  {
+                    "id": "tray-install-6p5cm",
+                    "label": "Install keyboard tray for ~6.5 cm drop (target 69.5 cm home-row)",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Use spacers for fine-tuning ±2 mm; set slight negative tilt (−5° to −10°).",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "tray-install-6p5cm"
+                    }
+                  },
+                  {
+                    "id": "monitor-eye-level",
+                    "label": "Set monitor top at eye level (stand adjustment or VESA arm)",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Tilt screen back 10–20°; center directly in front of you.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "monitor-eye-level"
+                    }
+                  },
+                  {
+                    "id": "lumbar-3-5cm",
+                    "label": "Add 3–5 cm lumbar cushion (medium-firm)",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Place at mid-lumbar (L3–L5); hips slightly above knees.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "lumbar-3-5cm"
+                    }
+                  },
+                  {
+                    "id": "wrist-rests-low-profile",
+                    "label": "Use low-profile wrist rests (5–10 mm) for keyboard and mouse",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Rest palms lightly; avoid wrist extension.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "wrist-rests-low-profile"
+                    }
+                  },
+                  {
+                    "id": "chair-elbows-90",
+                    "label": "Adjust chair so elbows are ~90–100° when typing",
+                    "completed": false,
+                    "impact": "high",
+                    "note": "Forearms parallel; shoulders relaxed; armrests support forearms.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "chair-elbows-90"
+                    }
+                  },
+                  {
+                    "id": "feet-flat-footrest",
+                    "label": "Keep feet flat (add footrest if seat height increases)",
+                    "completed": false,
+                    "impact": "moderate",
+                    "note": "Aim for 90°–100° at knees; avoid seat edge pressure.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "feet-flat-footrest"
+                    }
+                  },
+                  {
+                    "id": "mouse-close",
+                    "label": "Position mouse next to keyboard, close to body line",
+                    "completed": false,
+                    "impact": "low",
+                    "note": "Minimize shoulder abduction; keep wrist neutral.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "mouse-close"
+                    }
+                  },
+                  {
+                    "id": "microbreaks",
+                    "label": "Take 30–60 second microbreaks every 30 minutes",
+                    "completed": false,
+                    "impact": "low",
+                    "note": "Stand, roll shoulders, look 20 ft away for 20 s.",
+                    "toggleAction": {
+                      "type": "toggle_checklist_item",
+                      "itemId": "microbreaks"
+                    }
+                  }
+                ],
+                "postureRecommendation": {
+                  "summary": "Ears over shoulders, shoulders relaxed; elbows ~90–100° with forearms supported; wrists neutral; hips slightly above knees.",
+                  "action": "Raise chair to set elbow angle, add footrest if feet lift; adjust armrests to just touch forearms without lifting shoulders.",
+                  "estimatedRiskReduction": 0.32
+                },
+                "deskHeightRecommendation": {
+                  "currentHeightCm": 76,
+                  "recommendedHeightCm": 69.5,
+                  "adjustmentSteps": [
+                    "Install under-desk tray set for ~6.5 cm drop (target home-row 69.5 cm).",
+                    "If using a 3\" (7.62 cm) tray, add ~10–12 mm spacers between platform and bracket to raise to target.",
+                    "Set slight negative tilt (−5° to −10°) and center keyboard to body.",
+                    "Re-check elbow angle and wrist neutrality while typing."
+                  ],
+                  "referenceUrl": "https://example.com/desk-height-guide"
+                },
+                "riskLevel": "moderate",
+                "scores": {
+                  "before": 62,
+                  "after": 85,
+                  "scaleMax": 100
+                },
+                "applyRecommendationsAction": {
+                  "type": "apply_recommendations"
+                },
+                "displayOptions": {
+                  "showRiskLegend": true,
+                  "showCompletionProgress": true
+                },
+                "infoLinks": {
+                  "postureGuideUrl": "https://example.com/posture-guide",
+                  "deskHeightGuideUrl": "https://example.com/desk-height-guide"
+                },
+                "assessmentDate": "2025-11-19"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present an interactive ergonomics checklist with individual items that include clear labels, notes, and toggle actions to mark completion",
+            "Should display the user's numeric risk level and before/after scores, including the scoring scale or context",
+            "Should provide concrete product-spec recommendations for the keyboard tray to achieve ~6.5 cm drop, including mount type, rail/track length range, and minimum under-desk clearance",
+            "Should recommend a 3–5 cm lumbar cushion with firmness guidance and placement instructions",
+            "Should recommend low-profile wrist rests with height range and usage guidance to maintain neutral wrists",
+            "Should clearly explain how to lower the monitor, specifying when to adjust the existing stand versus when to use a VESA arm, and give target screen height and tilt guidance",
+            "Should include a precise, step-by-step method to shim a common 3\" drop tray to reach a 69.5 cm home-row height, including spacer thickness ranges, hardware considerations (longer screws, thread engagement, thread-locker), and verification steps",
+            "Should include posture and desk height recommendations that align with ergonomic best practices (e.g., elbow angle ~90–100°, wrists neutral, slight negative keyboard tilt)",
+            "Should ensure unit consistency and clarity (centimeters/millimeters with inch equivalents where used) and accurate conversions",
+            "Should avoid unsafe or impractical advice and include relevant fit/safety notes (e.g., knee/thigh clearance, mouse at same level as keyboard)",
+            "Should use the specified UI component(s) to display the checklist, risk level, scores, and recommendations in a structured, user-friendly layout matching the scenario context",
+            "Should wire interactive elements with appropriate action payloads (e.g., toggle actions referencing item IDs) suitable for the host app to handle state changes",
+            "Should include timestamps or assessment date metadata where appropriate for the dashboard",
+            "Should not fabricate external references; if links are included, they should be clearly identified as examples or verified sources",
+            "Should adhere to formatting guidance by keeping text concise and scannable without heavy markup unless requested",
+            "Should call tools or external actions only if the request requires data fetching, computation, or side effects; otherwise, provide all information inline"
+          ],
+          "expected_components": [
+            "ErgonomicsChecklistDashboard"
+          ]
+        }
+      }
+    ];
+
+    // Components
+
+    const Badge = ({ color = 'gray', children }) => {
+      const colorMap = {
+        green: 'bg-green-100 text-green-800 ring-green-200',
+        yellow: 'bg-yellow-100 text-yellow-800 ring-yellow-200',
+        red: 'bg-red-100 text-red-800 ring-red-200',
+        blue: 'bg-blue-100 text-blue-800 ring-blue-200',
+        gray: 'bg-gray-100 text-gray-800 ring-gray-200',
+        slate: 'bg-slate-100 text-slate-800 ring-slate-200',
+        violet: 'bg-violet-100 text-violet-800 ring-violet-200',
+      };
+      const cls = colorMap[color] || colorMap.gray;
+      return <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ring-1 ring-inset ${cls}`}>{children}</span>;
+    };
+
+    const SectionTitle = ({ title, right }) => (
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
+        <div>{right}</div>
+      </div>
+    );
+
+    const ProgressBar = ({ value = 0 }) => (
+      <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+        <div className="h-2 bg-emerald-500" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
+      </div>
+    );
+
+    const ImprovementScoreBadge = (props) => {
+      const { beforeScore = 0, afterScore = 0, delta = (afterScore - beforeScore), status = delta > 0 ? 'improved' : delta < 0 ? 'worse' : 'unchanged', viewBreakdownAction = {} } = props;
+      const color = status === 'improved' ? 'green' : status === 'worse' ? 'red' : 'gray';
+      const arrow = status === 'improved' ? '▲' : status === 'worse' ? '▼' : '■';
+      const handleClick = () => {
+        if (typeof viewBreakdownAction?.callback === 'function') {
+          viewBreakdownAction.callback({ beforeScore, afterScore, delta, status });
+        } else {
+          console.log('View breakdown', { beforeScore, afterScore, delta, status });
+          alert(`Before: ${beforeScore}\nAfter: ${afterScore}\nDelta: ${delta.toFixed(1)} (${status})`);
+        }
+      };
+      return (
+        <div className="inline-flex items-center gap-2">
+          <Badge color={color}>{status}</Badge>
+          <button onClick={handleClick} className="text-xs text-slate-600 hover:text-slate-900 underline decoration-dotted">
+            {arrow} {delta >= 0 ? '+' : ''}{delta.toFixed(1)}
+          </button>
+        </div>
+      );
+    };
+
+    const RiskLevelIndicator = (props) => {
+      const { level = { label: 'moderate' }, rationale = '', hotspots = {}, viewDetailsAction = {}, isLoading = false } = props;
+      const label = typeof level === 'string' ? level : (level?.label || 'moderate');
+      const riskMap = { low: { color: 'green', n: 1 }, moderate: { color: 'yellow', n: 2 }, high: { color: 'red', n: 3 } };
+      const m = riskMap[label] || riskMap.moderate;
+      if (isLoading) {
+        return <div className="p-4 bg-white rounded-lg shadow-sm animate-pulse"><div className="h-4 bg-slate-100 rounded w-1/3 mb-2"></div><div className="h-3 bg-slate-100 rounded w-2/3"></div></div>;
+      }
+      const handleClick = () => {
+        if (typeof viewDetailsAction?.callback === 'function') {
+          viewDetailsAction.callback({ level: label, rationale, hotspots });
+        } else {
+          alert(`Risk: ${label.toUpperCase()} (${m.n}/3)\n${rationale || 'No rationale provided.'}`);
+        }
+      };
+      const hotspotKeys = Object.keys(hotspots || {});
+      return (
+        <div className="w-full bg-white rounded-lg shadow-sm p-4 border border-slate-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Badge color={m.color}>Risk: {label} ({m.n}/3)</Badge>
+            </div>
+            <button onClick={handleClick} className="text-sm text-slate-600 hover:text-slate-900 underline decoration-dotted">View details</button>
+          </div>
+          {rationale ? <p className="mt-2 text-sm text-slate-700">{rationale}</p> : null}
+          {hotspotKeys.length ? (
+            <div className="mt-2">
+              <SectionTitle title="Hotspots" />
+              <ul className="text-sm text-slate-700 list-disc pl-5">
+                {hotspotKeys.map(k => <li key={k}><span className="font-medium">{k}:</span> {String(hotspots[k])}</li>)}
+              </ul>
+            </div>
+          ) : null}
+        </div>
+      );
+    };
+
+    const PostureRecommendationCard = (props) => {
+      const {
+        id = 'posture-default',
+        title = 'Posture Recommendation',
+        postureType = 'sitting',
+        summary = '',
+        keyCues = [],
+        recommendedActions = [],
+        estimatedRiskReduction = 0,
+        imageUrl = '',
+        onMarkUnderstoodAction = {},
+        showRiskGauge = true
+      } = props;
+
+      const handleUnderstood = () => {
+        if (typeof onMarkUnderstoodAction?.callback === 'function') {
+          onMarkUnderstoodAction.callback({ id, understood: true });
+        } else {
+          alert('Marked as understood');
+        }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-lg shadow-sm p-4 border border-slate-100">
+          <div className="flex items-start gap-3">
+            {imageUrl ? <img src={imageUrl} alt="posture" className="w-20 h-20 rounded object-cover hidden sm:block" /> : null}
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+                <Badge color="blue">{postureType}</Badge>
+              </div>
+              {summary ? <p className="mt-1 text-sm text-slate-700">{summary}</p> : null}
+              {Array.isArray(keyCues) && keyCues.length ? (
+                <div className="mt-2">
+                  <SectionTitle title="Key cues" />
+                  <ul className="list-disc pl-5 text-sm text-slate-700">
+                    {keyCues.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+              {Array.isArray(recommendedActions) && recommendedActions.length ? (
+                <div className="mt-2">
+                  <SectionTitle title="Actions" />
+                  <ul className="list-disc pl-5 text-sm text-slate-700">
+                    {recommendedActions.map((c, i) => <li key={i}>{c}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+              <div className="mt-3 flex items-center justify-between">
+                {showRiskGauge ? (
+                  <div className="text-xs text-slate-600">
+                    Estimated risk reduction: <span className="font-semibold text-slate-800">{(estimatedRiskReduction * 100).toFixed(0)}%</span>
+                  </div>
+                ) : <span />}
+                <button onClick={handleUnderstood} className="text-sm px-3 py-1.5 bg-slate-900 text-white rounded hover:bg-slate-700">Got it</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const DeskHeightCalculatorCard = (props) => {
+      const {
+        id = '',
+        name = '',
+        title = 'Desk Height Calculator',
+        imageUrl = '',
+        currentDeskHeightCm = 0,
+        recommendedDeskHeightCm = 0,
+        userMetrics = {},
+        adjustmentSteps = [],
+        description = '',
+        onRecalculateAction = {},
+        units = { length: 'cm', keyboardThickness: 'mm' }
+      } = props;
+
+      const [metrics, setMetrics] = useState({
+        heightCm: Number(userMetrics?.heightCm ?? 170),
+        chairSeatHeightCm: Number(userMetrics?.chairSeatHeightCm ?? 45),
+        keyboardThicknessMm: Number(userMetrics?.keyboardThicknessMm ?? 18)
+      });
+      const [recommended, setRecommended] = useState(Number(recommendedDeskHeightCm || 0));
+
+      const computeRecommended = useCallback((m) => {
+        const kbdCm = Number(m.keyboardThicknessMm || 0) / 10; // mm to cm
+        // Simple anthropometric approx for elbow height from seat: 0.146 * stature
+        const elbowFromSeat = Number(m.heightCm || 0) * 0.146;
+        const target = Number(m.chairSeatHeightCm || 0) + elbowFromSeat - kbdCm;
+        return Math.round(target * 10) / 10;
+      }, []);
+
+      const handleChange = (field, value) => {
+        const v = Number(value);
+        const next = { ...metrics, [field]: v };
+        setMetrics(next);
+      };
+
+      const handleRecalculate = () => {
+        const calc = computeRecommended(metrics);
+        setRecommended(calc);
+        if (typeof onRecalculateAction?.callback === 'function') {
+          onRecalculateAction.callback({ id, name, userMetrics: metrics, recommendedDeskHeightCm: calc });
+        } else {
+          console.log('Recalculate', { metrics, calc });
+        }
+      };
+
+      const delta = (recommended || 0) - (currentDeskHeightCm || 0);
+
+      return (
+        <div className="w-full bg-white rounded-lg shadow-sm border border-slate-100 p-4">
+          <div className="flex items-start gap-4">
+            {imageUrl ? <img src={imageUrl} alt="desk" className="w-24 h-24 rounded object-cover hidden sm:block" /> : null}
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-semibold text-slate-900">{title}</h3>
+                <Badge color={delta === 0 ? 'gray' : delta < 0 ? 'green' : 'yellow'}>
+                  {delta === 0 ? 'On target' : delta < 0 ? `Lower by ${Math.abs(delta).toFixed(1)} cm` : `Raise by ${Math.abs(delta).toFixed(1)} cm`}
+                </Badge>
+              </div>
+              {description ? <p className="mt-1 text-sm text-slate-700">{description}</p> : null}
+
+              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs text-slate-600">Stature ({units.length})</label>
+                  <input type="number" value={metrics.heightCm} onChange={(e) => handleChange('heightCm', e.target.value)} className="mt-1 w-full rounded border-slate-200 focus:ring-slate-400 focus:border-slate-400"/>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600">Chair seat height ({units.length})</label>
+                  <input type="number" value={metrics.chairSeatHeightCm} onChange={(e) => handleChange('chairSeatHeightCm', e.target.value)} className="mt-1 w-full rounded border-slate-200 focus:ring-slate-400 focus:border-slate-400"/>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-600">Keyboard thickness ({units.keyboardThickness})</label>
+                  <input type="number" value={metrics.keyboardThicknessMm} onChange={(e) => handleChange('keyboardThicknessMm', e.target.value)} className="mt-1 w-full rounded border-slate-200 focus:ring-slate-400 focus:border-slate-400"/>
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="p-3 rounded border border-slate-100 bg-slate-50">
+                  <div className="text-xs text-slate-600">Current desk height</div>
+                  <div className="text-base font-semibold text-slate-900">{Number(currentDeskHeightCm).toFixed(1)} cm</div>
+                </div>
+                <div className="p-3 rounded border border-slate-100 bg-slate-50">
+                  <div className="text-xs text-slate-600">Recommended (calc)</div>
+                  <div className="text-base font-semibold text-slate-900">{Number(recommended || recommendedDeskHeightCm).toFixed(1)} cm</div>
+                </div>
+                <div className="p-3 rounded border border-slate-100 bg-slate-50">
+                  <div className="text-xs text-slate-600">Difference</div>
+                  <div className="text-base font-semibold text-slate-900">{delta.toFixed(1)} cm</div>
+                </div>
+              </div>
+
+              {Array.isArray(adjustmentSteps) && adjustmentSteps.length ? (
+                <div className="mt-4">
+                  <SectionTitle title="Adjustment steps" />
+                  <ol className="list-decimal pl-5 text-sm text-slate-700 space-y-1">
+                    {adjustmentSteps.map((s, i) => <li key={i}>{s}</li>)}
+                  </ol>
+                </div>
+              ) : null}
+
+              <div className="mt-4">
+                <button onClick={handleRecalculate} className="px-3 py-1.5 bg-slate-900 text-white rounded hover:bg-slate-700">
+                  Recalculate
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ErgonomicsChecklistDashboard = (props) => {
+      const {
+        title = 'Ergonomics Checklist',
+        checklistItems = [],
+        postureRecommendation = {},
+        deskHeightRecommendation = {},
+        riskLevel = 'moderate',
+        scores = {},
+        applyRecommendationsAction = {},
+        displayOptions = {},
+        infoLinks = {},
+        assessmentDate = ''
+      } = props;
+
+      const [items, setItems] = useState(Array.isArray(checklistItems) ? checklistItems : []);
+      const [applied, setApplied] = useState(false);
+
+      const completeCount = useMemo(() => items.filter(i => i?.completed).length, [items]);
+      const pct = useMemo(() => items.length ? Math.round((completeCount / items.length) * 100) : 0, [completeCount, items.length]);
+
+      const riskMap = { low: { color: 'green', n: 1 }, moderate: { color: 'yellow', n: 2 }, high: { color: 'red', n: 3 } };
+      const risk = riskMap[riskLevel] || riskMap.moderate;
+
+      const scaleMax = Number(scores?.scaleMax ?? 100);
+      const beforeScore = Number(scores?.before ?? 0);
+      const afterScore = Number(scores?.after ?? 0);
+      const delta = afterScore - beforeScore;
+      const status = delta > 0 ? 'improved' : delta < 0 ? 'worse' : 'unchanged';
+
+      const toggleItem = (id) => {
+        setItems(prev => prev.map(it => {
+          if (it.id === id) {
+            const next = { ...it, completed: !it.completed };
+            if (typeof it?.toggleAction?.callback === 'function') {
+              it.toggleAction.callback(next);
+            }
+            return next;
+          }
+          return it;
+        }));
+      };
+
+      const applyAll = () => {
+        setApplied(true);
+        if (typeof applyRecommendationsAction?.callback === 'function') {
+          applyRecommendationsAction.callback({ items });
+        }
+        setTimeout(() => setApplied(false), 2000);
+      };
+
+      const formatDate = (d) => {
+        if (!d) return '';
+        try {
+          const dt = new Date(d);
+          return dt.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch {
+          return String(d);
+        }
+      };
+
+      const safeUrl = (u) => {
+        if (!u || typeof u !== 'string') return null;
+        return u.replace(/\s+/g, '%20');
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
+              {assessmentDate ? <p className="text-xs text-slate-500">Assessed: {formatDate(assessmentDate)}</p> : null}
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge color={risk.color}>Risk: {riskLevel} ({risk.n}/3)</Badge>
+              <ImprovementScoreBadge beforeScore={beforeScore} afterScore={afterScore} delta={delta} status={status} />
+            </div>
+          </div>
+
+          {displayOptions?.showCompletionProgress ? (
+            <div className="mt-4">
+              <SectionTitle title={`Progress (${completeCount}/${items.length})`} right={<span className="text-xs text-slate-600">{pct}%</span>} />
+              <ProgressBar value={pct} />
+            </div>
+          ) : null}
+
+          <div className="mt-4">
+            <SectionTitle title="Checklist" />
+            {items.length === 0 ? (
+              <p className="text-sm text-slate-600">No checklist items.</p>
+            ) : (
+              <ul className="divide-y divide-slate-100">
+                {items.map((it) => {
+                  const impactColor = it.impact === 'high' ? 'red' : it.impact === 'moderate' ? 'yellow' : 'gray';
+                  return (
+                    <li key={it.id} className="py-3 flex items-start gap-3">
+                      <button
+                        onClick={() => toggleItem(it.id)}
+                        className={`mt-0.5 h-5 w-5 rounded border ${it.completed ? 'bg-emerald-500 border-emerald-600' : 'bg-white border-slate-300'} flex items-center justify-center shadow-sm`}
+                        aria-label={`Toggle ${it.label}`}
+                        title="Toggle"
+                      >
+                        {it.completed ? <span className="text-white text-xs">✓</span> : null}
+                      </button>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className={`text-sm ${it.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>{it.label}</p>
+                          <Badge color={impactColor}>{it.impact || 'n/a'}</Badge>
+                        </div>
+                        {it.note ? <p className="mt-1 text-xs text-slate-600">{it.note}</p> : null}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div className="mt-5 grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="bg-slate-50 rounded-lg border border-slate-100 p-4">
+              <SectionTitle title="Posture recommendation" />
+              <p className="text-sm text-slate-800">{postureRecommendation?.summary || 'Keep neutral posture while working.'}</p>
+              {postureRecommendation?.action ? <p className="mt-2 text-sm text-slate-700"><span className="font-medium">Action: </span>{postureRecommendation.action}</p> : null}
+              {typeof postureRecommendation?.estimatedRiskReduction === 'number' ? (
+                <p className="mt-2 text-xs text-slate-600">Estimated risk reduction: {(postureRecommendation.estimatedRiskReduction * 100).toFixed(0)}%</p>
+              ) : null}
+            </div>
+
+            <div className="bg-slate-50 rounded-lg border border-slate-100 p-4">
+              <SectionTitle title="Desk height recommendation" />
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <div className="text-xs text-slate-600">Current</div>
+                  <div className="text-base font-semibold text-slate-900">{Number(deskHeightRecommendation?.currentHeightCm ?? 0).toFixed(1)} cm</div>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-600">Recommended</div>
+                  <div className="text-base font-semibold text-slate-900">{Number(deskHeightRecommendation?.recommendedHeightCm ?? 0).toFixed(1)} cm</div>
+                </div>
+                <div>
+                  <div className="text-xs text-slate-600">Delta</div>
+                  <div className="text-base font-semibold text-slate-900">{((deskHeightRecommendation?.recommendedHeightCm ?? 0) - (deskHeightRecommendation?.currentHeightCm ?? 0)).toFixed(1)} cm</div>
+                </div>
+              </div>
+              {Array.isArray(deskHeightRecommendation?.adjustmentSteps) && deskHeightRecommendation.adjustmentSteps.length ? (
+                <ol className="mt-3 list-decimal pl-5 text-sm text-slate-700 space-y-1">
+                  {deskHeightRecommendation.adjustmentSteps.map((s, i) => <li key={i}>{s}</li>)}
+                </ol>
+              ) : null}
+              {deskHeightRecommendation?.referenceUrl ? (
+                <a className="mt-2 inline-flex text-xs text-slate-600 hover:text-slate-900 underline decoration-dotted" target="_blank" rel="noopener noreferrer" href={safeUrl(deskHeightRecommendation.referenceUrl)}>
+                  Reference
+                </a>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-5 flex items-center justify-between">
+            <div className="text-xs text-slate-600">
+              Score: <span className="font-semibold text-slate-800">{beforeScore}</span> → <span className="font-semibold text-slate-800">{afterScore}</span> / {scaleMax}
+            </div>
+            <button onClick={applyAll} className="px-3 py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700">
+              Apply recommendations
+            </button>
+          </div>
+
+          {displayOptions?.showRiskLegend ? (
+            <div className="mt-4 text-xs text-slate-500">
+              Risk legend: <Badge color="green">low</Badge> <Badge color="yellow">moderate</Badge> <Badge color="red">high</Badge>
+            </div>
+          ) : null}
+
+          {(infoLinks?.postureGuideUrl || infoLinks?.deskHeightGuideUrl) ? (
+            <div className="mt-4 text-xs">
+              <span className="text-slate-600 mr-2">Info:</span>
+              {infoLinks?.postureGuideUrl ? <a className="text-slate-700 hover:text-slate-900 underline decoration-dotted mr-3" target="_blank" rel="noopener noreferrer" href={safeUrl(infoLinks.postureGuideUrl)}>Posture guide</a> : null}
+              {infoLinks?.deskHeightGuideUrl ? <a className="text-slate-700 hover:text-slate-900 underline decoration-dotted" target="_blank" rel="noopener noreferrer" href={safeUrl(infoLinks.deskHeightGuideUrl)}>Desk height guide</a> : null}
+            </div>
+          ) : null}
+
+          {applied ? (
+            <div className="mt-3 p-2 text-xs bg-emerald-50 text-emerald-800 rounded border border-emerald-200">
+              Recommendations applied locally. Use toggles to track completion.
+            </div>
+          ) : null}
+        </div>
+      );
+    };
+
+    const ComponentRegistry = {
+      ErgonomicsChecklistDashboard: ErgonomicsChecklistDashboard,
+      PostureRecommendationCard: PostureRecommendationCard,
+      DeskHeightCalculatorCard: DeskHeightCalculatorCard,
+      RiskLevelIndicator: RiskLevelIndicator,
+      ImprovementScoreBadge: ImprovementScoreBadge
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <p className="text-sm text-slate-800 whitespace-pre-wrap">{chunk}</p>;
+      }
+      if (chunk.type === 'text') {
+        return <p className="text-sm text-slate-800 whitespace-pre-wrap">{chunk.text}</p>;
+      }
+      if (chunk.type === 'component') {
+        const { component } = chunk;
+        return (
+          <div className="mt-3">
+            <ComponentRenderer componentName={component?.name} props={component?.props || {}} />
+          </div>
+        );
+      }
+      return <pre className="text-xs text-slate-600 bg-slate-50 p-2 rounded border border-slate-100 overflow-x-auto">{JSON.stringify(chunk, null, 2)}</pre>;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const isAssistant = role === 'assistant';
+      const isTool = role === 'tool';
+
+      const bubbleClasses = isUser
+        ? 'bg-blue-50 border-blue-100'
+        : isAssistant
+        ? 'bg-white border-slate-100'
+        : 'bg-slate-50 border-slate-200';
+
+      const align = isUser ? 'items-end' : 'items-start';
+      const name = isUser ? 'You' : isAssistant ? 'Assistant' : 'Tool';
+
+      let chunks = [];
+      if (Array.isArray(content)) {
+        chunks = content;
+      } else if (typeof content === 'string') {
+        chunks = [{ type: 'text', text: content }];
+      } else {
+        chunks = [{ type: 'text', text: String(content) }];
+      }
+
+      return (
+        <div className={`w-full flex ${align} my-3`}>
+          <div className={`max-w-3xl w-full rounded-xl border shadow-sm p-4 ${bubbleClasses}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs font-semibold ${isUser ? 'bg-blue-600 text-white' : isAssistant ? 'bg-slate-900 text-white' : 'bg-slate-400 text-white'}`}>
+                  {name.slice(0,1)}
+                </div>
+                <span className="text-xs font-medium text-slate-700">{name}</span>
+              </div>
+            </div>
+            <div className="space-y-3">
+              {chunks.map((ch, idx) => <ContentChunkRenderer key={idx} chunk={ch} />)}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen flex flex-col">
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <h1 className="text-base font-semibold text-slate-900">Conversation Viewer</h1>
+              <div className="text-xs text-slate-600">React • Tailwind • Interactive Components</div>
+            </div>
+          </header>
+          <main className="flex-1">
+            <div className="max-w-5xl mx-auto px-4 py-6">
+              {Array.isArray(conversation) && conversation.length ? (
+                conversation.map((msg, i) => {
+                  // Skip grading_guidance in rendering
+                  return <MessageBubble key={i} role={msg.role} content={msg.content} />;
+                })
+              ) : (
+                <div className="p-6 bg-white rounded-xl shadow-sm border border-slate-100">
+                  <p className="text-sm text-slate-700">No conversation available.</p>
+                </div>
+              )}
+            </div>
+          </main>
+          <footer className="border-t border-slate-200">
+            <div className="max-w-5xl mx-auto px-4 py-3 text-xs text-slate-500">
+              Tips: Toggle checklist items to track progress. Use the calculator to adjust recommended desk height based on your measurements. Guidance here is general ergonomics advice and not medical instruction.
+            </div>
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

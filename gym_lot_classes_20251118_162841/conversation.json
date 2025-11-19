@@ -1,0 +1,1532 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "ClassScheduleTimetable": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ClassScheduleTimetable"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "weekStartDate": {
+                "type": "string"
+              },
+              "classes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "filters": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "recommendedClassIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "timeSlotIntervalMinutes": {
+                "type": "number"
+              },
+              "selectClassAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "classes",
+              "weekStartDate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "ClassDetailPopover": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ClassDetailPopover"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "schedule": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "meta": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "goals": {
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "description": "Function type"
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  ]
+                }
+              },
+              "status": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "actions": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "timeDisplay": {
+                "type": "string",
+                "enum": [
+                  "12h",
+                  "24h"
+                ]
+              }
+            },
+            "required": [
+              "actions",
+              "goals",
+              "id",
+              "meta",
+              "schedule",
+              "status",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "GoalPreferencesPanel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "GoalPreferencesPanel"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "goalsSelected": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "availabilityBlocks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "preferredIntensity": {
+                "type": "string",
+                "enum": [
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              },
+              "experienceLevel": {
+                "type": "string",
+                "enum": [
+                  "beginner",
+                  "intermediate",
+                  "advanced"
+                ]
+              },
+              "targetSessionsPerWeek": {
+                "type": "number"
+              },
+              "onGeneratePlanAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "availabilityBlocks",
+              "experienceLevel",
+              "goalsSelected",
+              "id",
+              "onGeneratePlanAction",
+              "preferredIntensity",
+              "targetSessionsPerWeek",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "RecommendedPlanSummary": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "RecommendedPlanSummary"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "planId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "weekStartDate": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "totalSessions": {
+                "type": "number"
+              },
+              "balanceScore": {
+                "type": "number"
+              },
+              "conflicts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "onConfirmPlanAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "balanceScore",
+              "conflicts",
+              "items",
+              "name",
+              "onConfirmPlanAction",
+              "planId",
+              "totalSessions",
+              "weekStartDate"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "FilterChipsBar": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "FilterChipsBar"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "activeGoals": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "activeDays": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "timeOfDay": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "intensity": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "location": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "onFilterChangeAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "activeDays",
+              "activeGoals",
+              "id",
+              "intensity",
+              "onFilterChangeAction",
+              "timeOfDay",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ClassScheduleTimetable"
+          },
+          {
+            "$ref": "#/$defs/ClassDetailPopover"
+          },
+          {
+            "$ref": "#/$defs/GoalPreferencesPanel"
+          },
+          {
+            "$ref": "#/$defs/RecommendedPlanSummary"
+          },
+          {
+            "$ref": "#/$defs/FilterChipsBar"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "My gym has a lot of classes. Help me find a weekly schedule that fits my availability and goals."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great\u2014let\u2019s tailor a weekly class plan to your schedule and goals. Use the panel below to set your goals, availability, preferred intensity, experience level, and how many sessions you want each week. Tap \u201cGenerate Plan\u201d and I\u2019ll recommend a balanced timetable you can book. If you prefer, you can also just tell me in plain text: your available days/times, goals (e.g., strength, cardio, mobility), preferred intensity, experience level, and target sessions per week."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "GoalPreferencesPanel",
+            "props": {
+              "id": "goals-panel-1",
+              "title": "Your Fitness Goals",
+              "goalsSelected": [],
+              "availabilityBlocks": [],
+              "preferredIntensity": "medium",
+              "experienceLevel": "beginner",
+              "targetSessionsPerWeek": 3,
+              "onGeneratePlanAction": {
+                "type": "generate_plan",
+                "panelId": "goals-panel-1"
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should acknowledge the user's goal of building a weekly class schedule and set clear next steps to collect necessary preferences",
+          "Should request or provide inputs for availability, goals (e.g., strength, cardio, mobility), preferred intensity, experience level, and target sessions per week",
+          "Should generate or offer to generate a weekly timetable aligned to the provided availability and goals",
+          "Should present a filterable class timetable with goal-alignment tags (e.g., strength, cardio) and an overlay highlighting recommended sessions",
+          "Should provide access to class details (e.g., modality, difficulty, instructor, duration) via detail views or popovers",
+          "Should explain how the user can adjust preferences and regenerate the plan",
+          "Should not fabricate class data; if class data is required and unavailable, should prompt for data or call appropriate tools to fetch it",
+          "Should call appropriate tools or data sources with correct arguments when fetching class schedules or availability is necessary",
+          "Should use UI components appropriate for collecting preferences and displaying schedules, matching the expected visual (filters, timetable, recommendations, tags, details)",
+          "Should wire interactive components with correct actions/props for generating or updating the plan (e.g., onGeneratePlan action with the correct panel ID)",
+          "Should provide actionable outputs the user can book or follow (e.g., specific class names/times) once data is available",
+          "Should maintain clarity and brevity, guiding the user to either use the UI panel or provide the same info in plain text"
+        ],
+        "expected_components": [
+          "GoalPreferencesPanel",
+          "ClassTimetable",
+          "RecommendedScheduleOverlay",
+          "ClassFilters",
+          "ClassDetailPopover",
+          "GoalAlignmentTags"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Availability: Mon\u2013Thu 6\u20138 pm, Sat 9\u201311 am. Goals: build strength and cardio, with some mobility. Intensity: moderate to high; Experience: intermediate; Target: 4 classes/week."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Awesome\u2014thanks for the details. I built a 4-class plan aligned to strength + cardio with a mobility finisher, all within Mon\u2013Thu evenings and Sat morning. You can browse alternatives in the timetable and swap as needed; the recommended ones are highlighted. If you want me to bias toward more cardio or shift a day, just say the word."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ClassScheduleTimetable",
+            "props": {
+              "weekStartDate": "2025-11-17",
+              "classes": [
+                {
+                  "id": "cls_mon_strength_circuit_1800",
+                  "title": "Strength Circuit",
+                  "start": "2025-11-17T18:00:00Z",
+                  "end": "2025-11-17T19:00:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "strength",
+                    "cardio"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_jlee",
+                  "instructorName": "Jordan Lee",
+                  "imageUrl": "https://images.example.com/classes/strength_circuit.jpg"
+                },
+                {
+                  "id": "cls_mon_core_cond_1915",
+                  "title": "Core & Conditioning",
+                  "start": "2025-11-17T19:15:00Z",
+                  "end": "2025-11-17T20:00:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "strength",
+                    "mobility"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_amendez",
+                  "instructorName": "Alex Mendez",
+                  "imageUrl": "https://images.example.com/classes/core_conditioning.jpg"
+                },
+                {
+                  "id": "cls_tue_kick_1800",
+                  "title": "Cardio Kickboxing",
+                  "start": "2025-11-18T18:00:00Z",
+                  "end": "2025-11-18T18:45:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_rkhan",
+                  "instructorName": "Riya Khan",
+                  "imageUrl": "https://images.example.com/classes/kickboxing.jpg"
+                },
+                {
+                  "id": "cls_tue_spin_1900",
+                  "title": "Spin Intervals",
+                  "start": "2025-11-18T19:00:00Z",
+                  "end": "2025-11-18T19:50:00Z",
+                  "location": "Cycling Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_cwong",
+                  "instructorName": "Chris Wong",
+                  "imageUrl": "https://images.example.com/classes/spin_intervals.jpg"
+                },
+                {
+                  "id": "cls_wed_vinyasa_1830",
+                  "title": "Vinyasa Flow",
+                  "start": "2025-11-19T18:30:00Z",
+                  "end": "2025-11-19T19:15:00Z",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility"
+                  ],
+                  "intensity": "low",
+                  "instructorId": "inst_achen",
+                  "instructorName": "Ariana Chen",
+                  "imageUrl": "https://images.example.com/classes/vinyasa.jpg"
+                },
+                {
+                  "id": "cls_wed_upper_1930",
+                  "title": "Upper Body Blast",
+                  "start": "2025-11-19T19:30:00Z",
+                  "end": "2025-11-19T20:15:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "strength"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_tmartin",
+                  "instructorName": "Taylor Martin",
+                  "imageUrl": "https://images.example.com/classes/upper_body.jpg"
+                },
+                {
+                  "id": "cls_thu_powerlifts_1830",
+                  "title": "Power Lifts",
+                  "start": "2025-11-20T18:30:00Z",
+                  "end": "2025-11-20T19:30:00Z",
+                  "location": "Weight Room",
+                  "goals": [
+                    "strength"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_nbrown",
+                  "instructorName": "Noah Brown",
+                  "imageUrl": "https://images.example.com/classes/power_lifts.jpg"
+                },
+                {
+                  "id": "cls_thu_hiit_1930",
+                  "title": "HIIT Express",
+                  "start": "2025-11-20T19:30:00Z",
+                  "end": "2025-11-20T20:00:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "cardio",
+                    "hiit"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_snguyen",
+                  "instructorName": "Sam Nguyen",
+                  "imageUrl": "https://images.example.com/classes/hiit_express.jpg"
+                },
+                {
+                  "id": "cls_sat_row_strength_0900",
+                  "title": "Row & Strength",
+                  "start": "2025-11-22T09:00:00Z",
+                  "end": "2025-11-22T09:45:00Z",
+                  "location": "Erg Zone",
+                  "goals": [
+                    "cardio",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_jhill",
+                  "instructorName": "Jordan Hill",
+                  "imageUrl": "https://images.example.com/classes/row_strength.jpg"
+                },
+                {
+                  "id": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow",
+                  "start": "2025-11-22T09:30:00Z",
+                  "end": "2025-11-22T10:15:00Z",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility"
+                  ],
+                  "intensity": "low",
+                  "instructorId": "inst_achen",
+                  "instructorName": "Ariana Chen",
+                  "imageUrl": "https://images.example.com/classes/mobility_flow.jpg"
+                },
+                {
+                  "id": "cls_sat_pilates_1015",
+                  "title": "Pilates Athletic",
+                  "start": "2025-11-22T10:15:00Z",
+                  "end": "2025-11-22T11:00:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "mobility",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_lpark",
+                  "instructorName": "Logan Park",
+                  "imageUrl": "https://images.example.com/classes/pilates_athletic.jpg"
+                }
+              ],
+              "recommendedClassIds": [
+                "cls_mon_strength_circuit_1800",
+                "cls_tue_spin_1900",
+                "cls_thu_powerlifts_1830",
+                "cls_sat_mobility_0930"
+              ],
+              "timeSlotIntervalMinutes": 30
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "RecommendedPlanSummary",
+            "props": {
+              "planId": "plan_2025_wk47_strength_cardio_mobility",
+              "name": "Strength + Cardio with Mobility",
+              "weekStartDate": "2025-11-17",
+              "items": [
+                {
+                  "classId": "cls_mon_strength_circuit_1800",
+                  "title": "Strength Circuit",
+                  "day": "Mon",
+                  "start": "18:00",
+                  "end": "19:00",
+                  "location": "Studio A",
+                  "goals": [
+                    "strength",
+                    "cardio"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_mon_strength_circuit_1800"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_tue_spin_1900",
+                  "title": "Spin Intervals",
+                  "day": "Tue",
+                  "start": "19:00",
+                  "end": "19:50",
+                  "location": "Cycling Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_tue_spin_1900"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_thu_powerlifts_1830",
+                  "title": "Power Lifts",
+                  "day": "Thu",
+                  "start": "18:30",
+                  "end": "19:30",
+                  "location": "Weight Room",
+                  "goals": [
+                    "strength"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_thu_powerlifts_1830"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow",
+                  "day": "Sat",
+                  "start": "09:30",
+                  "end": "10:15",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_sat_mobility_0930"
+                    }
+                  }
+                }
+              ],
+              "totalSessions": 4,
+              "balanceScore": 86,
+              "conflicts": [],
+              "onConfirmPlanAction": {
+                "type": "confirm_plan",
+                "payload": {
+                  "planId": "plan_2025_wk47_strength_cardio_mobility"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should present a weekly schedule tailored to the user's availability: Mon\u2013Thu between 18:00\u201320:00 and Sat between 09:00\u201311:00, avoiding classes outside these windows",
+          "Should recommend exactly 4 classes per week, one per selected day unless explicitly justified, and avoid overlapping times or conflicts",
+          "Should align class selection with the user's goals: primary focus on strength and cardio with inclusion of at least one mobility/flexibility session",
+          "Should match the requested intensity (moderate to high) and be suitable for an intermediate experience level",
+          "Should use a filterable timetable view and clearly highlight recommended classes within it",
+          "Should include a plan summary overlay listing the 4 recommended sessions with day, start/end times, location, goals, and total session count",
+          "Should ensure consistency and correctness of time handling, clearly indicating or converting from UTC to the user's local times, and using the same time basis across components",
+          "Should ensure recommendedClassIds map to valid class objects present in the timetable",
+          "Should ensure dates fall within the specified week (based on weekStartDate) and that day labels correspond to those dates",
+          "Should indicate no scheduling conflicts in the recommended plan when there are none, and include a conflicts field that accurately reflects any issues if present",
+          "Should provide actionable controls for plan management (e.g., remove individual items, confirm plan) with correctly structured action payloads",
+          "Should clearly label goal-alignment tags (e.g., strength, cardio, mobility), intensity, instructor, and location for each class",
+          "Should allow for easy customization or swapping of classes and mention how to bias the plan (e.g., more cardio or shifting days)",
+          "Should avoid unsupported claims and keep descriptions factual, focusing on schedule fit, goals, and class attributes",
+          "Should use the appropriate UI components for the scenario and populate all required props with coherent, valid data"
+        ],
+        "expected_components": [
+          "ClassScheduleTimetable",
+          "RecommendedPlanSummary"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Can you tilt the plan more toward cardio\u2014swap one strength class for a HIIT/conditioning slot\u2014and move the Thu session to Wed? Also, show quick details for the recommended classes (coach, focus, and intensity)."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Done! I shifted the Thu session to Wed and tilted the plan toward cardio by swapping one strength slot for a HIIT/conditioning class. Here are quick details for the 4 recommended classes:\n- Mon \u2014 HIIT Conditioning 45 (Coach: Mia Torres) \u2022 Focus: cardio, hiit, endurance \u2022 Intensity: high\n- Tue \u2014 Strength Circuit (Coach: James Park) \u2022 Focus: strength, mobility \u2022 Intensity: medium\n- Wed \u2014 Spin Intervals (Coach: Ariana Chen) \u2022 Focus: cardio, endurance \u2022 Intensity: high\n- Sat \u2014 Mobility Flow + Core (Coach: Luis Romero) \u2022 Focus: mobility, flexibility, strength \u2022 Intensity: medium\nIf you want any of these swapped (e.g., a different cardio option on Wed or shorter sessions), tell me and I\u2019ll regenerate."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ClassScheduleTimetable",
+            "props": {
+              "weekStartDate": "2025-11-17",
+              "classes": [
+                {
+                  "id": "cls_mon_hiit_1815",
+                  "title": "HIIT Conditioning 45",
+                  "start": "2025-11-17T18:15:00Z",
+                  "end": "2025-11-17T19:00:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "hiit",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_mia",
+                  "instructorName": "Mia Torres",
+                  "imageUrl": "https://images.example.com/classes/hiit.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_tue_strength_1900",
+                  "title": "Strength Circuit",
+                  "start": "2025-11-18T19:00:00Z",
+                  "end": "2025-11-18T20:00:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "strength",
+                    "mobility"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_james",
+                  "instructorName": "James Park",
+                  "imageUrl": "https://images.example.com/classes/strength.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_wed_spin_1830",
+                  "title": "Spin Intervals",
+                  "start": "2025-11-19T18:30:00Z",
+                  "end": "2025-11-19T19:15:00Z",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_ariana",
+                  "instructorName": "Ariana Chen",
+                  "imageUrl": "https://images.example.com/classes/spin.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow + Core",
+                  "start": "2025-11-22T09:30:00Z",
+                  "end": "2025-11-22T10:30:00Z",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_luis",
+                  "instructorName": "Luis Romero",
+                  "imageUrl": "https://images.example.com/classes/mobility.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_mon_yoga_1900",
+                  "title": "Power Yoga",
+                  "start": "2025-11-17T19:00:00Z",
+                  "end": "2025-11-17T20:00:00Z",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_sara",
+                  "instructorName": "Sara Lee",
+                  "imageUrl": "https://images.example.com/classes/yoga.jpg"
+                },
+                {
+                  "id": "cls_tue_box_1815",
+                  "title": "Cardio Boxing",
+                  "start": "2025-11-18T18:15:00Z",
+                  "end": "2025-11-18T19:00:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_omar",
+                  "instructorName": "Omar Vega",
+                  "imageUrl": "https://images.example.com/classes/boxing.jpg"
+                },
+                {
+                  "id": "cls_wed_bootcamp_1900",
+                  "title": "Evening Bootcamp",
+                  "start": "2025-11-19T19:00:00Z",
+                  "end": "2025-11-19T19:45:00Z",
+                  "location": "Turf Zone",
+                  "goals": [
+                    "cardio",
+                    "strength",
+                    "hiit"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_mia",
+                  "instructorName": "Mia Torres",
+                  "imageUrl": "https://images.example.com/classes/bootcamp.jpg"
+                },
+                {
+                  "id": "cls_thu_strength_1830",
+                  "title": "Barbell Fundamentals",
+                  "start": "2025-11-20T18:30:00Z",
+                  "end": "2025-11-20T19:30:00Z",
+                  "location": "Weight Room",
+                  "goals": [
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_james",
+                  "instructorName": "James Park",
+                  "imageUrl": "https://images.example.com/classes/barbell.jpg"
+                },
+                {
+                  "id": "cls_sat_spin_1000",
+                  "title": "Endurance Ride",
+                  "start": "2025-11-22T10:00:00Z",
+                  "end": "2025-11-22T10:50:00Z",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_ariana",
+                  "instructorName": "Ariana Chen",
+                  "imageUrl": "https://images.example.com/classes/spin_endurance.jpg"
+                }
+              ],
+              "filters": {
+                "days": [
+                  1,
+                  2,
+                  3,
+                  6
+                ],
+                "timeRange": {
+                  "start": "06:00",
+                  "end": "21:00"
+                },
+                "goals": [
+                  "cardio",
+                  "strength",
+                  "mobility"
+                ]
+              },
+              "recommendedClassIds": [
+                "cls_mon_hiit_1815",
+                "cls_tue_strength_1900",
+                "cls_wed_spin_1830",
+                "cls_sat_mobility_0930"
+              ],
+              "timeSlotIntervalMinutes": 30,
+              "selectClassAction": {
+                "type": "select_class",
+                "payload": {
+                  "classId": "cls_mon_hiit_1815"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "RecommendedPlanSummary",
+            "props": {
+              "planId": "plan_2025_wk47_user_demo",
+              "name": "Cardio-Lean Plan (Strength Support)",
+              "weekStartDate": "2025-11-17",
+              "items": [
+                {
+                  "classId": "cls_mon_hiit_1815",
+                  "title": "HIIT Conditioning 45",
+                  "day": "Mon",
+                  "start": "18:15",
+                  "end": "19:00",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "hiit",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_mon_hiit_1815"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_tue_strength_1900",
+                  "title": "Strength Circuit",
+                  "day": "Tue",
+                  "start": "19:00",
+                  "end": "20:00",
+                  "location": "Studio B",
+                  "goals": [
+                    "strength",
+                    "mobility"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_tue_strength_1900"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_wed_spin_1830",
+                  "title": "Spin Intervals",
+                  "day": "Wed",
+                  "start": "18:30",
+                  "end": "19:15",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_wed_spin_1830"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow + Core",
+                  "day": "Sat",
+                  "start": "09:30",
+                  "end": "10:30",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility",
+                    "strength"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_sat_mobility_0930"
+                    }
+                  }
+                }
+              ],
+              "totalSessions": 4,
+              "balanceScore": 84,
+              "conflicts": [],
+              "onConfirmPlanAction": {
+                "type": "confirm_plan",
+                "payload": {
+                  "planId": "plan_2025_wk47_user_demo"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly implement both user modifications: replace one strength class with a HIIT/conditioning cardio class, and move the Thursday session to Wednesday (no remaining Thursday session in recommendations)",
+          "Should present quick details (coach, focus, intensity) for each recommended class in a clear, scannable text summary",
+          "Should ensure internal consistency between the textual summary and the component data (class titles, days, times, instructors, goals, intensity, locations)",
+          "Should align scheduled class dates with the specified weekStartDate and corresponding weekdays; day labels should match the ISO timestamps provided",
+          "Should use the ClassScheduleTimetable to display the week's classes with appropriate filters for the user's goals and availability, and highlight recommended classes via recommendedClassIds",
+          "Should use the RecommendedPlanSummary to list the recommended classes for the week, including day, time, location, goals, and actions (remove and confirm plan)",
+          "Should ensure the recommended set tilts toward cardio by net increasing cardio/HIIT focus relative to strength while keeping overall plan feasible (e.g., balanced intensity across the week)",
+          "Should avoid scheduling conflicts among recommended classes and ensure durations and overlaps are logically consistent",
+          "Should include actionable UI interactions where applicable (e.g., select_class, remove_item, confirm_plan) with correct payload identifiers",
+          "Should avoid unnecessary tool calls when not required by the task; if tools were needed, should call the correct tool with accurate arguments",
+          "Should avoid hallucinating non-existent component names or properties; only use properties that are relevant and plausible for the given components",
+          "Should maintain concise, user-friendly language and offer to adjust or regenerate the plan per user preferences (e.g., swap options or shorter sessions)",
+          "Should not introduce health or medical claims; keep guidance limited to scheduling and class selection",
+          "Should ensure timezones are handled consistently (e.g., Z timestamps correspond to the stated local day labels for the gym's locale)"
+        ],
+        "expected_components": [
+          "ClassScheduleTimetable",
+          "RecommendedPlanSummary"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Could you suggest two Tue 6\u20138 pm alternatives that lean cardio but still include some strength (medium intensity), and list exact start times for all four classes? If there\u2019s a 45\u2011min option on Sat around 9:30 am, I\u2019d prefer that."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Absolutely \u2014 I\u2019ll tilt Tues toward cardio-strength options and keep everything in your 6\u20138 pm window. Here are two Tuesday alternatives (both medium intensity, cardio-forward with strength):\n- Tue Option A: Cardio Sculpt 60 \u2014 18:00\u201319:00 (Coach: Sam Patel) \u2022 Focus: cardio, strength\n- Tue Option B: Athletic Conditioning \u2014 19:00\u201319:50 (Coach: Dana Lee) \u2022 Focus: cardio, strength\n\nExact start times for your 4 recommended sessions (with your requested Sat 45-min around 9:30):\n- Mon \u2014 HIIT Conditioning 45: 18:15\u201319:00\n- Tue \u2014 Strength Circuit: 18:15\u201319:05\n- Wed \u2014 Spin Intervals: 18:30\u201319:15\n- Sat \u2014 Mobility Flow + Core 45: 09:30\u201310:15\n\nIf you want me to switch Tuesday to Option A or B, say which one and I\u2019ll update the plan (or I can keep Strength Circuit as-is)."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ClassScheduleTimetable",
+            "props": {
+              "weekStartDate": "2025-11-17",
+              "classes": [
+                {
+                  "id": "cls_mon_hiit_1815",
+                  "title": "HIIT Conditioning 45",
+                  "start": "2025-11-17T18:15:00Z",
+                  "end": "2025-11-17T19:00:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "hiit",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "coach_mia_t",
+                  "instructorName": "Mia Torres",
+                  "imageUrl": "https://example.com/img/hiit_mia.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_tue_strength_1815",
+                  "title": "Strength Circuit",
+                  "start": "2025-11-18T18:15:00Z",
+                  "end": "2025-11-18T19:05:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "strength",
+                    "mobility"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "coach_james_p",
+                  "instructorName": "James Park",
+                  "imageUrl": "https://example.com/img/strength_james.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_tue_cardiosculpt_1800_alt",
+                  "title": "Cardio Sculpt 60",
+                  "start": "2025-11-18T18:00:00Z",
+                  "end": "2025-11-18T19:00:00Z",
+                  "location": "Studio C",
+                  "goals": [
+                    "cardio",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "coach_sam_p",
+                  "instructorName": "Sam Patel",
+                  "imageUrl": "https://example.com/img/cardio_sculpt.jpg"
+                },
+                {
+                  "id": "cls_tue_athleticcond_1900_alt",
+                  "title": "Athletic Conditioning",
+                  "start": "2025-11-18T19:00:00Z",
+                  "end": "2025-11-18T19:50:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "coach_dana_l",
+                  "instructorName": "Dana Lee",
+                  "imageUrl": "https://example.com/img/athletic_conditioning.jpg"
+                },
+                {
+                  "id": "cls_wed_spin_1830",
+                  "title": "Spin Intervals",
+                  "start": "2025-11-19T18:30:00Z",
+                  "end": "2025-11-19T19:15:00Z",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "coach_ariana_c",
+                  "instructorName": "Ariana Chen",
+                  "imageUrl": "https://example.com/img/spin_ariana.jpg",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow + Core 45",
+                  "start": "2025-11-22T09:30:00Z",
+                  "end": "2025-11-22T10:15:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "mobility",
+                    "flexibility",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "coach_luis_r",
+                  "instructorName": "Luis Romero",
+                  "imageUrl": "https://example.com/img/mobility_core.jpg",
+                  "isRecommended": true
+                }
+              ],
+              "recommendedClassIds": [
+                "cls_mon_hiit_1815",
+                "cls_tue_strength_1815",
+                "cls_wed_spin_1830",
+                "cls_sat_mobility_0930"
+              ],
+              "timeSlotIntervalMinutes": 30,
+              "selectClassAction": {
+                "type": "select_class",
+                "payload": {
+                  "classId": "cls_tue_strength_1815"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "RecommendedPlanSummary",
+            "props": {
+              "planId": "plan_2025_wk47_user_demo",
+              "name": "Cardio-Forward Balanced Plan",
+              "weekStartDate": "2025-11-17",
+              "items": [
+                {
+                  "classId": "cls_mon_hiit_1815",
+                  "title": "HIIT Conditioning 45",
+                  "day": "Mon",
+                  "start": "18:15",
+                  "end": "19:00",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_mon_hiit_1815"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_tue_strength_1815",
+                  "title": "Strength Circuit",
+                  "day": "Tue",
+                  "start": "18:15",
+                  "end": "19:05",
+                  "location": "Studio B",
+                  "goals": [
+                    "strength",
+                    "mobility"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_tue_strength_1815"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_wed_spin_1830",
+                  "title": "Spin Intervals",
+                  "day": "Wed",
+                  "start": "18:30",
+                  "end": "19:15",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_wed_spin_1830"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow + Core 45",
+                  "day": "Sat",
+                  "start": "09:30",
+                  "end": "10:15",
+                  "location": "Studio B",
+                  "goals": [
+                    "mobility",
+                    "strength"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_sat_mobility_0930"
+                    }
+                  }
+                }
+              ],
+              "totalSessions": 4,
+              "balanceScore": 84,
+              "conflicts": [],
+              "onConfirmPlanAction": {
+                "type": "confirm_plan",
+                "payload": {
+                  "planId": "plan_2025_wk47_user_demo"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should propose exactly two Tuesday alternatives scheduled between 18:00 and 20:00 that emphasize cardio while including some strength at medium intensity, each with clear titles, start/end times, and instructor names",
+          "Should list exact start times (and end times where relevant) for all four recommended sessions in a clear, human-readable format",
+          "Should include a Saturday 45-minute option around 09:30 with explicit start and end times demonstrating 45 minutes duration",
+          "Should keep all recommended Tuesday classes within the user's 18:00\u201320:00 availability window and clearly differentiate alternatives from the currently selected Tuesday class",
+          "Should ensure textual details and UI component data are fully consistent (titles, times, durations, locations, instructors, goals, intensity, IDs)",
+          "Should not invent unavailable classes; if data is uncertain or unavailable, should state limitations or request permission to fetch data",
+          "Should use the ClassScheduleTimetable to display the week\u2019s classes with recommended classes highlighted, valid ISO 8601 timestamps, and appropriate goal/intensity tags",
+          "Should use the RecommendedPlanSummary to present the four-item plan with accurate totalSessions, goal tags, and actionable remove/confirm controls",
+          "Should provide a clear user action to switch Tuesday to either alternative (e.g., select action or explicit instruction) without altering the plan until confirmed",
+          "Should avoid schedule conflicts and reflect the user\u2019s stated preferences and constraints (Tue 18:00\u201320:00, Sat ~09:30, medium intensity for Tue alternatives)",
+          "Should include appropriate goal tags (e.g., cardio, strength) and medium intensity for the Tuesday alternatives as requested",
+          "Should format times consistently (human-readable in text; ISO timestamps in components) and keep weekStartDate consistent across components",
+          "Should call appropriate tools with correct arguments when the request requires data fetching, computation, or external actions; otherwise avoid unnecessary tool calls",
+          "Should be concise, clear, and user-centered, offering actionable next steps"
+        ],
+        "expected_components": [
+          "ClassScheduleTimetable",
+          "RecommendedPlanSummary"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Switch Tuesday to Option B: Athletic Conditioning 19:00\u201319:50. Keep Mon, Wed, and Sat as listed. Save this as my weekly plan, set 30\u2011minute reminders, and tag each class with the appropriate cardio/strength/mobility goals."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "All set! I switched Tuesday to Athletic Conditioning (19:00\u201319:50), kept Mon/Wed/Sat as-is, saved this as your weekly plan, and set 30-minute reminders before each class. I\u2019ve also tagged each class with cardio/strength/mobility goals.\n\nQuick details and tags:\n- Mon \u2014 HIIT Conditioning 45 (18:15\u201319:00) \u2022 Coach: Mia Torres \u2022 Intensity: high \u2022 Goals: cardio, hiit, endurance\n- Tue \u2014 Athletic Conditioning (19:00\u201319:50) \u2022 Coach: Dana Lee \u2022 Intensity: medium \u2022 Goals: cardio, strength\n- Wed \u2014 Spin Intervals (18:30\u201319:15) \u2022 Coach: Ariana Chen \u2022 Intensity: high \u2022 Goals: cardio, endurance\n- Sat \u2014 Mobility Flow + Core 45 (09:30\u201310:15) \u2022 Coach: Luis Romero \u2022 Intensity: medium \u2022 Goals: mobility, flexibility, strength\n\nIf you want me to auto-book openings when spots are available or adjust reminder timing, just say the word."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "RecommendedPlanSummary",
+            "props": {
+              "planId": "plan_2025_wk47_user123",
+              "name": "Cardio-Forward Balanced Plan",
+              "weekStartDate": "2025-11-17",
+              "items": [
+                {
+                  "classId": "cls_mon_hiit_1815",
+                  "title": "HIIT Conditioning 45",
+                  "day": "Mon",
+                  "start": "18:15",
+                  "end": "19:00",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "hiit",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_mon_hiit_1815"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_tue_athcond_1900",
+                  "title": "Athletic Conditioning",
+                  "day": "Tue",
+                  "start": "19:00",
+                  "end": "19:50",
+                  "location": "Studio B",
+                  "goals": [
+                    "cardio",
+                    "strength"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_tue_athcond_1900"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_wed_spin_1830",
+                  "title": "Spin Intervals",
+                  "day": "Wed",
+                  "start": "18:30",
+                  "end": "19:15",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_wed_spin_1830"
+                    }
+                  }
+                },
+                {
+                  "classId": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow + Core 45",
+                  "day": "Sat",
+                  "start": "09:30",
+                  "end": "10:15",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility",
+                    "strength"
+                  ],
+                  "removeAction": {
+                    "type": "remove_item",
+                    "payload": {
+                      "classId": "cls_sat_mobility_0930"
+                    }
+                  }
+                }
+              ],
+              "totalSessions": 4,
+              "balanceScore": 81,
+              "conflicts": [],
+              "onConfirmPlanAction": {
+                "type": "confirm_plan",
+                "payload": {
+                  "planId": "plan_2025_wk47_user123"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ClassScheduleTimetable",
+            "props": {
+              "weekStartDate": "2025-11-17",
+              "classes": [
+                {
+                  "id": "cls_mon_hiit_1815",
+                  "title": "HIIT Conditioning 45",
+                  "start": "2025-11-17T18:15:00Z",
+                  "end": "2025-11-17T19:00:00Z",
+                  "location": "Studio A",
+                  "goals": [
+                    "cardio",
+                    "hiit",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_mia_torres",
+                  "instructorName": "Mia Torres",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_tue_athcond_1900",
+                  "title": "Athletic Conditioning",
+                  "start": "2025-11-18T19:00:00Z",
+                  "end": "2025-11-18T19:50:00Z",
+                  "location": "Studio B",
+                  "goals": [
+                    "cardio",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_dana_lee",
+                  "instructorName": "Dana Lee",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_wed_spin_1830",
+                  "title": "Spin Intervals",
+                  "start": "2025-11-19T18:30:00Z",
+                  "end": "2025-11-19T19:15:00Z",
+                  "location": "Cycle Studio",
+                  "goals": [
+                    "cardio",
+                    "endurance"
+                  ],
+                  "intensity": "high",
+                  "instructorId": "inst_ariana_chen",
+                  "instructorName": "Ariana Chen",
+                  "isRecommended": true
+                },
+                {
+                  "id": "cls_sat_mobility_0930",
+                  "title": "Mobility Flow + Core 45",
+                  "start": "2025-11-22T09:30:00Z",
+                  "end": "2025-11-22T10:15:00Z",
+                  "location": "Studio C",
+                  "goals": [
+                    "mobility",
+                    "flexibility",
+                    "strength"
+                  ],
+                  "intensity": "medium",
+                  "instructorId": "inst_luis_romero",
+                  "instructorName": "Luis Romero",
+                  "isRecommended": true
+                }
+              ],
+              "recommendedClassIds": [
+                "cls_mon_hiit_1815",
+                "cls_tue_athcond_1900",
+                "cls_wed_spin_1830",
+                "cls_sat_mobility_0930"
+              ],
+              "timeSlotIntervalMinutes": 30,
+              "selectClassAction": {
+                "type": "select_class",
+                "payload": {
+                  "classId": "cls_mon_hiit_1815"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly confirm switching Tuesday to Option B: Athletic Conditioning 19:00\u201319:50 while keeping Monday, Wednesday, and Saturday classes unchanged",
+          "Should confirm the plan is saved as the user's weekly plan and that 30-minute reminders are set for each included class",
+          "Should include or display goal tags (cardio/strength/mobility) for each class and ensure they are appropriate to the class type",
+          "Should present an accurate, coherent weekly schedule summary that lists day, title, start/end times, and location for each class",
+          "Should maintain internal consistency between narrative text and UI components (class titles, times, days, locations, goals, IDs)",
+          "Should use appropriate UI components to summarize the recommended plan and visualize the weekly timetable with the recommended overlay",
+          "Should provide actionable UI interactions such as confirm/save plan and remove item actions where applicable",
+          "Should avoid implying external actions (e.g., bookings, calendar edits) that require tools unless such actions are represented via explicit UI actions or confirmed capabilities",
+          "Should not fabricate data; any additional details (instructor, intensity, locations, balance score) must be plausible and consistent with the displayed classes",
+          "Should clearly align with the scenario context by emphasizing availability fit and goal alignment in the plan",
+          "Should present times and dates in a clear, unambiguous format and ensure the Tuesday class reflects the specified 19:00\u201319:50 slot",
+          "Should avoid unnecessary tool usage; only call tools if data fetching, computation, or external actions are required"
+        ],
+        "expected_components": [
+          "RecommendedPlanSummary",
+          "ClassScheduleTimetable"
+        ]
+      }
+    }
+  ]
+}

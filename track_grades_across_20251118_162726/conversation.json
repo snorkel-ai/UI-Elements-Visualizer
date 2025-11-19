@@ -1,0 +1,1083 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "ClassPerformanceDashboard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ClassPerformanceDashboard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "classes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "selectedClassId": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "assignments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "currentGPA": {
+                "type": "number"
+              },
+              "targetGPA": {
+                "type": "number"
+              },
+              "creditInfo": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "gradingScheme": {
+                "type": "string",
+                "enum": [
+                  "points",
+                  "percentage",
+                  "weighted_category"
+                ]
+              },
+              "assignmentView": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "action": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "assignments",
+              "classes",
+              "creditInfo",
+              "currentGPA",
+              "selectedClassId",
+              "targetGPA"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "ClassGradeSummary": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ClassGradeSummary"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "classId": {
+                "type": "string"
+              },
+              "className": {
+                "type": "string"
+              },
+              "currentGradePct": {
+                "type": "number"
+              },
+              "categoryBreakdown": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "remainingWeightPct": {
+                "type": "number"
+              },
+              "sectionLabel": {
+                "type": "string"
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "setActiveAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "defaultExpanded": {
+                "type": "boolean"
+              },
+              "showProjectedGpaIndicator": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "categoryBreakdown",
+              "classId",
+              "className",
+              "currentGradePct",
+              "remainingWeightPct",
+              "setActiveAction"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "AssignmentTable": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "AssignmentTable"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "courseId": {
+                "type": "string"
+              },
+              "courseName": {
+                "type": "string"
+              },
+              "rows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "sort": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "filters": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "allowPlannedEdits": {
+                "type": "boolean"
+              },
+              "dateFormat": {
+                "type": "string"
+              },
+              "interaction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "courseId",
+              "courseName",
+              "interaction",
+              "rows"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "ProjectedGPAGauge": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ProjectedGPAGauge"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "currentGPA": {
+                "type": "number"
+              },
+              "projectedGPA": {
+                "type": "number"
+              },
+              "targetGPA": {
+                "type": "number"
+              },
+              "creditsCompleted": {
+                "type": "number"
+              },
+              "creditsInProgress": {
+                "type": "number"
+              },
+              "onAdjustTargetAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "creditsCompleted",
+              "creditsInProgress",
+              "currentGPA",
+              "id",
+              "onAdjustTargetAction",
+              "projectedGPA",
+              "targetGPA",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "WhatIfScoreSliders": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "WhatIfScoreSliders"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "class",
+                  "all"
+                ]
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "presetButtons": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "onAction": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "showWeights": {
+                "type": "boolean"
+              },
+              "decimalPlaces": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "id",
+              "items",
+              "onAction",
+              "scope",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/ClassPerformanceDashboard"
+          },
+          {
+            "$ref": "#/$defs/ClassGradeSummary"
+          },
+          {
+            "$ref": "#/$defs/AssignmentTable"
+          },
+          {
+            "$ref": "#/$defs/ProjectedGPAGauge"
+          },
+          {
+            "$ref": "#/$defs/WhatIfScoreSliders"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Track my grades across classes and show what I need to score on remaining assignments to hit my target GPA."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great\u2014I'll help you track each class and show exactly what you need on remaining assignments to hit your target GPA. To get this dialed in, please share:\n\n- Your current cumulative GPA and total credits completed\n- Your target GPA\n- Your classes this term (name and credit hours)\n- For each class: grading scheme (points/percentage/weighted categories) and the assignments (title, category, weight or points possible, due date, status, and any scores so far)\n\nIf you prefer, I can work with approximate info now and you can refine it later.\n\nOnce I have those, I will:\n- Compute your current per-class grades and category breakdowns\n- Show remaining assignment weights and due dates\n- Calculate the minimum scores needed on upcoming items to reach your target class grades and overall GPA\n- Provide what\u2011if sliders so you can tweak future scores and immediately see the projected GPA\n\nYou can also adjust your target GPA anytime with the gauge below. When you send your class and assignment details, I\u2019ll populate everything automatically."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ClassPerformanceDashboard",
+            "props": {
+              "classes": [],
+              "selectedClassId": null,
+              "assignments": [],
+              "currentGPA": 0,
+              "targetGPA": 3.5,
+              "creditInfo": {
+                "totalCreditsAttempted": 0,
+                "totalCreditsCompleted": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ProjectedGPAGauge",
+            "props": {
+              "id": "gpa-gauge-setup",
+              "title": "Projected GPA",
+              "currentGPA": 0,
+              "projectedGPA": 0,
+              "targetGPA": 3.5,
+              "creditsCompleted": 0,
+              "creditsInProgress": 0,
+              "onAdjustTargetAction": {
+                "type": "adjust_target_gpa",
+                "payload": {
+                  "gaugeId": "gpa-gauge-setup",
+                  "targetGPA": 3.5
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should clearly restate the user's goal of tracking grades across classes and determining required scores to reach a target GPA",
+          "Should request all necessary inputs to perform calculations (e.g., cumulative GPA, credits completed, target GPA, current term classes with credits, grading schemes, assignments with weights/points/due dates/status/scores)",
+          "Should support working with partial or approximate information and indicate that details can be refined later",
+          "Should avoid fabricating data or claiming calculations are completed before the user provides sufficient information",
+          "Should outline the planned computations: current per-class grades, category breakdowns, remaining assignment weights and due dates, minimum required scores for target class grades and overall target GPA",
+          "Should provide actionable next steps for the user to supply data in a structured way",
+          "Should present or initialize visual elements that match the scenario: per-class grade breakdown, assignment table, projected GPA gauge, and what-if sliders/controls for future scores",
+          "Should use the specified UI components to display data appropriately and consistently with their intended purpose",
+          "Should ensure component properties are coherent and consistent with the text (e.g., target GPA values align across text and components, credits and GPA fields initialized sensibly)",
+          "Should include an interaction to adjust the target GPA (e.g., an action handler or control) and describe how the user can use it",
+          "Should avoid promising external data fetching or automation unless tools/integrations are available and authorized; otherwise, rely on user-provided data",
+          "Should maintain clarity and conciseness, focusing on the user's academic tracking needs and actionable outputs",
+          "Should be prepared to perform or trigger calculations once data is provided, including computing minimum required scores for remaining assignments",
+          "Should not expose sensitive personal information and should only request academic details necessary for the task"
+        ],
+        "expected_components": [
+          "ClassPerformanceDashboard",
+          "ProjectedGPAGauge"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Here\u2019s my info to start:\n\n- Current GPA: 3.28 over 45 credits; Target GPA: 3.50 by end of this term.\n- Classes: Calculus II (4 cr), Organic Chemistry I (4 cr), Intro to Psychology (3 cr).\n\nCalculus II (weighted: Exams 60, Quizzes 20, HW 20)\n- Exams: Midterm 1 20% = 84; Midterm 2 20% = 78; Final 20% = remaining (due Dec 12)\n- Quizzes: 8 total; 6 done avg 92; 2 remaining (Nov 22, Dec 1)\n- Homework: 10 sets; 8 done avg 100; 2 remaining (Nov 25, Dec 8)\n\nOrganic Chemistry I (weighted: Exams 55, Lab 25, HW 10, Participation 10)\n- Exams: Exam 1 18% = 72; Exam 2 18% = 85; Final 19% remaining (Dec 15)\n- Lab: 12 labs; 8 done avg 88; 4 remaining (weekly through Dec 6)\n- Homework: 10 sets; 6 done avg 90; 4 remaining (weekly through Dec 10)\n- Participation: current 100\n\nIntro to Psychology (points out of 1000)\n- Completed: Exam 1 150/200; Paper 90/100; Quizzes 140/150; Attendance 50/50\n- Remaining: Exam 2 200 pts (Nov 20); Final 250 pts (Dec 14); Project 100 pts (Dec 1); 5 quizzes x10 pts (weekly)"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Thanks\u2014this is enough to build your tracker and run projections. First, the big picture: To finish this term at a 3.50 cumulative from 3.28 over 45 credits, you\u2019d need a 4.40 term GPA across 11 credits, which isn\u2019t possible. Even with a perfect 4.00 this term, your cumulative would project to about 3.42. I\u2019ll still show what you need in each class to maximize your term GPA and how close you can get to your target. Per-class status and what you need: - Calculus II (current \u2248 87%): If quizzes and HW stay at their current averages, you would need about a 96% on the final to finish at 90% overall (A). About 86% on the final gets you ~88% overall; ~71% gets you ~85% overall. - Organic Chemistry I (current \u2248 84.2%): With labs and HW holding at current averages, an A- (90%) isn\u2019t reachable; the maximum is ~88.3% even with a 100% on the final. For 88% overall you\u2019d need about a 99% final; for 85% overall, ~83% on the final. - Intro to Psychology (points out of 1000; current 430/500 = 86%): To finish at 90% overall (900/1000), you need 470 of the remaining 600 points\u2014about 78.3% average on what\u2019s left. Next steps: - Use the what\u2011if sliders to set your planned scores on remaining assignments and instantly see your projected term and cumulative GPA. - Tell me which class you want to optimize first (e.g., \u201caim for A- in Calc, B+ in Orgo\u201d), and I\u2019ll compute the exact minimums per remaining item under that plan. I\u2019ve preloaded Calculus II so you can start tweaking the final, quizzes, and HW right away."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ClassPerformanceDashboard",
+            "props": {
+              "classes": [
+                {
+                  "id": "calc2",
+                  "name": "Calculus II",
+                  "currentGrade": 87,
+                  "creditHours": 4
+                },
+                {
+                  "id": "orgo1",
+                  "name": "Organic Chemistry I",
+                  "currentGrade": 84.2,
+                  "creditHours": 4
+                },
+                {
+                  "id": "psych101",
+                  "name": "Intro to Psychology",
+                  "currentGrade": 86,
+                  "creditHours": 3
+                }
+              ],
+              "selectedClassId": "calc2",
+              "assignments": [
+                {
+                  "id": "calc2-ex1",
+                  "title": "Midterm 1",
+                  "category": "Exams",
+                  "weight": 0.2,
+                  "dueDate": "2025-10-10",
+                  "status": "graded",
+                  "score": 84
+                },
+                {
+                  "id": "calc2-ex2",
+                  "title": "Midterm 2",
+                  "category": "Exams",
+                  "weight": 0.2,
+                  "dueDate": "2025-11-05",
+                  "status": "graded",
+                  "score": 78
+                },
+                {
+                  "id": "calc2-final",
+                  "title": "Final Exam",
+                  "category": "Exams",
+                  "weight": 0.2,
+                  "dueDate": "2025-12-12",
+                  "status": "planned",
+                  "plannedScore": 90
+                },
+                {
+                  "id": "calc2-qz1",
+                  "title": "Quiz 1",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-09-15",
+                  "status": "graded",
+                  "score": 92
+                },
+                {
+                  "id": "calc2-qz2",
+                  "title": "Quiz 2",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-09-22",
+                  "status": "graded",
+                  "score": 92
+                },
+                {
+                  "id": "calc2-qz3",
+                  "title": "Quiz 3",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-09-29",
+                  "status": "graded",
+                  "score": 92
+                },
+                {
+                  "id": "calc2-qz4",
+                  "title": "Quiz 4",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-10-06",
+                  "status": "graded",
+                  "score": 92
+                },
+                {
+                  "id": "calc2-qz5",
+                  "title": "Quiz 5",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-10-13",
+                  "status": "graded",
+                  "score": 92
+                },
+                {
+                  "id": "calc2-qz6",
+                  "title": "Quiz 6",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-10-20",
+                  "status": "graded",
+                  "score": 92
+                },
+                {
+                  "id": "calc2-qz7",
+                  "title": "Quiz 7",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-11-22",
+                  "status": "planned",
+                  "plannedScore": 92
+                },
+                {
+                  "id": "calc2-qz8",
+                  "title": "Quiz 8",
+                  "category": "Quizzes",
+                  "weight": 0.025,
+                  "dueDate": "2025-12-01",
+                  "status": "planned",
+                  "plannedScore": 92
+                },
+                {
+                  "id": "calc2-hw1",
+                  "title": "Homework 1",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-09-10",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw2",
+                  "title": "Homework 2",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-09-17",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw3",
+                  "title": "Homework 3",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-09-24",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw4",
+                  "title": "Homework 4",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-10-01",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw5",
+                  "title": "Homework 5",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-10-08",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw6",
+                  "title": "Homework 6",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-10-15",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw7",
+                  "title": "Homework 7",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-10-22",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw8",
+                  "title": "Homework 8",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-10-29",
+                  "status": "graded",
+                  "score": 100
+                },
+                {
+                  "id": "calc2-hw9",
+                  "title": "Homework 9",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-11-25",
+                  "status": "planned",
+                  "plannedScore": 100
+                },
+                {
+                  "id": "calc2-hw10",
+                  "title": "Homework 10",
+                  "category": "Homework",
+                  "weight": 0.02,
+                  "dueDate": "2025-12-08",
+                  "status": "planned",
+                  "plannedScore": 100
+                }
+              ],
+              "currentGPA": 3.28,
+              "targetGPA": 3.5,
+              "creditInfo": {
+                "totalCreditsAttempted": 45,
+                "totalCreditsCompleted": 45,
+                "qualityPointsEarned": 147.6,
+                "currentTermCredits": 11
+              },
+              "gradingScheme": "weighted_category",
+              "assignmentView": {
+                "sortBy": "dueDate",
+                "sortDir": "asc",
+                "filter": {
+                  "showOnlyRemaining": false
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ProjectedGPAGauge",
+            "props": {
+              "id": "gpa-gauge-fall-2025",
+              "title": "Projected GPA",
+              "currentGPA": 3.28,
+              "projectedGPA": 3.42,
+              "targetGPA": 3.5,
+              "creditsCompleted": 45,
+              "creditsInProgress": 11,
+              "onAdjustTargetAction": {
+                "type": "adjust_target_gpa",
+                "payload": {
+                  "gaugeId": "gpa-gauge-fall-2025",
+                  "targetGPA": 3.5
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should fully interpret the user's scenario and goal: track grades across three classes and show what is needed on remaining assignments to reach the target cumulative GPA by term end",
+          "Should compute and state the feasibility of reaching the target cumulative GPA using correct GPA math given current GPA, credits completed, and credits in progress (including the maximum achievable cumulative GPA with a 4.0 term)",
+          "Should provide accurate per-class calculations based on the provided weighting schemes and point systems, including current standing and required scores on remaining assignments to hit specified course targets (e.g., A, A-, B+)",
+          "Should correctly handle mixed grading schemas: weighted categories for Calculus II and Organic Chemistry I, and points-based totals for Psychology",
+          "Should transparently state assumptions used in projections (e.g., maintaining current averages for categories with remaining items unless adjusted via what-if sliders)",
+          "Should present actionable outputs: minimum required scores per remaining item or category to achieve user-specified course outcomes and the consequent impact on term and cumulative GPA",
+          "Should include interactive what-if controls for remaining assignments (plannedScore fields) so the user can adjust future scores and immediately see updated projections",
+          "Should provide a projected GPA visualization that reflects current GPA, projected cumulative GPA based on current plans, target GPA, and credits breakdown",
+          "Should ensure all displayed data (weights, due dates, categories, credits, current scores) matches the user's provided information and uses correct date formatting",
+          "Should avoid unsupported claims (e.g., term GPA above institutional maximum) and ensure numerical projections are internally consistent",
+          "Should avoid unnecessary tool calls; only call tools when external data fetching or complex computation beyond the provided data is required",
+          "Should use concise, clear language and structure to guide the user on next steps (e.g., which class to optimize first) without extraneous content"
+        ],
+        "expected_components": [
+          "ClassPerformanceDashboard",
+          "ProjectedGPAGauge"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Let\u2019s aim for A- in Calculus II, B+ in Organic Chem, and A in Psych\u2014what exact scores do I need on each remaining assignment to hit those? Also, if I pull a 4.0 this term, can you confirm my projected cumulative GPA?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here\u2019s a clear plan to hit your targets. I\u2019ll assume letter thresholds of A = 93%, A- = 90%, B+ = 87%. If your syllabus uses different cutoffs, tell me and I\u2019ll recalc instantly. Summary of minimums under straightforward assumptions: - If you keep your current non-exam averages steady, the exact finals you\u2019d need are:   \u2022 Calculus II (target A- \u226590%): Final \u2265 96% (keeping remaining quizzes \u224892% each and remaining HW \u2248100% each).   \u2022 Organic Chemistry I (target B+ \u226587%): Final \u2265 93.4% (keeping remaining Labs \u224888% avg and remaining HW \u224890% avg).   \u2022 Intro to Psychology (target A \u226593% overall = 930/1000): Need 500 points across the last 600 points (\u224883.3% average). For an even split that\u2019s Exam 2 \u2265167/200, Final \u2265208/250, Project \u226583/100, Remaining quizzes \u226542/50 total (\u22488\u20139 each). Details by class and alternative \u201cbalanced\u201d plans: Calculus II (weighted: Exams 60, Quizzes 20, HW 20) - Current earned contributions: Midterm1 84% (20%), Midterm2 78% (20%), Quizzes so far 92% avg on 6/8 (15%), HW so far 100% avg on 8/10 (16%). Earned subtotal \u2248 62.2%. - Need to reach 90% overall: Remaining weight is Final 20% + 2 Quizzes 5% + 2 HW 4% = 29%.   Option A (keep current averages): If you hold Quizzes at 92% and HW at 100%, Final must be 96.0%. This yields class \u2248 90.0%.   Option B (balanced across all remaining items): If you score the same on Final, both Quizzes, and both HW, you need \u2248 95.9% on each remaining item. Organic Chemistry I (weighted: Exams 55, Lab 25, HW 10, Participation 10) - Current earned contributions: Exam1 72% (18%), Exam2 85% (18%), Labs so far 88% avg on 8/12 (\u224816.67%), HW so far 90% avg on 6/10 (6%), Participation 100% (10%). Earned subtotal \u2248 58.33%. - Need to reach 87% overall: Remaining weight is Final 19% + Labs 8.33% + HW 4% = 31.33%.   Option A (keep current averages for non-exam): If you hold remaining Labs at 88% and HW at 90%, Final must be \u2248 93.4%.   Option B (balanced across final + remaining Labs + remaining HW): \u2248 91.6% average on each remaining lab, each remaining HW, and the Final. Intro to Psychology (points out of 1000; target A \u2265 930/1000) - Completed: 430/500 (86%). Remaining: 600 points (Exam 2 = 200, Final = 250, Project = 100, Quizzes = 50 total). - To reach 930 total, you need 500/600 = 83.33% average on what\u2019s left.   Even distribution example: Exam 2 \u2265 167/200, Final \u2265 208/250, Project \u2265 83/100, Remaining quizzes \u2265 42/50 total (\u22488\u20139 each).   Alternative split example: If you get 90/100 on the Project and 45/50 on the remaining quizzes, you\u2019d still need 365 across Exam 2 + Final (e.g., 170/200 and 195/250). Projected cumulative GPA if you earn a 4.0 term: - With 45 completed credits at 3.28 and 11 in-progress credits, a 4.0 term yields (3.28*45 + 4.0*11) / 56 \u2248 3.42 cumulative. Under your class targets (A- Calc, B+ Orgo, A Psych) the term GPA is about 3.64, projecting your cumulative to \u2248 3.35. Want me to lock these targets into the planner and compute per-quiz and per-lab minimums week by week? I can also rerun with different letter cutoffs if your courses use nonstandard scales."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ProjectedGPAGaugeProps",
+            "props": {
+              "id": "gpa-gauge-fall-term",
+              "title": "Projected GPA",
+              "currentGPA": 3.28,
+              "projectedGPA": 3.35,
+              "targetGPA": 3.5,
+              "creditsCompleted": 45,
+              "creditsInProgress": 11,
+              "onAdjustTargetAction": {
+                "type": "adjust_target_gpa",
+                "payload": {
+                  "gaugeId": "gpa-gauge-fall-term",
+                  "targetGPA": 3.5
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "WhatIfScoreSlidersProps",
+            "props": {
+              "id": "calc2-whatif",
+              "title": "What-if Scores \u00b7 Calculus II",
+              "scope": "class",
+              "items": [
+                {
+                  "id": "calc2-final",
+                  "label": "Final Exam",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 96,
+                  "weightPct": 20
+                },
+                {
+                  "id": "calc2-quiz7",
+                  "label": "Quiz 7",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 92,
+                  "weightPct": 2.5
+                },
+                {
+                  "id": "calc2-quiz8",
+                  "label": "Quiz 8",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 92,
+                  "weightPct": 2.5
+                },
+                {
+                  "id": "calc2-hw9",
+                  "label": "Homework 9",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 2
+                },
+                {
+                  "id": "calc2-hw10",
+                  "label": "Homework 10",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 2
+                }
+              ],
+              "presetButtons": [
+                {
+                  "key": "A",
+                  "label": "Aim for A (93%)",
+                  "value": 93
+                },
+                {
+                  "key": "A-",
+                  "label": "Aim for A- (90%)",
+                  "value": 90
+                }
+              ],
+              "onAction": {
+                "type": "adjust_item"
+              },
+              "showWeights": true,
+              "decimalPlaces": 0
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should interpret the user's targets (A- in Calculus II, B+ in Organic Chemistry, A in Psychology) and compute the exact minimum scores needed on each remaining assignment to reach those targets given the stated weightings and current scores",
+          "Should clearly state any grading-scale assumptions (e.g., A = 93%, A- = 90%, B+ = 87%) and instruct the user to provide different cutoffs if applicable",
+          "Should provide per-class breakdowns listing each remaining graded item, its weight (or points), and the exact minimum score required to reach the target course grade",
+          "Should handle points-based classes (e.g., Psychology) by calculating the exact points needed across remaining items, with at least one feasible allocation example and an option to adjust distributions",
+          "Should ensure numerical accuracy and consistency, including correct use of weights/points, correct subtotaling of earned contributions, and coherent rounding that does not understate minimum requirements",
+          "Should avoid fabricating data; any missing weights, scores, or scales should be requested from the user or explicitly marked as assumptions",
+          "Should confirm the projected cumulative GPA if the user earns a 4.0 term using the provided current GPA and credit totals, and show the resulting cumulative GPA calculation",
+          "Should include actionable next steps (e.g., offer to lock targets into a planner, compute per-quiz and per-lab minimums week by week, or rerun with different cutoffs)",
+          "Should use UI components to visualize the projected GPA and allow interactive what-if adjustments for class scores, pre-populated with the computed minimums where appropriate",
+          "Should ensure component properties are coherent (IDs, titles, current/projected/target GPA values, slider ranges, weights, decimal places, and action handlers) and align with the computed requirements",
+          "Should not call external tools unless additional data fetching or complex computation beyond the provided context is required"
+        ],
+        "expected_components": [
+          "ProjectedGPAGaugeProps",
+          "WhatIfScoreSlidersProps"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Yes, lock these targets and generate week-by-week minimums for each remaining quiz, HW, lab, and exam, and add reminders. Also, use A- = 92% for Calculus and B+ = 88% for Orgo and recalc the required finals; for Psych assume I get 90/100 on the project\u2014what do I then need on Exam 2 and the Final?"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Got it\u2014targets locked. I recalculated with A- = 92% for Calculus and B+ = 88% for Organic Chem, and set Psych project to 90/100. Key results and week-by-week minimums are below. Quick feasibility notes: - Calculus II: With your midterm scores, 92% overall is not attainable. The absolute max (even with 100% on the final, remaining quizzes, and HW) is \u224891.2% (A- on a 90\u201392.99 scale, but below your raised 92% cutoff). - Organic Chemistry I: 88% overall is attainable but requires a very strong final unless you raise lab/HW on the remaining items. - Psychology: With Project = 90/100, you\u2019ll need a combined 365/450 across Exam 2 + Final assuming 45/50 on the remaining quizzes. If you do better/worse on quizzes, the combined requirement shifts accordingly. Exact minimums and schedules by class: Calculus II (target A- = 92%; max possible \u2248 91.2%) - Remaining items and minimums to maximize your grade:   \u2022 Quiz 7 (Nov 22): 100%   \u2022 HW 9 (Nov 25): 100%   \u2022 Quiz 8 (Dec 1): 100%   \u2022 HW 10 (Dec 8): 100%   \u2022 Final (Dec 12): 100%   Outcome: \u2248 91.2% overall (ceiling given prior midterms). If you instead hold your current non-exam averages (Quizzes ~92, HW ~100), you would need 106% on the Final to hit 92% overall\u2014so 92% overall isn\u2019t reachable. Organic Chemistry I (target B+ = 88%) - Path A (keep remaining Labs ~88 and HW ~90):   \u2022 Lab 9 (weekly thru Dec 6): 88%   \u2022 Lab 10: 88%   \u2022 Lab 11: 88%   \u2022 Lab 12: 88%   \u2022 HW 7 (weekly thru Dec 10): 90%   \u2022 HW 8: 90%   \u2022 HW 9: 90%   \u2022 HW 10: 90%   \u2022 Final (Dec 15): 98.7% (\u224899%)   Outcome: \u2248 88.0% overall. - Path B (balanced raise on remaining labs/HW reduces final requirement):   \u2022 Labs 9\u201312: 95% each   \u2022 HW 7\u201310: 95% each   \u2022 Final (Dec 15): \u226594.5%   Outcome: \u2248 88.0% overall. Psychology (target A \u2265 93% = 930/1000) - Current: 430/500. Remaining 600 points: Exam 2 (200, Nov 20), Final (250, Dec 14), Project (100, Dec 1), Quizzes (5\u00d710 = 50, weekly). - With Project = 90/100 and assuming remaining quizzes total 45/50: Needed on Exam 2 + Final combined = 365/450 (\u224881.1% average across those two). Examples:   \u2022 If Exam 2 = 170/200 (85%), Final must be \u2265195/250 (78%).   \u2022 If Exam 2 = 180/200 (90%), Final must be \u2265185/250 (74%).   \u2022 If Exam 2 = 160/200 (80%), Final must be \u2265205/250 (82%). If your quizzes end up perfect (50/50), the combined need drops to 360/450. If they\u2019re 40/50, it rises to 370/450. Reminder schedule (added as action items you can save): - Nov 20 (Psych Exam 2): Aim \u2265 the target you pick from the examples above (combined with Final to reach 365/450). - Nov 22 (Calc Quiz 7): Target 100%. - Nov 25 (Calc HW 9): Target 100%. - Weekly through Dec 6 (Orgo Labs 9\u201312): Path A: \u226588% each; Path B: \u226595% each. - Weekly through Dec 10 (Orgo HW 7\u201310): Path A: \u226590% each; Path B: \u226595% each. - Weekly quizzes (Psych, 5\u00d710): Aim 9/10 each (total \u226545/50). - Dec 1 (Psych Project): 90/100 (fixed). - Dec 8 (Calc HW 10): Target 100%. - Dec 1 (Calc Quiz 8): Target 100%. - Dec 12 (Calc Final): To maximize, aim 100% (upper bound needed to reach \u224891.2%). - Dec 14 (Psych Final): Set based on your Exam 2 result using the trade-off table above. - Dec 15 (Orgo Final): Path A need \u224899%; Path B need \u224894.5%. 4.0-term check (confirmation): If you earn a perfect 4.0 term across 11 credits, your projected cumulative is (3.28\u00d745 + 4.00\u00d711) / 56 \u2248 3.42. Under the plan of Calc \u2248 A- (3.7), Orgo \u2248 B+ (3.3), Psych \u2248 A (4.0), your term GPA is \u22483.64 and cumulative \u22483.35. Want me to save Path A or Path B for Orgo as your active plan and push calendar reminders? I can also recalc if your letter cutoffs differ in any class."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ProjectedGPAGaugeProps",
+            "props": {
+              "id": "gpa-gauge-fall-2025",
+              "title": "Projected GPA",
+              "currentGPA": 3.28,
+              "projectedGPA": 3.35,
+              "targetGPA": 3.5,
+              "creditsCompleted": 45,
+              "creditsInProgress": 11,
+              "onAdjustTargetAction": {
+                "type": "adjust_target_gpa",
+                "payload": {
+                  "gaugeId": "gpa-gauge-fall-2025",
+                  "targetGPA": 3.5
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "WhatIfScoreSlidersProps",
+            "props": {
+              "id": "what-if-all-minimums",
+              "title": "What-if Minimums (Locked Targets)",
+              "scope": "all",
+              "items": [
+                {
+                  "id": "calc-final",
+                  "label": "Calculus II \u00b7 Final (Dec 12)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 20
+                },
+                {
+                  "id": "calc-quiz-7",
+                  "label": "Calculus II \u00b7 Quiz 7 (Nov 22)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 2.5
+                },
+                {
+                  "id": "calc-quiz-8",
+                  "label": "Calculus II \u00b7 Quiz 8 (Dec 1)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 2.5
+                },
+                {
+                  "id": "calc-hw-9",
+                  "label": "Calculus II \u00b7 HW 9 (Nov 25)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 2
+                },
+                {
+                  "id": "calc-hw-10",
+                  "label": "Calculus II \u00b7 HW 10 (Dec 8)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 100,
+                  "weightPct": 2
+                },
+                {
+                  "id": "orgo-lab-9",
+                  "label": "Orgo I \u00b7 Lab 9 (by Dec 6)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 88,
+                  "weightPct": 2.083
+                },
+                {
+                  "id": "orgo-lab-10",
+                  "label": "Orgo I \u00b7 Lab 10",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 88,
+                  "weightPct": 2.083
+                },
+                {
+                  "id": "orgo-lab-11",
+                  "label": "Orgo I \u00b7 Lab 11",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 88,
+                  "weightPct": 2.083
+                },
+                {
+                  "id": "orgo-lab-12",
+                  "label": "Orgo I \u00b7 Lab 12",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 88,
+                  "weightPct": 2.083
+                },
+                {
+                  "id": "orgo-hw-7",
+                  "label": "Orgo I \u00b7 HW 7 (by Dec 10)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 90,
+                  "weightPct": 1
+                },
+                {
+                  "id": "orgo-hw-8",
+                  "label": "Orgo I \u00b7 HW 8",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 90,
+                  "weightPct": 1
+                },
+                {
+                  "id": "orgo-hw-9",
+                  "label": "Orgo I \u00b7 HW 9",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 90,
+                  "weightPct": 1
+                },
+                {
+                  "id": "orgo-hw-10",
+                  "label": "Orgo I \u00b7 HW 10",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 90,
+                  "weightPct": 1
+                },
+                {
+                  "id": "orgo-final",
+                  "label": "Orgo I \u00b7 Final (Dec 15)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 99,
+                  "weightPct": 19
+                },
+                {
+                  "id": "psych-exam2",
+                  "label": "Psych \u00b7 Exam 2 (Nov 20) \u2014 pick & pair with Final",
+                  "minScore": 0,
+                  "maxScore": 200,
+                  "value": 170,
+                  "weightPct": 20
+                },
+                {
+                  "id": "psych-final",
+                  "label": "Psych \u00b7 Final (Dec 14)",
+                  "minScore": 0,
+                  "maxScore": 250,
+                  "value": 195,
+                  "weightPct": 25
+                },
+                {
+                  "id": "psych-project",
+                  "label": "Psych \u00b7 Project (Dec 1)",
+                  "minScore": 0,
+                  "maxScore": 100,
+                  "value": 90,
+                  "weightPct": 10
+                },
+                {
+                  "id": "psych-quizzes-rest",
+                  "label": "Psych \u00b7 Remaining Quizzes (5\u00d710pts)",
+                  "minScore": 0,
+                  "maxScore": 50,
+                  "value": 45,
+                  "weightPct": 5
+                }
+              ],
+              "presetButtons": [
+                {
+                  "key": "MAX",
+                  "label": "Maximize (100%)",
+                  "value": 100
+                },
+                {
+                  "key": "A",
+                  "label": "Aim for A (93%)",
+                  "value": 93
+                }
+              ],
+              "onAction": {
+                "type": "adjust_item"
+              },
+              "showWeights": true,
+              "decimalPlaces": 0
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly confirm locking the user's target thresholds (A- = 92% for Calculus, B+ = 88% for Orgo) and use them in all calculations",
+          "Should compute and state feasibility ceilings when a target is mathematically unattainable, and provide the maximum achievable grade with assumptions",
+          "Should recalculate and clearly state the required final exam scores for Calculus and Organic Chemistry given the locked targets and current performance",
+          "Should compute Psychology requirements using Project = 90/100 and provide the combined Exam 2 + Final points needed, plus example pairings and sensitivity to quiz totals",
+          "Should produce a week-by-week list of minimum required scores for each remaining quiz, homework, lab, project, exam with due dates",
+          "Should add actionable reminders for each remaining item with dates matching the schedule and targets referenced in the plan",
+          "Should reflect the locked targets and minimums in the what-if sliders, pre-populating values and weights that match the assignment structure",
+          "Should update or present the projected term and cumulative GPA outcomes based on the recalculated paths and clearly label assumptions",
+          "Should present any infeasibility or trade-offs (e.g., multiple paths for Orgo) with clear thresholds that reduce required final exam scores",
+          "Should keep calculations internally consistent across text, components, weights, and dates (no contradictions between narrative and UI elements)",
+          "Should use concise, action-oriented language and avoid unnecessary formatting, relying on structured components for data display",
+          "Should use appropriate UI components to show the GPA gauge and what-if sliders and include an assignments/reminders list for schedule and notifications",
+          "Should provide on-action hooks or instructions for locking targets and creating reminders if tool calls are required for those actions",
+          "Should avoid calling external tools unless necessary; if reminders or calendar actions require tools, should call them with correct arguments (titles, dates, targets)"
+        ],
+        "expected_components": [
+          "ProjectedGPAGaugeProps",
+          "WhatIfScoreSlidersProps",
+          "AssignmentsTableProps",
+          "RemindersListProps"
+        ]
+      }
+    }
+  ]
+}

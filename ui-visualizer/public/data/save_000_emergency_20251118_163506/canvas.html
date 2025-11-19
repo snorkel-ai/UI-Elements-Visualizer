@@ -1,0 +1,3846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I want to save for a $10,000 emergency fund. Show me different contribution scenarios and timelines."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great plan. Here are a few contribution paths to reach a $10,000 emergency fund. You can pick the pace that fits your budget today and adjust anytime.\n- Fast-track: $1,000/mo \u2192 done in 10 months (Sep 2026)\n- Aggressive: $625/mo \u2192 done in 16 months (Mar 2027)\n- Balanced: $400/mo \u2192 done in 25 months (Dec 2027)\n- Conservative: $250/mo \u2192 done in 40 months (Mar 2029)\n\nTip: If you already have some savings set aside, tell me how much and I\u2019ll recalculate everything instantly."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SavingsGoalOverview",
+              "props": {
+                "goalId": "goal_emer_fund_001",
+                "goalName": "Emergency Fund",
+                "targetAmount": 10000,
+                "currentSavings": 0,
+                "currencyCode": "USD",
+                "iconUrl": "https://cdn.example.com/icons/emergency-fund.png",
+                "scenarios": [
+                  {
+                    "id": "fast_track",
+                    "label": "Fast-track",
+                    "monthlyContribution": 1000,
+                    "monthsToGoal": 10,
+                    "completionDate": "2026-09-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 0
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 1000
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 2000
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 3000
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4000
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 5000
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 6000
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 7000
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 8000
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 9000
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 10000
+                      }
+                    ]
+                  },
+                  {
+                    "id": "aggressive",
+                    "label": "Aggressive",
+                    "monthlyContribution": 625,
+                    "monthsToGoal": 16,
+                    "completionDate": "2027-03-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 0
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 625
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 1250
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 1875
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 2500
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 3125
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 3750
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 4375
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 5000
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 5625
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 6250
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 6875
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 7500
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 8125
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 8750
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 9375
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 10000
+                      }
+                    ]
+                  },
+                  {
+                    "id": "balanced",
+                    "label": "Balanced",
+                    "monthlyContribution": 400,
+                    "monthsToGoal": 25,
+                    "completionDate": "2027-12-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 0
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 400
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 800
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 1200
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 1600
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 2000
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 2400
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 2800
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 3200
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 3600
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 4000
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 4400
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 4800
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 5200
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 5600
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 6000
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 6400
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 6800
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 7200
+                      },
+                      {
+                        "month": "2027-06",
+                        "balance": 7600
+                      },
+                      {
+                        "month": "2027-07",
+                        "balance": 8000
+                      },
+                      {
+                        "month": "2027-08",
+                        "balance": 8400
+                      },
+                      {
+                        "month": "2027-09",
+                        "balance": 8800
+                      },
+                      {
+                        "month": "2027-10",
+                        "balance": 9200
+                      },
+                      {
+                        "month": "2027-11",
+                        "balance": 9600
+                      },
+                      {
+                        "month": "2027-12",
+                        "balance": 10000
+                      }
+                    ]
+                  },
+                  {
+                    "id": "conservative",
+                    "label": "Conservative",
+                    "monthlyContribution": 250,
+                    "monthsToGoal": 40,
+                    "completionDate": "2029-03-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 0
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 250
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 500
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 750
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 1000
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 1250
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 1500
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 1750
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 2000
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 2250
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 2500
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 2750
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 3000
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 3250
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 3500
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 3750
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 4000
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 4250
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 4500
+                      },
+                      {
+                        "month": "2027-06",
+                        "balance": 4750
+                      },
+                      {
+                        "month": "2027-07",
+                        "balance": 5000
+                      },
+                      {
+                        "month": "2027-08",
+                        "balance": 5250
+                      },
+                      {
+                        "month": "2027-09",
+                        "balance": 5500
+                      },
+                      {
+                        "month": "2027-10",
+                        "balance": 5750
+                      },
+                      {
+                        "month": "2027-11",
+                        "balance": 6000
+                      },
+                      {
+                        "month": "2027-12",
+                        "balance": 6250
+                      },
+                      {
+                        "month": "2028-01",
+                        "balance": 6500
+                      },
+                      {
+                        "month": "2028-02",
+                        "balance": 6750
+                      },
+                      {
+                        "month": "2028-03",
+                        "balance": 7000
+                      },
+                      {
+                        "month": "2028-04",
+                        "balance": 7250
+                      },
+                      {
+                        "month": "2028-05",
+                        "balance": 7500
+                      },
+                      {
+                        "month": "2028-06",
+                        "balance": 7750
+                      },
+                      {
+                        "month": "2028-07",
+                        "balance": 8000
+                      },
+                      {
+                        "month": "2028-08",
+                        "balance": 8250
+                      },
+                      {
+                        "month": "2028-09",
+                        "balance": 8500
+                      },
+                      {
+                        "month": "2028-10",
+                        "balance": 8750
+                      },
+                      {
+                        "month": "2028-11",
+                        "balance": 9000
+                      },
+                      {
+                        "month": "2028-12",
+                        "balance": 9250
+                      },
+                      {
+                        "month": "2029-01",
+                        "balance": 9500
+                      },
+                      {
+                        "month": "2029-02",
+                        "balance": 9750
+                      },
+                      {
+                        "month": "2029-03",
+                        "balance": 10000
+                      }
+                    ]
+                  }
+                ],
+                "selectedScenarioId": "balanced",
+                "selectScenarioAction": {
+                  "type": "select_scenario",
+                  "payload": {
+                    "scenarioId": "balanced"
+                  }
+                },
+                "sortBy": "months"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "MonthlyContributionTable",
+              "props": {
+                "goalId": "goal_emer_fund_001",
+                "goalAmount": 10000,
+                "currencyCode": "USD",
+                "scenarios": [
+                  {
+                    "id": "fast_track",
+                    "label": "Fast-track",
+                    "monthlyContribution": 1000,
+                    "monthsToGoal": 10,
+                    "completionDate": "2026-09-01",
+                    "totalContributed": 10000
+                  },
+                  {
+                    "id": "aggressive",
+                    "label": "Aggressive",
+                    "monthlyContribution": 625,
+                    "monthsToGoal": 16,
+                    "completionDate": "2027-03-01",
+                    "totalContributed": 10000
+                  },
+                  {
+                    "id": "balanced",
+                    "label": "Balanced",
+                    "monthlyContribution": 400,
+                    "monthsToGoal": 25,
+                    "completionDate": "2027-12-01",
+                    "totalContributed": 10000
+                  },
+                  {
+                    "id": "conservative",
+                    "label": "Conservative",
+                    "monthlyContribution": 250,
+                    "monthsToGoal": 40,
+                    "completionDate": "2029-03-01",
+                    "totalContributed": 10000
+                  }
+                ],
+                "defaultSort": {
+                  "by": "monthsToGoal",
+                  "direction": "asc"
+                },
+                "selectedScenarioId": "balanced",
+                "onSelectAction": {
+                  "type": "select_scenario",
+                  "payload": {
+                    "scenarioId": "balanced"
+                  }
+                },
+                "showTotalContributed": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present multiple contribution scenarios for reaching a $10,000 emergency fund, each with monthly contribution, total months to goal, and projected completion date",
+            "Should ensure calculations are internally consistent (monthlyContribution * monthsToGoal + currentSavings equals targetAmount, assuming no interest unless stated)",
+            "Should anchor timelines to the current date and clearly format dates and currency",
+            "Should include a way to handle existing savings by parameterizing currentSavings and recalculating scenarios accordingly",
+            "Should provide visualizations that compare scenarios over time (e.g., balance growth by month) and a progress indicator toward the goal",
+            "Should use UI components appropriate for scenario comparison, progress tracking, and tabular detail, matching the expected visual elements",
+            "Should provide actionable controls to select or switch between scenarios with correct action payloads and scenario IDs",
+            "Should avoid unnecessary tool calls; only call tools if external data or complex computation beyond presented logic is required",
+            "Should maintain data integrity in time series (monotonically increasing balances, correct final balance equals target)",
+            "Should be concise and user-oriented, offering a clear next step (e.g., adjust contribution or input current savings)"
+          ],
+          "expected_components": [
+            "SavingsGoalOverview",
+            "MonthlyContributionTable",
+            "GoalProgressBar",
+            "ScenarioComparisonChart",
+            "CompletionDateCards"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "I already have $2,500 saved. Please show biweekly vs monthly scenarios at $300, $400, and $500 contributions with 3% APY (monthly compounding), including projected completion dates, a progress bar, and the comparison chart/table."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Got it \u2014 I\u2019ll factor in your $2,500 head start and 3% APY with monthly compounding, and compare monthly vs. biweekly contributions at $300, $400, and $500."
+          },
+          {
+            "type": "text",
+            "text": "Here\u2019s how your $10,000 emergency fund can progress with 3% APY (monthly compounding) starting from $2,500. For biweekly options, I used an equivalent monthly contribution (26 pay periods/year \u00f7 12 months \u2248 2.1667x) for accurate compounding.\n\nQuick results:\n- Monthly $300 \u2192 ~24 months \u2192 projected completion: 2027-11-01\n- Monthly $400 \u2192 ~19 months \u2192 projected completion: 2027-06-01\n- Monthly $500 \u2192 ~15 months \u2192 projected completion: 2027-02-01\n- Biweekly $300 (\u2248 $650/mo) \u2192 ~12 months \u2192 projected completion: 2026-11-01\n- Biweekly $400 (\u2248 $866.67/mo) \u2192 ~9 months \u2192 projected completion: 2026-08-01\n- Biweekly $500 (\u2248 $1,083.33/mo) \u2192 ~7 months \u2192 projected completion: 2026-06-01\n\nNotes and assumptions:\n- Interest rate: 3% APY with monthly compounding (0.25% per month).\n- Contributions assumed at month-end for projections; biweekly amounts converted to monthly equivalents for compounding.\n\nYou can select any scenario below to pin it in the chart. If you\u2019d like, I can also show a detailed table or completion-date cards next."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SavingsGoalOverview",
+              "props": {
+                "goalId": "goal_emergency_fund_001",
+                "goalName": "Emergency Fund",
+                "targetAmount": 10000,
+                "currentSavings": 2500,
+                "currencyCode": "USD",
+                "iconUrl": "https://cdn.example.com/icons/emergency-fund.png",
+                "scenarios": [
+                  {
+                    "id": "monthly_300",
+                    "label": "Monthly $300",
+                    "monthlyContribution": 300,
+                    "monthsToGoal": 24,
+                    "completionDate": "2027-11-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-12",
+                        "balance": 2806.25
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3113.27
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 3421.05
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 3729.6
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4038.93
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 4349.02
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 4659.9
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 4971.55
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 5284.0
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 5597.2
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 5911.19
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 6225.97
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 6541.52
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 6857.86
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 7174.99
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 7492.92
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 7811.64
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 8131.17
+                      },
+                      {
+                        "month": "2027-06",
+                        "balance": 8451.49
+                      },
+                      {
+                        "month": "2027-07",
+                        "balance": 8772.63
+                      },
+                      {
+                        "month": "2027-08",
+                        "balance": 9094.56
+                      },
+                      {
+                        "month": "2027-09",
+                        "balance": 9417.3
+                      },
+                      {
+                        "month": "2027-10",
+                        "balance": 9740.86
+                      },
+                      {
+                        "month": "2027-11",
+                        "balance": 10065.23
+                      }
+                    ]
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "monthlyContribution": 400,
+                    "monthsToGoal": 19,
+                    "completionDate": "2027-06-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-12",
+                        "balance": 2816.25
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3230.26
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 3645.34
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4061.47
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4478.66
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 4896.9
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 5316.21
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 5736.59
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 6158.03
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 6580.46
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 7003.96
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 7428.46
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 7853.93
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 8280.41
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 8707.87
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 9136.34
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 9565.8
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 9996.24
+                      },
+                      {
+                        "month": "2027-06",
+                        "balance": 10427.7
+                      }
+                    ]
+                  },
+                  {
+                    "id": "monthly_500",
+                    "label": "Monthly $500",
+                    "monthlyContribution": 500,
+                    "monthsToGoal": 15,
+                    "completionDate": "2027-02-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-12",
+                        "balance": 2826.25
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3347.32
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 3869.5
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4392.77
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4917.15
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 5442.54
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 5968.95
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 6496.37
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 7024.78
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 7554.2
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 8084.61
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 8616.02
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 9148.43
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 9681.84
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 10216.25
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_300",
+                    "label": "Biweekly $300 (\u2248 $650/mo)",
+                    "monthlyContribution": 650,
+                    "monthsToGoal": 12,
+                    "completionDate": "2026-11-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-12",
+                        "balance": 2978.75
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3636.69
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 4296.78
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4959.03
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 5623.45
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 6290.04
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 6958.79
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 7629.71
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 8302.8
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 8978.07
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 9655.51
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 10335.15
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_400",
+                    "label": "Biweekly $400 (\u2248 $866.67/mo)",
+                    "monthlyContribution": 866.6667,
+                    "monthsToGoal": 9,
+                    "completionDate": "2026-08-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-12",
+                        "balance": 3021.67
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3899.22
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 4779.97
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 5663.92
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 6551.07
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 7441.44
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 8335.02
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 9231.82
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 10131.85
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_500",
+                    "label": "Biweekly $500 (\u2248 $1,083.33/mo)",
+                    "monthlyContribution": 1083.3333,
+                    "monthsToGoal": 7,
+                    "completionDate": "2026-06-01",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-12",
+                        "balance": 3064.58
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 4161.11
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 5261.76
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 6366.53
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 7475.43
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 8588.46
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 9705.62
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 10826.93
+                      }
+                    ]
+                  }
+                ],
+                "selectedScenarioId": "monthly_400",
+                "selectScenarioAction": {
+                  "type": "select_scenario",
+                  "payload": {
+                    "scenarioId": "monthly_400"
+                  }
+                },
+                "sortBy": "months"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScenarioComparisonChart",
+              "props": {
+                "targetAmount": 10000,
+                "currencyCode": "USD",
+                "scenarios": [
+                  {
+                    "id": "monthly_300",
+                    "label": "Monthly $300",
+                    "colorHex": "#3B82F6",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2500
+                      },
+                      {
+                        "month": 1,
+                        "balance": 2806.25
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3113.27
+                      },
+                      {
+                        "month": 3,
+                        "balance": 3421.05
+                      },
+                      {
+                        "month": 4,
+                        "balance": 3729.6
+                      },
+                      {
+                        "month": 5,
+                        "balance": 4038.93
+                      },
+                      {
+                        "month": 6,
+                        "balance": 4349.02
+                      },
+                      {
+                        "month": 7,
+                        "balance": 4659.9
+                      },
+                      {
+                        "month": 8,
+                        "balance": 4971.55
+                      },
+                      {
+                        "month": 9,
+                        "balance": 5284.0
+                      },
+                      {
+                        "month": 10,
+                        "balance": 5597.2
+                      },
+                      {
+                        "month": 11,
+                        "balance": 5911.19
+                      },
+                      {
+                        "month": 12,
+                        "balance": 6225.97
+                      },
+                      {
+                        "month": 13,
+                        "balance": 6541.52
+                      },
+                      {
+                        "month": 14,
+                        "balance": 6857.86
+                      },
+                      {
+                        "month": 15,
+                        "balance": 7174.99
+                      },
+                      {
+                        "month": 16,
+                        "balance": 7492.92
+                      },
+                      {
+                        "month": 17,
+                        "balance": 7811.64
+                      },
+                      {
+                        "month": 18,
+                        "balance": 8131.17
+                      },
+                      {
+                        "month": 19,
+                        "balance": 8451.49
+                      },
+                      {
+                        "month": 20,
+                        "balance": 8772.63
+                      },
+                      {
+                        "month": 21,
+                        "balance": 9094.56
+                      },
+                      {
+                        "month": 22,
+                        "balance": 9417.3
+                      },
+                      {
+                        "month": 23,
+                        "balance": 9740.86
+                      },
+                      {
+                        "month": 24,
+                        "balance": 10065.23
+                      }
+                    ],
+                    "projectedCompletionMonth": 24
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "colorHex": "#10B981",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2500
+                      },
+                      {
+                        "month": 1,
+                        "balance": 2816.25
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3230.26
+                      },
+                      {
+                        "month": 3,
+                        "balance": 3645.34
+                      },
+                      {
+                        "month": 4,
+                        "balance": 4061.47
+                      },
+                      {
+                        "month": 5,
+                        "balance": 4478.66
+                      },
+                      {
+                        "month": 6,
+                        "balance": 4896.9
+                      },
+                      {
+                        "month": 7,
+                        "balance": 5316.21
+                      },
+                      {
+                        "month": 8,
+                        "balance": 5736.59
+                      },
+                      {
+                        "month": 9,
+                        "balance": 6158.03
+                      },
+                      {
+                        "month": 10,
+                        "balance": 6580.46
+                      },
+                      {
+                        "month": 11,
+                        "balance": 7003.96
+                      },
+                      {
+                        "month": 12,
+                        "balance": 7428.46
+                      },
+                      {
+                        "month": 13,
+                        "balance": 7853.93
+                      },
+                      {
+                        "month": 14,
+                        "balance": 8280.41
+                      },
+                      {
+                        "month": 15,
+                        "balance": 8707.87
+                      },
+                      {
+                        "month": 16,
+                        "balance": 9136.34
+                      },
+                      {
+                        "month": 17,
+                        "balance": 9565.8
+                      },
+                      {
+                        "month": 18,
+                        "balance": 9996.24
+                      },
+                      {
+                        "month": 19,
+                        "balance": 10427.7
+                      }
+                    ],
+                    "projectedCompletionMonth": 19
+                  },
+                  {
+                    "id": "monthly_500",
+                    "label": "Monthly $500",
+                    "colorHex": "#F59E0B",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2500
+                      },
+                      {
+                        "month": 1,
+                        "balance": 2826.25
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3347.32
+                      },
+                      {
+                        "month": 3,
+                        "balance": 3869.5
+                      },
+                      {
+                        "month": 4,
+                        "balance": 4392.77
+                      },
+                      {
+                        "month": 5,
+                        "balance": 4917.15
+                      },
+                      {
+                        "month": 6,
+                        "balance": 5442.54
+                      },
+                      {
+                        "month": 7,
+                        "balance": 5968.95
+                      },
+                      {
+                        "month": 8,
+                        "balance": 6496.37
+                      },
+                      {
+                        "month": 9,
+                        "balance": 7024.78
+                      },
+                      {
+                        "month": 10,
+                        "balance": 7554.2
+                      },
+                      {
+                        "month": 11,
+                        "balance": 8084.61
+                      },
+                      {
+                        "month": 12,
+                        "balance": 8616.02
+                      },
+                      {
+                        "month": 13,
+                        "balance": 9148.43
+                      },
+                      {
+                        "month": 14,
+                        "balance": 9681.84
+                      },
+                      {
+                        "month": 15,
+                        "balance": 10216.25
+                      }
+                    ],
+                    "projectedCompletionMonth": 15
+                  },
+                  {
+                    "id": "biweekly_300",
+                    "label": "Biweekly $300 (\u2248 $650/mo)",
+                    "colorHex": "#EF4444",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2500
+                      },
+                      {
+                        "month": 1,
+                        "balance": 2978.75
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3636.69
+                      },
+                      {
+                        "month": 3,
+                        "balance": 4296.78
+                      },
+                      {
+                        "month": 4,
+                        "balance": 4959.03
+                      },
+                      {
+                        "month": 5,
+                        "balance": 5623.45
+                      },
+                      {
+                        "month": 6,
+                        "balance": 6290.04
+                      },
+                      {
+                        "month": 7,
+                        "balance": 6958.79
+                      },
+                      {
+                        "month": 8,
+                        "balance": 7629.71
+                      },
+                      {
+                        "month": 9,
+                        "balance": 8302.8
+                      },
+                      {
+                        "month": 10,
+                        "balance": 8978.07
+                      },
+                      {
+                        "month": 11,
+                        "balance": 9655.51
+                      },
+                      {
+                        "month": 12,
+                        "balance": 10335.15
+                      }
+                    ],
+                    "projectedCompletionMonth": 12
+                  },
+                  {
+                    "id": "biweekly_400",
+                    "label": "Biweekly $400 (\u2248 $866.67/mo)",
+                    "colorHex": "#8B5CF6",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2500
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3021.67
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3899.22
+                      },
+                      {
+                        "month": 3,
+                        "balance": 4779.97
+                      },
+                      {
+                        "month": 4,
+                        "balance": 5663.92
+                      },
+                      {
+                        "month": 5,
+                        "balance": 6551.07
+                      },
+                      {
+                        "month": 6,
+                        "balance": 7441.44
+                      },
+                      {
+                        "month": 7,
+                        "balance": 8335.02
+                      },
+                      {
+                        "month": 8,
+                        "balance": 9231.82
+                      },
+                      {
+                        "month": 9,
+                        "balance": 10131.85
+                      }
+                    ],
+                    "projectedCompletionMonth": 9
+                  },
+                  {
+                    "id": "biweekly_500",
+                    "label": "Biweekly $500 (\u2248 $1,083.33/mo)",
+                    "colorHex": "#0EA5E9",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2500
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3064.58
+                      },
+                      {
+                        "month": 2,
+                        "balance": 4161.11
+                      },
+                      {
+                        "month": 3,
+                        "balance": 5261.76
+                      },
+                      {
+                        "month": 4,
+                        "balance": 6366.53
+                      },
+                      {
+                        "month": 5,
+                        "balance": 7475.43
+                      },
+                      {
+                        "month": 6,
+                        "balance": 8588.46
+                      },
+                      {
+                        "month": 7,
+                        "balance": 9705.62
+                      },
+                      {
+                        "month": 8,
+                        "balance": 10826.93
+                      }
+                    ],
+                    "projectedCompletionMonth": 7
+                  }
+                ],
+                "xDomain": {
+                  "startMonth": 0,
+                  "endMonth": 24
+                },
+                "showGoalLine": true,
+                "showLegend": true,
+                "pinnedScenarioId": "monthly_400",
+                "highlightedScenarioId": null,
+                "onHoverScenarioAction": {
+                  "type": "hover_scenario",
+                  "scenarioId": null
+                },
+                "onSelectScenarioAction": {
+                  "type": "select_scenario",
+                  "scenarioId": "monthly_400"
+                },
+                "onViewportChangeAction": {
+                  "type": "change_viewport",
+                  "startMonth": 0,
+                  "endMonth": 24
+                },
+                "accessibilityLabel": "Savings scenarios comparison chart"
+              }
+            }
+          }
+        ],
+        "toolCalls": [
+          {
+            "id": "3sV6zFMiS",
+            "type": "function",
+            "function": {
+              "name": "generate_chart_data",
+              "arguments": "{\"startDate\": \"2025-11-19\", \"currencyCode\": \"USD\", \"targetAmount\": 10000, \"currentSavings\": 2500, \"annualRate\": 0.03, \"compounding\": \"monthly\", \"scenarios\": [{\"id\": \"monthly_300\", \"label\": \"Monthly $300\", \"monthlyContribution\": 300}, {\"id\": \"monthly_400\", \"label\": \"Monthly $400\", \"monthlyContribution\": 400}, {\"id\": \"monthly_500\", \"label\": \"Monthly $500\", \"monthlyContribution\": 500}, {\"id\": \"biweekly_300\", \"label\": \"Biweekly $300 (\\u2248 $650/mo)\", \"monthlyContribution\": 650}, {\"id\": \"biweekly_400\", \"label\": \"Biweekly $400 (\\u2248 $866.67/mo)\", \"monthlyContribution\": 866.6667}, {\"id\": \"biweekly_500\", \"label\": \"Biweekly $500 (\\u2248 $1,083.33/mo)\", \"monthlyContribution\": 1083.3333}], \"maxMonths\": 36}"
+            },
+            "tool_executed": true
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly incorporate the user's starting balance ($2,500) and target amount ($10,000)",
+            "Should include both monthly and biweekly contribution scenarios at $300, $400, and $500",
+            "Should use a 3% APY with monthly compounding and apply the correct monthly rate (0.03/12) in calculations",
+            "Should compute or clearly and consistently approximate biweekly contributions (26 periods/year) and document any conversion assumptions used",
+            "Should provide projected completion dates for each scenario and ensure they align with the timeline data in charts/tables",
+            "Should display a goal progress bar reflecting current savings vs target",
+            "Should include a scenario comparison visualization (line chart) and a tabular or series breakdown of balances over time",
+            "Should provide clear, concise notes/assumptions (e.g., contribution timing within the month, compounding method, rounding)",
+            "Should maintain internal consistency across text, charts, tables, and component props (balances, months to goal, completion dates, labels, colors)",
+            "Should ensure time axis consistency (month 0 is the current month) and correct date-to-month mapping in series points",
+            "Should use accurate currency formatting and units (USD, dollar amounts)",
+            "Should call the generate_chart_data tool with correct inputs (targetAmount=10000, currentSavings=2500, apy=0.03, compounding='monthly', scenarios for monthly and biweekly contributions) when generating the series data",
+            "Should present selectable/pinnable scenarios and reflect the selected scenario consistently across components",
+            "Should include accessible labels for interactive visual components (e.g., chart accessibilityLabel)",
+            "Should avoid unnecessary or hallucinated components/tools beyond those required to fulfill the request"
+          ],
+          "expected_components": [
+            "SavingsGoalOverview",
+            "ScenarioComparisonChart"
+          ]
+        }
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "3sV6zFMiS",
+        "content": "{\n  \"data\": {\n    \"startDate\": \"2025-11-19\",\n    \"currencyCode\": \"USD\",\n    \"targetAmount\": 10000,\n    \"currentSavings\": 2500,\n    \"annualRate\": 0.03,\n    \"monthlyRate\": 0.0025,\n    \"compounding\": \"monthly\",\n    \"goalProgress\": {\n      \"current\": 2500,\n      \"target\": 10000,\n      \"remaining\": 7500,\n      \"percent\": 25\n    },\n    \"scenarios\": [\n      {\n        \"id\": \"monthly_300\",\n        \"label\": \"Monthly $300\",\n        \"monthlyContribution\": 300,\n        \"projectedCompletionDate\": \"2027-10-31\",\n        \"monthsToGoal\": 24,\n        \"totalContributions\": 7200,\n        \"totalInterest\": 365.24,\n        \"series\": [\n          {\n            \"date\": \"2025-11-30\",\n            \"contribution\": 300,\n            \"interest\": 6.25,\n            \"balance\": 2806.25\n          },\n          {\n            \"date\": \"2025-12-31\",\n            \"contribution\": 300,\n            \"interest\": 7.02,\n            \"balance\": 3113.27\n          },\n          {\n            \"date\": \"2026-01-31\",\n            \"contribution\": 300,\n            \"interest\": 7.78,\n            \"balance\": 3421.05\n          },\n          {\n            \"date\": \"2026-02-28\",\n            \"contribution\": 300,\n            \"interest\": 8.55,\n            \"balance\": 3729.6\n          },\n          {\n            \"date\": \"2026-03-31\",\n            \"contribution\": 300,\n            \"interest\": 9.32,\n            \"balance\": 4038.93\n          },\n          {\n            \"date\": \"2026-04-30\",\n            \"contribution\": 300,\n            \"interest\": 10.1,\n            \"balance\": 4349.02\n          },\n          {\n            \"date\": \"2026-05-31\",\n            \"contribution\": 300,\n            \"interest\": 10.87,\n            \"balance\": 4659.9\n          },\n          {\n            \"date\": \"2026-06-30\",\n            \"contribution\": 300,\n            \"interest\": 11.65,\n            \"balance\": 4971.54\n          },\n          {\n            \"date\": \"2026-07-31\",\n            \"contribution\": 300,\n            \"interest\": 12.43,\n            \"balance\": 5283.97\n          },\n          {\n            \"date\": \"2026-08-31\",\n            \"contribution\": 300,\n            \"interest\": 13.21,\n            \"balance\": 5597.18\n          },\n          {\n            \"date\": \"2026-09-30\",\n            \"contribution\": 300,\n            \"interest\": 13.99,\n            \"balance\": 5911.18\n          },\n          {\n            \"date\": \"2026-10-31\",\n            \"contribution\": 300,\n            \"interest\": 14.78,\n            \"balance\": 6225.95\n          },\n          {\n            \"date\": \"2026-11-30\",\n            \"contribution\": 300,\n            \"interest\": 15.56,\n            \"balance\": 6541.52\n          },\n          {\n            \"date\": \"2026-12-31\",\n            \"contribution\": 300,\n            \"interest\": 16.35,\n            \"balance\": 6857.87\n          },\n          {\n            \"date\": \"2027-01-31\",\n            \"contribution\": 300,\n            \"interest\": 17.14,\n            \"balance\": 7175.02\n          },\n          {\n            \"date\": \"2027-02-28\",\n            \"contribution\": 300,\n            \"interest\": 17.94,\n            \"balance\": 7492.96\n          },\n          {\n            \"date\": \"2027-03-31\",\n            \"contribution\": 300,\n            \"interest\": 18.73,\n            \"balance\": 7811.69\n          },\n          {\n            \"date\": \"2027-04-30\",\n            \"contribution\": 300,\n            \"interest\": 19.53,\n            \"balance\": 8131.22\n          },\n          {\n            \"date\": \"2027-05-31\",\n            \"contribution\": 300,\n            \"interest\": 20.33,\n            \"balance\": 8451.55\n          },\n          {\n            \"date\": \"2027-06-30\",\n            \"contribution\": 300,\n            \"interest\": 21.13,\n            \"balance\": 8772.67\n          },\n          {\n            \"date\": \"2027-07-31\",\n            \"contribution\": 300,\n            \"interest\": 21.93,\n            \"balance\": 9094.61\n          },\n          {\n            \"date\": \"2027-08-31\",\n            \"contribution\": 300,\n            \"interest\": 22.74,\n            \"balance\": 9417.34\n          },\n          {\n            \"date\": \"2027-09-30\",\n            \"contribution\": 300,\n            \"interest\": 23.54,\n            \"balance\": 9740.89\n          },\n          {\n            \"date\": \"2027-10-31\",\n            \"contribution\": 300,\n            \"interest\": 24.35,\n            \"balance\": 10065.24\n          }\n        ]\n      },\n      {\n        \"id\": \"monthly_400\",\n        \"label\": \"Monthly $400\",\n        \"monthlyContribution\": 400,\n        \"projectedCompletionDate\": \"2027-05-31\",\n        \"monthsToGoal\": 19,\n        \"totalContributions\": 7600,\n        \"totalInterest\": 294.91,\n        \"series\": [\n          {\n            \"date\": \"2025-11-30\",\n            \"contribution\": 400,\n            \"interest\": 6.25,\n            \"balance\": 2906.25\n          },\n          {\n            \"date\": \"2025-12-31\",\n            \"contribution\": 400,\n            \"interest\": 7.27,\n            \"balance\": 3313.52\n          },\n          {\n            \"date\": \"2026-01-31\",\n            \"contribution\": 400,\n            \"interest\": 8.28,\n            \"balance\": 3721.8\n          },\n          {\n            \"date\": \"2026-02-28\",\n            \"contribution\": 400,\n            \"interest\": 9.3,\n            \"balance\": 4131.1\n          },\n          {\n            \"date\": \"2026-03-31\",\n            \"contribution\": 400,\n            \"interest\": 10.33,\n            \"balance\": 4541.43\n          },\n          {\n            \"date\": \"2026-04-30\",\n            \"contribution\": 400,\n            \"interest\": 11.35,\n            \"balance\": 4952.79\n          },\n          {\n            \"date\": \"2026-05-31\",\n            \"contribution\": 400,\n            \"interest\": 12.38,\n            \"balance\": 5365.17\n          },\n          {\n            \"date\": \"2026-06-30\",\n            \"contribution\": 400,\n            \"interest\": 13.41,\n            \"balance\": 5778.58\n          },\n          {\n            \"date\": \"2026-07-31\",\n            \"contribution\": 400,\n            \"interest\": 14.45,\n            \"balance\": 6193.03\n          },\n          {\n            \"date\": \"2026-08-31\",\n            \"contribution\": 400,\n            \"interest\": 15.48,\n            \"balance\": 6608.51\n          },\n          {\n            \"date\": \"2026-09-30\",\n            \"contribution\": 400,\n            \"interest\": 16.52,\n            \"balance\": 7025.03\n          },\n          {\n            \"date\": \"2026-10-31\",\n            \"contribution\": 400,\n            \"interest\": 17.56,\n            \"balance\": 7442.59\n          },\n          {\n            \"date\": \"2026-11-30\",\n            \"contribution\": 400,\n            \"interest\": 18.61,\n            \"balance\": 7861.2\n          },\n          {\n            \"date\": \"2026-12-31\",\n            \"contribution\": 400,\n            \"interest\": 19.65,\n            \"balance\": 8280.85\n          },\n          {\n            \"date\": \"2027-01-31\",\n            \"contribution\": 400,\n            \"interest\": 20.7,\n            \"balance\": 8701.55\n          },\n          {\n            \"date\": \"2027-02-28\",\n            \"contribution\": 400,\n            \"interest\": 21.75,\n            \"balance\": 9123.31\n          },\n          {\n            \"date\": \"2027-03-31\",\n            \"contribution\": 400,\n            \"interest\": 22.81,\n            \"balance\": 9546.12\n          },\n          {\n            \"date\": \"2027-04-30\",\n            \"contribution\": 400,\n            \"interest\": 23.87,\n            \"balance\": 9969.98\n          },\n          {\n            \"date\": \"2027-05-31\",\n            \"contribution\": 400,\n            \"interest\": 24.92,\n            \"balance\": 10394.91\n          }\n        ]\n      },\n      {\n        \"id\": \"monthly_500\",\n        \"label\": \"Monthly $500\",\n        \"monthlyContribution\": 500,\n        \"projectedCompletionDate\": \"2027-01-31\",\n        \"monthsToGoal\": 15,\n        \"totalContributions\": 7500,\n        \"totalInterest\": 228.09,\n        \"series\": [\n          {\n            \"date\": \"2025-11-30\",\n            \"contribution\": 500,\n            \"interest\": 6.25,\n            \"balance\": 3006.25\n          },\n          {\n            \"date\": \"2025-12-31\",\n            \"contribution\": 500,\n            \"interest\": 7.52,\n            \"balance\": 3513.77\n          },\n          {\n            \"date\": \"2026-01-31\",\n            \"contribution\": 500,\n            \"interest\": 8.78,\n            \"balance\": 4022.55\n          },\n          {\n            \"date\": \"2026-02-28\",\n            \"contribution\": 500,\n            \"interest\": 10.06,\n            \"balance\": 4532.61\n          },\n          {\n            \"date\": \"2026-03-31\",\n            \"contribution\": 500,\n            \"interest\": 11.33,\n            \"balance\": 5043.94\n          },\n          {\n            \"date\": \"2026-04-30\",\n            \"contribution\": 500,\n            \"interest\": 12.61,\n            \"balance\": 5556.55\n          },\n          {\n            \"date\": \"2026-05-31\",\n            \"contribution\": 500,\n            \"interest\": 13.89,\n            \"balance\": 6070.44\n          },\n          {\n            \"date\": \"2026-06-30\",\n            \"contribution\": 500,\n            \"interest\": 15.18,\n            \"balance\": 6585.62\n          },\n          {\n            \"date\": \"2026-07-31\",\n            \"contribution\": 500,\n            \"interest\": 16.46,\n            \"balance\": 7102.08\n          },\n          {\n            \"date\": \"2026-08-31\",\n            \"contribution\": 500,\n            \"interest\": 17.76,\n            \"balance\": 7619.83\n          },\n          {\n            \"date\": \"2026-09-30\",\n            \"contribution\": 500,\n            \"interest\": 19.05,\n            \"balance\": 8138.88\n          },\n          {\n            \"date\": \"2026-10-31\",\n            \"contribution\": 500,\n            \"interest\": 20.35,\n            \"balance\": 8659.23\n          },\n          {\n            \"date\": \"2026-11-30\",\n            \"contribution\": 500,\n            \"interest\": 21.65,\n            \"balance\": 9180.88\n          },\n          {\n            \"date\": \"2026-12-31\",\n            \"contribution\": 500,\n            \"interest\": 22.95,\n            \"balance\": 9703.83\n          },\n          {\n            \"date\": \"2027-01-31\",\n            \"contribution\": 500,\n            \"interest\": 24.26,\n            \"balance\": 10228.09\n          }\n        ]\n      },\n      {\n        \"id\": \"biweekly_300\",\n        \"label\": \"Biweekly $300 (\\u2248 $650/mo)\",\n        \"monthlyContribution\": 650,\n        \"projectedCompletionDate\": \"2026-10-31\",\n        \"monthsToGoal\": 12,\n        \"totalContributions\": 7800,\n        \"totalInterest\": 185.19,\n        \"series\": [\n          {\n            \"date\": \"2025-11-30\",\n            \"contribution\": 650,\n            \"interest\": 6.25,\n            \"balance\": 3156.25\n          },\n          {\n            \"date\": \"2025-12-31\",\n            \"contribution\": 650,\n            \"interest\": 7.89,\n            \"balance\": 3814.14\n          },\n          {\n            \"date\": \"2026-01-31\",\n            \"contribution\": 650,\n            \"interest\": 9.54,\n            \"balance\": 4473.68\n          },\n          {\n            \"date\": \"2026-02-28\",\n            \"contribution\": 650,\n            \"interest\": 11.18,\n            \"balance\": 5134.86\n          },\n          {\n            \"date\": \"2026-03-31\",\n            \"contribution\": 650,\n            \"interest\": 12.84,\n            \"balance\": 5797.7\n          },\n          {\n            \"date\": \"2026-04-30\",\n            \"contribution\": 650,\n            \"interest\": 14.49,\n            \"balance\": 6462.19\n          },\n          {\n            \"date\": \"2026-05-31\",\n            \"contribution\": 650,\n            \"interest\": 16.16,\n            \"balance\": 7128.35\n          },\n          {\n            \"date\": \"2026-06-30\",\n            \"contribution\": 650,\n            \"interest\": 17.82,\n            \"balance\": 7796.17\n          },\n          {\n            \"date\": \"2026-07-31\",\n            \"contribution\": 650,\n            \"interest\": 19.49,\n            \"balance\": 8465.66\n          },\n          {\n            \"date\": \"2026-08-31\",\n            \"contribution\": 650,\n            \"interest\": 21.16,\n            \"balance\": 9136.82\n          },\n          {\n            \"date\": \"2026-09-30\",\n            \"contribution\": 650,\n            \"interest\": 22.84,\n            \"balance\": 9810.66\n          },\n          {\n            \"date\": \"2026-10-31\",\n            \"contribution\": 650,\n            \"interest\": 24.53,\n            \"balance\": 10485.19\n          }\n        ]\n      },\n      {\n        \"id\": \"biweekly_400\",\n        \"label\": \"Biweekly $400 (\\u2248 $866.67/mo)\",\n        \"monthlyContribution\": 866.6667,\n        \"projectedCompletionDate\": \"2026-07-31\",\n        \"monthsToGoal\": 9,\n        \"totalContributions\": 7800,\n        \"totalInterest\": 135.27,\n        \"series\": [\n          {\n            \"date\": \"2025-11-30\",\n            \"contribution\": 866.67,\n            \"interest\": 6.25,\n            \"balance\": 3372.92\n          },\n          {\n            \"date\": \"2025-12-31\",\n            \"contribution\": 866.67,\n            \"interest\": 8.43,\n            \"balance\": 4248.02\n          },\n          {\n            \"date\": \"2026-01-31\",\n            \"contribution\": 866.67,\n            \"interest\": 10.62,\n            \"balance\": 5125.3\n          },\n          {\n            \"date\": \"2026-02-28\",\n            \"contribution\": 866.67,\n            \"interest\": 12.81,\n            \"balance\": 6004.78\n          },\n          {\n            \"date\": \"2026-03-31\",\n            \"contribution\": 866.67,\n            \"interest\": 15.01,\n            \"balance\": 6886.46\n          },\n          {\n            \"date\": \"2026-04-30\",\n            \"contribution\": 866.67,\n            \"interest\": 17.22,\n            \"balance\": 7770.34\n          },\n          {\n            \"date\": \"2026-05-31\",\n            \"contribution\": 866.67,\n            \"interest\": 19.43,\n            \"balance\": 8656.44\n          },\n          {\n            \"date\": \"2026-06-30\",\n            \"contribution\": 866.67,\n            \"interest\": 21.64,\n            \"balance\": 9544.74\n          },\n          {\n            \"date\": \"2026-07-31\",\n            \"contribution\": 866.67,\n            \"interest\": 23.86,\n            \"balance\": 10435.27\n          }\n        ]\n      },\n      {\n        \"id\": \"biweekly_500\",\n        \"label\": \"Biweekly $500 (\\u2248 $1,083.33/mo)\",\n        \"monthlyContribution\": 1083.3333,\n        \"projectedCompletionDate\": \"2026-05-31\",\n        \"monthsToGoal\": 7,\n        \"totalContributions\": 7583.33,\n        \"totalInterest\": 101.2,\n        \"series\": [\n          {\n            \"date\": \"2025-11-30\",\n            \"contribution\": 1083.33,\n            \"interest\": 6.25,\n            \"balance\": 3589.58\n          },\n          {\n            \"date\": \"2025-12-31\",\n            \"contribution\": 1083.33,\n            \"interest\": 8.97,\n            \"balance\": 4681.89\n          },\n          {\n            \"date\": \"2026-01-31\",\n            \"contribution\": 1083.33,\n            \"interest\": 11.7,\n            \"balance\": 5776.93\n          },\n          {\n            \"date\": \"2026-02-28\",\n            \"contribution\": 1083.33,\n            \"interest\": 14.44,\n            \"balance\": 6874.7\n          },\n          {\n            \"date\": \"2026-03-31\",\n            \"contribution\": 1083.33,\n            \"interest\": 17.19,\n            \"balance\": 7975.22\n          },\n          {\n            \"date\": \"2026-04-30\",\n            \"contribution\": 1083.33,\n            \"interest\": 19.94,\n            \"balance\": 9078.5\n          },\n          {\n            \"date\": \"2026-05-31\",\n            \"contribution\": 1083.33,\n            \"interest\": 22.7,\n            \"balance\": 10184.53\n          }\n        ]\n      }\n    ],\n    \"comparisonTable\": [\n      {\n        \"scenarioId\": \"monthly_300\",\n        \"label\": \"Monthly $300\",\n        \"monthlyContribution\": 300,\n        \"monthsToGoal\": 24,\n        \"projectedCompletionDate\": \"2027-10-31\",\n        \"totalContributions\": 7200,\n        \"totalInterest\": 365.24,\n        \"endingBalanceAtCompletion\": 10065.24\n      },\n      {\n        \"scenarioId\": \"monthly_400\",\n        \"label\": \"Monthly $400\",\n        \"monthlyContribution\": 400,\n        \"monthsToGoal\": 19,\n        \"projectedCompletionDate\": \"2027-05-31\",\n        \"totalContributions\": 7600,\n        \"totalInterest\": 294.91,\n        \"endingBalanceAtCompletion\": 10394.91\n      },\n      {\n        \"scenarioId\": \"monthly_500\",\n        \"label\": \"Monthly $500\",\n        \"monthlyContribution\": 500,\n        \"monthsToGoal\": 15,\n        \"projectedCompletionDate\": \"2027-01-31\",\n        \"totalContributions\": 7500,\n        \"totalInterest\": 228.09,\n        \"endingBalanceAtCompletion\": 10228.09\n      },\n      {\n        \"scenarioId\": \"biweekly_300\",\n        \"label\": \"Biweekly $300 (\\u2248 $650/mo)\",\n        \"monthlyContribution\": 650,\n        \"monthsToGoal\": 12,\n        \"projectedCompletionDate\": \"2026-10-31\",\n        \"totalContributions\": 7800,\n        \"totalInterest\": 185.19,\n        \"endingBalanceAtCompletion\": 10485.19\n      },\n      {\n        \"scenarioId\": \"biweekly_400\",\n        \"label\": \"Biweekly $400 (\\u2248 $866.67/mo)\",\n        \"monthlyContribution\": 866.67,\n        \"monthsToGoal\": 9,\n        \"projectedCompletionDate\": \"2026-07-31\",\n        \"totalContributions\": 7800,\n        \"totalInterest\": 135.27,\n        \"endingBalanceAtCompletion\": 10435.27\n      },\n      {\n        \"scenarioId\": \"biweekly_500\",\n        \"label\": \"Biweekly $500 (\\u2248 $1,083.33/mo)\",\n        \"monthlyContribution\": 1083.33,\n        \"monthsToGoal\": 7,\n        \"projectedCompletionDate\": \"2026-05-31\",\n        \"totalContributions\": 7583.33,\n        \"totalInterest\": 101.2,\n        \"endingBalanceAtCompletion\": 10184.53\n      }\n    ],\n    \"projectedCompletionCards\": [\n      {\n        \"scenarioId\": \"monthly_300\",\n        \"label\": \"Monthly $300\",\n        \"projectedCompletionDate\": \"2027-10-31\"\n      },\n      {\n        \"scenarioId\": \"monthly_400\",\n        \"label\": \"Monthly $400\",\n        \"projectedCompletionDate\": \"2027-05-31\"\n      },\n      {\n        \"scenarioId\": \"monthly_500\",\n        \"label\": \"Monthly $500\",\n        \"projectedCompletionDate\": \"2027-01-31\"\n      },\n      {\n        \"scenarioId\": \"biweekly_300\",\n        \"label\": \"Biweekly $300 (\\u2248 $650/mo)\",\n        \"projectedCompletionDate\": \"2026-10-31\"\n      },\n      {\n        \"scenarioId\": \"biweekly_400\",\n        \"label\": \"Biweekly $400 (\\u2248 $866.67/mo)\",\n        \"projectedCompletionDate\": \"2026-07-31\"\n      },\n      {\n        \"scenarioId\": \"biweekly_500\",\n        \"label\": \"Biweekly $500 (\\u2248 $1,083.33/mo)\",\n        \"projectedCompletionDate\": \"2026-05-31\"\n      }\n    ],\n    \"progressBar\": {\n      \"current\": 2500,\n      \"target\": 10000,\n      \"percent\": 25\n    },\n    \"lineChart\": {\n      \"xAxis\": \"date\",\n      \"yAxis\": \"balance\",\n      \"series\": [\n        {\n          \"id\": \"monthly_300\",\n          \"label\": \"Monthly $300\",\n          \"points\": [\n            {\n              \"date\": \"2025-11-30\",\n              \"balance\": 2806.25\n            },\n            {\n              \"date\": \"2025-12-31\",\n              \"balance\": 3113.27\n            },\n            {\n              \"date\": \"2026-01-31\",\n              \"balance\": 3421.05\n            },\n            {\n              \"date\": \"2026-02-28\",\n              \"balance\": 3729.6\n            },\n            {\n              \"date\": \"2026-03-31\",\n              \"balance\": 4038.93\n            },\n            {\n              \"date\": \"2026-04-30\",\n              \"balance\": 4349.02\n            },\n            {\n              \"date\": \"2026-05-31\",\n              \"balance\": 4659.9\n            },\n            {\n              \"date\": \"2026-06-30\",\n              \"balance\": 4971.54\n            },\n            {\n              \"date\": \"2026-07-31\",\n              \"balance\": 5283.97\n            },\n            {\n              \"date\": \"2026-08-31\",\n              \"balance\": 5597.18\n            },\n            {\n              \"date\": \"2026-09-30\",\n              \"balance\": 5911.18\n            },\n            {\n              \"date\": \"2026-10-31\",\n              \"balance\": 6225.95\n            },\n            {\n              \"date\": \"2026-11-30\",\n              \"balance\": 6541.52\n            },\n            {\n              \"date\": \"2026-12-31\",\n              \"balance\": 6857.87\n            },\n            {\n              \"date\": \"2027-01-31\",\n              \"balance\": 7175.02\n            },\n            {\n              \"date\": \"2027-02-28\",\n              \"balance\": 7492.96\n            },\n            {\n              \"date\": \"2027-03-31\",\n              \"balance\": 7811.69\n            },\n            {\n              \"date\": \"2027-04-30\",\n              \"balance\": 8131.22\n            },\n            {\n              \"date\": \"2027-05-31\",\n              \"balance\": 8451.55\n            },\n            {\n              \"date\": \"2027-06-30\",\n              \"balance\": 8772.67\n            },\n            {\n              \"date\": \"2027-07-31\",\n              \"balance\": 9094.61\n            },\n            {\n              \"date\": \"2027-08-31\",\n              \"balance\": 9417.34\n            },\n            {\n              \"date\": \"2027-09-30\",\n              \"balance\": 9740.89\n            },\n            {\n              \"date\": \"2027-10-31\",\n              \"balance\": 10065.24\n            }\n          ]\n        },\n        {\n          \"id\": \"monthly_400\",\n          \"label\": \"Monthly $400\",\n          \"points\": [\n            {\n              \"date\": \"2025-11-30\",\n              \"balance\": 2906.25\n            },\n            {\n              \"date\": \"2025-12-31\",\n              \"balance\": 3313.52\n            },\n            {\n              \"date\": \"2026-01-31\",\n              \"balance\": 3721.8\n            },\n            {\n              \"date\": \"2026-02-28\",\n              \"balance\": 4131.1\n            },\n            {\n              \"date\": \"2026-03-31\",\n              \"balance\": 4541.43\n            },\n            {\n              \"date\": \"2026-04-30\",\n              \"balance\": 4952.79\n            },\n            {\n              \"date\": \"2026-05-31\",\n              \"balance\": 5365.17\n            },\n            {\n              \"date\": \"2026-06-30\",\n              \"balance\": 5778.58\n            },\n            {\n              \"date\": \"2026-07-31\",\n              \"balance\": 6193.03\n            },\n            {\n              \"date\": \"2026-08-31\",\n              \"balance\": 6608.51\n            },\n            {\n              \"date\": \"2026-09-30\",\n              \"balance\": 7025.03\n            },\n            {\n              \"date\": \"2026-10-31\",\n              \"balance\": 7442.59\n            },\n            {\n              \"date\": \"2026-11-30\",\n              \"balance\": 7861.2\n            },\n            {\n              \"date\": \"2026-12-31\",\n              \"balance\": 8280.85\n            },\n            {\n              \"date\": \"2027-01-31\",\n              \"balance\": 8701.55\n            },\n            {\n              \"date\": \"2027-02-28\",\n              \"balance\": 9123.31\n            },\n            {\n              \"date\": \"2027-03-31\",\n              \"balance\": 9546.12\n            },\n            {\n              \"date\": \"2027-04-30\",\n              \"balance\": 9969.98\n            },\n            {\n              \"date\": \"2027-05-31\",\n              \"balance\": 10394.91\n            }\n          ]\n        },\n        {\n          \"id\": \"monthly_500\",\n          \"label\": \"Monthly $500\",\n          \"points\": [\n            {\n              \"date\": \"2025-11-30\",\n              \"balance\": 3006.25\n            },\n            {\n              \"date\": \"2025-12-31\",\n              \"balance\": 3513.77\n            },\n            {\n              \"date\": \"2026-01-31\",\n              \"balance\": 4022.55\n            },\n            {\n              \"date\": \"2026-02-28\",\n              \"balance\": 4532.61\n            },\n            {\n              \"date\": \"2026-03-31\",\n              \"balance\": 5043.94\n            },\n            {\n              \"date\": \"2026-04-30\",\n              \"balance\": 5556.55\n            },\n            {\n              \"date\": \"2026-05-31\",\n              \"balance\": 6070.44\n            },\n            {\n              \"date\": \"2026-06-30\",\n              \"balance\": 6585.62\n            },\n            {\n              \"date\": \"2026-07-31\",\n              \"balance\": 7102.08\n            },\n            {\n              \"date\": \"2026-08-31\",\n              \"balance\": 7619.83\n            },\n            {\n              \"date\": \"2026-09-30\",\n              \"balance\": 8138.88\n            },\n            {\n              \"date\": \"2026-10-31\",\n              \"balance\": 8659.23\n            },\n            {\n              \"date\": \"2026-11-30\",\n              \"balance\": 9180.88\n            },\n            {\n              \"date\": \"2026-12-31\",\n              \"balance\": 9703.83\n            },\n            {\n              \"date\": \"2027-01-31\",\n              \"balance\": 10228.09\n            }\n          ]\n        },\n        {\n          \"id\": \"biweekly_300\",\n          \"label\": \"Biweekly $300 (\\u2248 $650/mo)\",\n          \"points\": [\n            {\n              \"date\": \"2025-11-30\",\n              \"balance\": 3156.25\n            },\n            {\n              \"date\": \"2025-12-31\",\n              \"balance\": 3814.14\n            },\n            {\n              \"date\": \"2026-01-31\",\n              \"balance\": 4473.68\n            },\n            {\n              \"date\": \"2026-02-28\",\n              \"balance\": 5134.86\n            },\n            {\n              \"date\": \"2026-03-31\",\n              \"balance\": 5797.7\n            },\n            {\n              \"date\": \"2026-04-30\",\n              \"balance\": 6462.19\n            },\n            {\n              \"date\": \"2026-05-31\",\n              \"balance\": 7128.35\n            },\n            {\n              \"date\": \"2026-06-30\",\n              \"balance\": 7796.17\n            },\n            {\n              \"date\": \"2026-07-31\",\n              \"balance\": 8465.66\n            },\n            {\n              \"date\": \"2026-08-31\",\n              \"balance\": 9136.82\n            },\n            {\n              \"date\": \"2026-09-30\",\n              \"balance\": 9810.66\n            },\n            {\n              \"date\": \"2026-10-31\",\n              \"balance\": 10485.19\n            }\n          ]\n        },\n        {\n          \"id\": \"biweekly_400\",\n          \"label\": \"Biweekly $400 (\\u2248 $866.67/mo)\",\n          \"points\": [\n            {\n              \"date\": \"2025-11-30\",\n              \"balance\": 3372.92\n            },\n            {\n              \"date\": \"2025-12-31\",\n              \"balance\": 4248.02\n            },\n            {\n              \"date\": \"2026-01-31\",\n              \"balance\": 5125.3\n            },\n            {\n              \"date\": \"2026-02-28\",\n              \"balance\": 6004.78\n            },\n            {\n              \"date\": \"2026-03-31\",\n              \"balance\": 6886.46\n            },\n            {\n              \"date\": \"2026-04-30\",\n              \"balance\": 7770.34\n            },\n            {\n              \"date\": \"2026-05-31\",\n              \"balance\": 8656.44\n            },\n            {\n              \"date\": \"2026-06-30\",\n              \"balance\": 9544.74\n            },\n            {\n              \"date\": \"2026-07-31\",\n              \"balance\": 10435.27\n            }\n          ]\n        },\n        {\n          \"id\": \"biweekly_500\",\n          \"label\": \"Biweekly $500 (\\u2248 $1,083.33/mo)\",\n          \"points\": [\n            {\n              \"date\": \"2025-11-30\",\n              \"balance\": 3589.58\n            },\n            {\n              \"date\": \"2025-12-31\",\n              \"balance\": 4681.89\n            },\n            {\n              \"date\": \"2026-01-31\",\n              \"balance\": 5776.93\n            },\n            {\n              \"date\": \"2026-02-28\",\n              \"balance\": 6874.7\n            },\n            {\n              \"date\": \"2026-03-31\",\n              \"balance\": 7975.22\n            },\n            {\n              \"date\": \"2026-04-30\",\n              \"balance\": 9078.5\n            },\n            {\n              \"date\": \"2026-05-31\",\n              \"balance\": 10184.53\n            }\n          ]\n        }\n      ]\n    },\n    \"monthlyContributionTable\": {\n      \"columns\": [\n        {\n          \"key\": \"date\",\n          \"label\": \"Date\"\n        },\n        {\n          \"key\": \"monthly_300\",\n          \"label\": \"Monthly $300 balance\"\n        },\n        {\n          \"key\": \"monthly_400\",\n          \"label\": \"Monthly $400 balance\"\n        },\n        {\n          \"key\": \"monthly_500\",\n          \"label\": \"Monthly $500 balance\"\n        },\n        {\n          \"key\": \"biweekly_300\",\n          \"label\": \"Biweekly $300 (\\u2248 $650/mo) balance\"\n        },\n        {\n          \"key\": \"biweekly_400\",\n          \"label\": \"Biweekly $400 (\\u2248 $866.67/mo) balance\"\n        },\n        {\n          \"key\": \"biweekly_500\",\n          \"label\": \"Biweekly $500 (\\u2248 $1,083.33/mo) balance\"\n        }\n      ],\n      \"rows\": [\n        {\n          \"date\": \"2025-11-30\",\n          \"monthly_300\": 2806.25,\n          \"monthly_400\": 2906.25,\n          \"monthly_500\": 3006.25,\n          \"biweekly_300\": 3156.25,\n          \"biweekly_400\": 3372.92,\n          \"biweekly_500\": 3589.58\n        },\n        {\n          \"date\": \"2025-12-31\",\n          \"monthly_300\": 3113.27,\n          \"monthly_400\": 3313.52,\n          \"monthly_500\": 3513.77,\n          \"biweekly_300\": 3814.14,\n          \"biweekly_400\": 4248.02,\n          \"biweekly_500\": 4681.89\n        },\n        {\n          \"date\": \"2026-01-31\",\n          \"monthly_300\": 3421.05,\n          \"monthly_400\": 3721.8,\n          \"monthly_500\": 4022.55,\n          \"biweekly_300\": 4473.68,\n          \"biweekly_400\": 5125.3,\n          \"biweekly_500\": 5776.93\n        },\n        {\n          \"date\": \"2026-02-28\",\n          \"monthly_300\": 3729.6,\n          \"monthly_400\": 4131.1,\n          \"monthly_500\": 4532.61,\n          \"biweekly_300\": 5134.86,\n          \"biweekly_400\": 6004.78,\n          \"biweekly_500\": 6874.7\n        },\n        {\n          \"date\": \"2026-03-31\",\n          \"monthly_300\": 4038.93,\n          \"monthly_400\": 4541.43,\n          \"monthly_500\": 5043.94,\n          \"biweekly_300\": 5797.7,\n          \"biweekly_400\": 6886.46,\n          \"biweekly_500\": 7975.22\n        },\n        {\n          \"date\": \"2026-04-30\",\n          \"monthly_300\": 4349.02,\n          \"monthly_400\": 4952.79,\n          \"monthly_500\": 5556.55,\n          \"biweekly_300\": 6462.19,\n          \"biweekly_400\": 7770.34,\n          \"biweekly_500\": 9078.5\n        },\n        {\n          \"date\": \"2026-05-31\",\n          \"monthly_300\": 4659.9,\n          \"monthly_400\": 5365.17,\n          \"monthly_500\": 6070.44,\n          \"biweekly_300\": 7128.35,\n          \"biweekly_400\": 8656.44,\n          \"biweekly_500\": 10000\n        },\n        {\n          \"date\": \"2026-06-30\",\n          \"monthly_300\": 4971.54,\n          \"monthly_400\": 5778.58,\n          \"monthly_500\": 6585.62,\n          \"biweekly_300\": 7796.17,\n          \"biweekly_400\": 9544.74,\n          \"biweekly_500\": 10000\n        },\n        {\n          \"date\": \"2026-07-31\",\n          \"monthly_300\": 5283.97,\n          \"monthly_400\": 6193.03,\n          \"monthly_500\": 7102.08,\n          \"biweekly_300\": 8465.66,\n          \"biweekly_400\": 10000,\n          \"biweekly_500\": 10000\n        },\n        {\n          \"date\": \"2026-08-31\",\n          \"monthly_300\": 5597.18,\n          \"monthly_400\": 6608.51,\n          \"monthly_500\": 7619.83,\n          \"biweekly_300\": 9136.82,\n          \"biweekly_400\": 10000,\n          \"biweekly_500\": 10000\n        },\n        {\n          \"date\": \"2026-09-30\",\n          \"monthly_300\": 5911.18,\n          \"monthly_400\": 7025.03,\n          \"monthly_500\": 8138.88,\n          \"biweekly_300\": 9810.66,\n          \"biweekly_400\": 10000,\n          \"biweekly_500\": 10000\n        },\n        {\n          \"date\": \"2026-10-31\",\n          \"monthly_300\": 6225.95,\n          \"monthly_400\": 7442.59,\n          \"monthly_500\": 8659.23,\n          \"biweekly_300\": 10000,\n          \"biweekly_400\": 10000,\n          \"biweekly_500\": 10000\n        }\n      ]\n    }\n  }\n}"
+      },
+      {
+        "role": "user",
+        "content": "Show the progress bar, the comparison chart with all six scenarios, the monthly table, and the completion date cards. Pin Biweekly $300 and Monthly $400 for highlight, and round biweekly completion dates to the nearest Friday payday."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set. I\u2019ve applied your $2,500 starting balance and 3% APY (monthly compounding), compared monthly vs. biweekly at $300/$400/$500, and pinned Biweekly $300 (pinned) with Monthly $400 highlighted. I also rounded biweekly completion dates to the nearest Friday payday.\n\nQuick snapshot:\n- Monthly $300 \u2192 24 months \u2192 completion ~ 2027-10-31\n- Monthly $400 \u2192 19 months \u2192 completion ~ 2027-05-31 (highlighted)\n- Monthly $500 \u2192 15 months \u2192 completion ~ 2027-01-31\n- Biweekly $300 (\u2248 $650/mo) \u2192 12 months \u2192 completion ~ 2026-10-30 (nearest Friday) [pinned]\n- Biweekly $400 (\u2248 $866.67/mo) \u2192 9 months \u2192 completion ~ 2026-07-31 (Friday)\n- Biweekly $500 (\u2248 $1,083.33/mo) \u2192 7 months \u2192 completion ~ 2026-05-29 (nearest Friday)\n\nProgress: You\u2019re 25% of the way there ($2,500 of $10,000).\n\nMonthly contribution table (key balances by month-end):\n- 2025-11-30 \u2014 M300: $2,806 | M400: $2,906 | M500: $3,006 | BW300: $3,156 | BW400: $3,373 | BW500: $3,590\n- 2025-12-31 \u2014 M300: $3,113 | M400: $3,314 | M500: $3,514 | BW300: $3,814 | BW400: $4,248 | BW500: $4,682\n- 2026-03-31 \u2014 M300: $4,039 | M400: $4,541 | M500: $5,044 | BW300: $5,798 | BW400: $6,886 | BW500: $7,975\n- 2026-06-30 \u2014 M300: $4,972 | M400: $5,779 | M500: $6,586 | BW300: $7,796 | BW400: $9,545 | BW500: $10,000+\n- 2026-10-31 \u2014 M300: $6,226 | M400: $7,443 | M500: $8,659 | BW300/BW400/BW500: $10,000+\n(Full table is reflected in the planner components below.)\n\nCompletion date cards:\n- Monthly $300: 2027-10-31 (24 months)\n- Monthly $400: 2027-05-31 (19 months)\n- Monthly $500: 2027-01-31 (15 months)\n- Biweekly $300 (\u2248 $650/mo): 2026-10-30 (12 months, nearest Friday)\n- Biweekly $400 (\u2248 $866.67/mo): 2026-07-31 (9 months, Friday)\n- Biweekly $500 (\u2248 $1,083.33/mo): 2026-05-29 (7 months, nearest Friday)\n\nWant me to apply one of these as your active plan, or adjust any amounts/dates?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SavingsGoalOverview",
+              "props": {
+                "goalId": "goal_emergency_fund_001",
+                "goalName": "Emergency Fund",
+                "targetAmount": 10000,
+                "currentSavings": 2500,
+                "currencyCode": "USD",
+                "iconUrl": "https://cdn.example.com/icons/emergency-fund.png",
+                "scenarios": [
+                  {
+                    "id": "monthly_300",
+                    "label": "Monthly $300",
+                    "monthlyContribution": 300,
+                    "monthsToGoal": 24,
+                    "completionDate": "2027-10-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 2806.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3113.27
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3421.05
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 3729.6
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4038.93
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4349.02
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 4659.9
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 4971.54
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 5283.97
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 5597.18
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 5911.18
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 6225.95
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 6541.52
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 6857.87
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 7175.02
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 7492.96
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 7811.69
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 8131.22
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 8451.55
+                      },
+                      {
+                        "month": "2027-06",
+                        "balance": 8772.67
+                      },
+                      {
+                        "month": "2027-07",
+                        "balance": 9094.61
+                      },
+                      {
+                        "month": "2027-08",
+                        "balance": 9417.34
+                      },
+                      {
+                        "month": "2027-09",
+                        "balance": 9740.89
+                      },
+                      {
+                        "month": "2027-10",
+                        "balance": 10065.24
+                      }
+                    ]
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "monthlyContribution": 400,
+                    "monthsToGoal": 19,
+                    "completionDate": "2027-05-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 2906.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3313.52
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3721.8
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 4131.1
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4541.43
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4952.79
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 5365.17
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 5778.58
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 6193.03
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 6608.51
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 7025.03
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 7442.59
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 7861.2
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 8280.85
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 8701.55
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 9123.31
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 9546.12
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 9969.98
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 10394.91
+                      }
+                    ]
+                  },
+                  {
+                    "id": "monthly_500",
+                    "label": "Monthly $500",
+                    "monthlyContribution": 500,
+                    "monthsToGoal": 15,
+                    "completionDate": "2027-01-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3006.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3513.77
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 4022.55
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 4532.61
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 5043.94
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 5556.55
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 6070.44
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 6585.62
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 7102.08
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 7619.83
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 8138.88
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 8659.23
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 9180.88
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 9703.83
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 10228.09
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_300",
+                    "label": "Biweekly $300 (\u2248 $650/mo)",
+                    "monthlyContribution": 650,
+                    "monthsToGoal": 12,
+                    "completionDate": "2026-10-30",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3156.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3814.14
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 4473.68
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 5134.86
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 5797.7
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 6462.19
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 7128.35
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 7796.17
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 8465.66
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 9136.82
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 9810.66
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 10485.19
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_400",
+                    "label": "Biweekly $400 (\u2248 $866.67/mo)",
+                    "monthlyContribution": 866.6667,
+                    "monthsToGoal": 9,
+                    "completionDate": "2026-07-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3372.92
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 4248.02
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 5125.3
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 6004.78
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 6886.46
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 7770.34
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 8656.44
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 9544.74
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 10435.27
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_500",
+                    "label": "Biweekly $500 (\u2248 $1,083.33/mo)",
+                    "monthlyContribution": 1083.3333,
+                    "monthsToGoal": 7,
+                    "completionDate": "2026-05-29",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3589.58
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 4681.89
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 5776.93
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 6874.7
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 7975.22
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 9078.5
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 10184.53
+                      }
+                    ]
+                  }
+                ],
+                "selectedScenarioId": "biweekly_300",
+                "selectScenarioAction": {
+                  "type": "select_scenario",
+                  "payload": {
+                    "scenarioId": "biweekly_300"
+                  }
+                },
+                "sortBy": "months"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScenarioComparisonChart",
+              "props": {
+                "targetAmount": 10000,
+                "currencyCode": "USD",
+                "scenarios": [
+                  {
+                    "id": "monthly_300",
+                    "label": "Monthly $300",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2806.25
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3113.27
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3421.05
+                      },
+                      {
+                        "month": 3,
+                        "balance": 3729.6
+                      },
+                      {
+                        "month": 4,
+                        "balance": 4038.93
+                      },
+                      {
+                        "month": 5,
+                        "balance": 4349.02
+                      },
+                      {
+                        "month": 6,
+                        "balance": 4659.9
+                      },
+                      {
+                        "month": 7,
+                        "balance": 4971.54
+                      },
+                      {
+                        "month": 8,
+                        "balance": 5283.97
+                      },
+                      {
+                        "month": 9,
+                        "balance": 5597.18
+                      },
+                      {
+                        "month": 10,
+                        "balance": 5911.18
+                      },
+                      {
+                        "month": 11,
+                        "balance": 6225.95
+                      },
+                      {
+                        "month": 12,
+                        "balance": 6541.52
+                      },
+                      {
+                        "month": 13,
+                        "balance": 6857.87
+                      },
+                      {
+                        "month": 14,
+                        "balance": 7175.02
+                      },
+                      {
+                        "month": 15,
+                        "balance": 7492.96
+                      },
+                      {
+                        "month": 16,
+                        "balance": 7811.69
+                      },
+                      {
+                        "month": 17,
+                        "balance": 8131.22
+                      },
+                      {
+                        "month": 18,
+                        "balance": 8451.55
+                      },
+                      {
+                        "month": 19,
+                        "balance": 8772.67
+                      },
+                      {
+                        "month": 20,
+                        "balance": 9094.61
+                      },
+                      {
+                        "month": 21,
+                        "balance": 9417.34
+                      },
+                      {
+                        "month": 22,
+                        "balance": 9740.89
+                      },
+                      {
+                        "month": 23,
+                        "balance": 10065.24
+                      }
+                    ],
+                    "projectedCompletionMonth": 23
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2906.25
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3313.52
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3721.8
+                      },
+                      {
+                        "month": 3,
+                        "balance": 4131.1
+                      },
+                      {
+                        "month": 4,
+                        "balance": 4541.43
+                      },
+                      {
+                        "month": 5,
+                        "balance": 4952.79
+                      },
+                      {
+                        "month": 6,
+                        "balance": 5365.17
+                      },
+                      {
+                        "month": 7,
+                        "balance": 5778.58
+                      },
+                      {
+                        "month": 8,
+                        "balance": 6193.03
+                      },
+                      {
+                        "month": 9,
+                        "balance": 6608.51
+                      },
+                      {
+                        "month": 10,
+                        "balance": 7025.03
+                      },
+                      {
+                        "month": 11,
+                        "balance": 7442.59
+                      },
+                      {
+                        "month": 12,
+                        "balance": 7861.2
+                      },
+                      {
+                        "month": 13,
+                        "balance": 8280.85
+                      },
+                      {
+                        "month": 14,
+                        "balance": 8701.55
+                      },
+                      {
+                        "month": 15,
+                        "balance": 9123.31
+                      },
+                      {
+                        "month": 16,
+                        "balance": 9546.12
+                      },
+                      {
+                        "month": 17,
+                        "balance": 9969.98
+                      },
+                      {
+                        "month": 18,
+                        "balance": 10394.91
+                      }
+                    ],
+                    "projectedCompletionMonth": 18
+                  },
+                  {
+                    "id": "monthly_500",
+                    "label": "Monthly $500",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 3006.25
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3513.77
+                      },
+                      {
+                        "month": 2,
+                        "balance": 4022.55
+                      },
+                      {
+                        "month": 3,
+                        "balance": 4532.61
+                      },
+                      {
+                        "month": 4,
+                        "balance": 5043.94
+                      },
+                      {
+                        "month": 5,
+                        "balance": 5556.55
+                      },
+                      {
+                        "month": 6,
+                        "balance": 6070.44
+                      },
+                      {
+                        "month": 7,
+                        "balance": 6585.62
+                      },
+                      {
+                        "month": 8,
+                        "balance": 7102.08
+                      },
+                      {
+                        "month": 9,
+                        "balance": 7619.83
+                      },
+                      {
+                        "month": 10,
+                        "balance": 8138.88
+                      },
+                      {
+                        "month": 11,
+                        "balance": 8659.23
+                      },
+                      {
+                        "month": 12,
+                        "balance": 9180.88
+                      },
+                      {
+                        "month": 13,
+                        "balance": 9703.83
+                      },
+                      {
+                        "month": 14,
+                        "balance": 10228.09
+                      }
+                    ],
+                    "projectedCompletionMonth": 14
+                  },
+                  {
+                    "id": "biweekly_300",
+                    "label": "Biweekly $300 (\u2248 $650/mo)",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 3156.25
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3814.14
+                      },
+                      {
+                        "month": 2,
+                        "balance": 4473.68
+                      },
+                      {
+                        "month": 3,
+                        "balance": 5134.86
+                      },
+                      {
+                        "month": 4,
+                        "balance": 5797.7
+                      },
+                      {
+                        "month": 5,
+                        "balance": 6462.19
+                      },
+                      {
+                        "month": 6,
+                        "balance": 7128.35
+                      },
+                      {
+                        "month": 7,
+                        "balance": 7796.17
+                      },
+                      {
+                        "month": 8,
+                        "balance": 8465.66
+                      },
+                      {
+                        "month": 9,
+                        "balance": 9136.82
+                      },
+                      {
+                        "month": 10,
+                        "balance": 9810.66
+                      },
+                      {
+                        "month": 11,
+                        "balance": 10485.19
+                      }
+                    ],
+                    "projectedCompletionMonth": 11
+                  },
+                  {
+                    "id": "biweekly_400",
+                    "label": "Biweekly $400 (\u2248 $866.67/mo)",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 3372.92
+                      },
+                      {
+                        "month": 1,
+                        "balance": 4248.02
+                      },
+                      {
+                        "month": 2,
+                        "balance": 5125.3
+                      },
+                      {
+                        "month": 3,
+                        "balance": 6004.78
+                      },
+                      {
+                        "month": 4,
+                        "balance": 6886.46
+                      },
+                      {
+                        "month": 5,
+                        "balance": 7770.34
+                      },
+                      {
+                        "month": 6,
+                        "balance": 8656.44
+                      },
+                      {
+                        "month": 7,
+                        "balance": 9544.74
+                      },
+                      {
+                        "month": 8,
+                        "balance": 10435.27
+                      }
+                    ],
+                    "projectedCompletionMonth": 8
+                  },
+                  {
+                    "id": "biweekly_500",
+                    "label": "Biweekly $500 (\u2248 $1,083.33/mo)",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 3589.58
+                      },
+                      {
+                        "month": 1,
+                        "balance": 4681.89
+                      },
+                      {
+                        "month": 2,
+                        "balance": 5776.93
+                      },
+                      {
+                        "month": 3,
+                        "balance": 6874.7
+                      },
+                      {
+                        "month": 4,
+                        "balance": 7975.22
+                      },
+                      {
+                        "month": 5,
+                        "balance": 9078.5
+                      },
+                      {
+                        "month": 6,
+                        "balance": 10184.53
+                      }
+                    ],
+                    "projectedCompletionMonth": 6
+                  }
+                ],
+                "xDomain": {
+                  "startMonth": 0,
+                  "endMonth": 24
+                },
+                "showGoalLine": true,
+                "showLegend": true,
+                "pinnedScenarioId": "biweekly_300",
+                "highlightedScenarioId": "monthly_400",
+                "onHoverScenarioAction": {
+                  "type": "hover_scenario",
+                  "scenarioId": "monthly_400"
+                },
+                "onSelectScenarioAction": {
+                  "type": "select_scenario",
+                  "scenarioId": "biweekly_300"
+                },
+                "onViewportChangeAction": {
+                  "type": "change_viewport",
+                  "startMonth": 0,
+                  "endMonth": 24
+                },
+                "accessibilityLabel": "Savings scenarios comparison chart"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should include a progress indicator showing current savings versus target (e.g., $2,500 of $10,000, 25%)",
+            "Should display a comparison chart that includes all six scenarios (Monthly $300/$400/$500 and Biweekly $300/$400/$500)",
+            "Should provide a monthly contribution table with month-end balances for each of the six scenarios, covering the period until goal completion or the defined viewport",
+            "Should present completion date cards for each of the six scenarios with both completion date and months-to-goal",
+            "Should pin the Biweekly $300 scenario and highlight the Monthly $400 scenario as requested",
+            "Should round biweekly completion dates to the nearest Friday payday and clearly reflect those dates consistently across text, table, cards, and chart metadata",
+            "Should apply 3% APY with monthly compounding consistently across all scenarios, starting from the $2,500 initial balance",
+            "Should ensure numerical outputs (balances, months to goal, completion dates) are internally consistent across narrative text, tables, charts, and cards",
+            "Should label scenarios clearly and consistently (e.g., 'Monthly $300', 'Biweekly $400 (\u2248 $866.67/mo)')",
+            "Should show a goal line or equivalent reference on the comparison chart to indicate the $10,000 target",
+            "Should set chart viewport to cover the entire required timeline so all completions are visible or provide controls to adjust the viewport",
+            "Should use appropriate currency formatting for USD values and ISO-like date formats for component props where applicable",
+            "Should include accessibility labeling for visual components where applicable (e.g., chart accessibilityLabel)",
+            "Should wire interactive actions appropriately (e.g., select/pin/highlight scenario actions) when the UI supports them",
+            "Should avoid unnecessary tool calls when all computations and data can be handled locally; if tools are required, should call them with correct arguments",
+            "Should avoid contradictions, hallucinated components, or unsupported UI features and stick to the provided components",
+            "Should provide outputs that match the user's requested visual elements: progress bar, comparison chart, monthly table, and completion date cards"
+          ],
+          "expected_components": [
+            "SavingsGoalOverview",
+            "ScenarioComparisonChart"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Set Biweekly $300 as my active plan with automatic transfers every other Friday starting next payday, using a true biweekly schedule (not monthly-equivalent). Also provide the full table as a CSV download and set an alert when I\u2019m within $500 of the goal."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done. I\u2019ll set Biweekly $300 as your active plan with automatic transfers every other Friday. To finalize the true biweekly schedule, what is your next payday date? If it\u2019s this coming Friday (2025-11-21), I\u2019ll schedule recurring transfers on that date and every 14 days thereafter. I\u2019ve also created an alert to notify you when you\u2019re within $500 of the $10,000 goal.\n\nCSV download: I\u2019ve prepared a full comparison CSV (headers: Date, Monthly $300, Monthly $400, Monthly $500, Biweekly $300, Biweekly $400, Biweekly $500). Here\u2019s the content you can copy into a .csv file:\n\nDate,Monthly $300,Monthly $400,Monthly $500,Biweekly $300 (\u2248 $650/mo),Biweekly $400 (\u2248 $866.67/mo),Biweekly $500 (\u2248 $1,083.33/mo)\n2025-11-30,2806.25,2906.25,3006.25,3156.25,3372.92,3589.58\n2025-12-31,3113.27,3313.52,3513.77,3814.14,4248.02,4681.89\n2026-01-31,3421.05,3721.80,4022.55,4473.68,5125.30,5776.93\n2026-02-28,3729.60,4131.10,4532.61,5134.86,6004.78,6874.70\n2026-03-31,4038.93,4541.43,5043.94,5797.70,6886.46,7975.22\n2026-04-30,4349.02,4952.79,5556.55,6462.19,7770.34,9078.50\n2026-05-31,4659.90,5365.17,6070.44,7128.35,8656.44,10000.00\n2026-06-30,4971.54,5778.58,6585.62,7796.17,9544.74,10000.00\n2026-07-31,5283.97,6193.03,7102.08,8465.66,10000.00,10000.00\n2026-08-31,5597.18,6608.51,7619.83,9136.82,10000.00,10000.00\n2026-09-30,5911.18,7025.03,8138.88,9810.66,10000.00,10000.00\n2026-10-31,6225.95,7442.59,8659.23,10000.00,10000.00,10000.00\n\nHighlights and dates (with biweekly rounded to Friday paydays):\n- Monthly $300 \u2192 24 months \u2192 completion 2027-10-31\n- Monthly $400 \u2192 19 months \u2192 completion 2027-05-31 (highlighted)\n- Monthly $500 \u2192 15 months \u2192 completion 2027-01-31\n- Biweekly $300 (\u2248 $650/mo) \u2192 12 months \u2192 completion 2026-10-30 (Friday, pinned/active)\n- Biweekly $400 (\u2248 $866.67/mo) \u2192 9 months \u2192 completion 2026-07-31 (Friday)\n- Biweekly $500 (\u2248 $1,083.33/mo) \u2192 7 months \u2192 completion 2026-05-29 (Friday)\n\nOnce you confirm your next payday date, I\u2019ll lock in the exact transfer schedule (every other Friday) and refresh the projections using true biweekly deposits."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SavingsGoalOverview",
+              "props": {
+                "goalId": "goal_emer_fund_001",
+                "goalName": "Emergency Fund",
+                "targetAmount": 10000,
+                "currentSavings": 2500,
+                "currencyCode": "USD",
+                "iconUrl": "https://cdn.example.com/icons/emergency-fund.png",
+                "scenarios": [
+                  {
+                    "id": "monthly_300",
+                    "label": "Monthly $300",
+                    "monthlyContribution": 300,
+                    "monthsToGoal": 24,
+                    "completionDate": "2027-10-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 2806.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3113.27
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3421.05
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 3729.6
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4038.93
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4349.02
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 4659.9
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 4971.54
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 5283.97
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 5597.18
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 5911.18
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 6225.95
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 6541.52
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 6857.87
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 7175.02
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 7492.96
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 7811.69
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 8131.22
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 8451.55
+                      },
+                      {
+                        "month": "2027-06",
+                        "balance": 8772.67
+                      },
+                      {
+                        "month": "2027-07",
+                        "balance": 9094.61
+                      },
+                      {
+                        "month": "2027-08",
+                        "balance": 9417.34
+                      },
+                      {
+                        "month": "2027-09",
+                        "balance": 9740.89
+                      },
+                      {
+                        "month": "2027-10",
+                        "balance": 10065.24
+                      }
+                    ]
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "monthlyContribution": 400,
+                    "monthsToGoal": 19,
+                    "completionDate": "2027-05-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 2906.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3313.52
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 3721.8
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 4131.1
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 4541.43
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 4952.79
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 5365.17
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 5778.58
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 6193.03
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 6608.51
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 7025.03
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 7442.59
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 7861.2
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 8280.85
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 8701.55
+                      },
+                      {
+                        "month": "2027-02",
+                        "balance": 9123.31
+                      },
+                      {
+                        "month": "2027-03",
+                        "balance": 9546.12
+                      },
+                      {
+                        "month": "2027-04",
+                        "balance": 9969.98
+                      },
+                      {
+                        "month": "2027-05",
+                        "balance": 10394.91
+                      }
+                    ]
+                  },
+                  {
+                    "id": "monthly_500",
+                    "label": "Monthly $500",
+                    "monthlyContribution": 500,
+                    "monthsToGoal": 15,
+                    "completionDate": "2027-01-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3006.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3513.77
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 4022.55
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 4532.61
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 5043.94
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 5556.55
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 6070.44
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 6585.62
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 7102.08
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 7619.83
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 8138.88
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 8659.23
+                      },
+                      {
+                        "month": "2026-11",
+                        "balance": 9180.88
+                      },
+                      {
+                        "month": "2026-12",
+                        "balance": 9703.83
+                      },
+                      {
+                        "month": "2027-01",
+                        "balance": 10228.09
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_300",
+                    "label": "Biweekly $300 (\u2248 $650/mo)",
+                    "monthlyContribution": 650,
+                    "monthsToGoal": 12,
+                    "completionDate": "2026-10-30",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3156.25
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 3814.14
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 4473.68
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 5134.86
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 5797.7
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 6462.19
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 7128.35
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 7796.17
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 8465.66
+                      },
+                      {
+                        "month": "2026-08",
+                        "balance": 9136.82
+                      },
+                      {
+                        "month": "2026-09",
+                        "balance": 9810.66
+                      },
+                      {
+                        "month": "2026-10",
+                        "balance": 10485.19
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_400",
+                    "label": "Biweekly $400 (\u2248 $866.67/mo)",
+                    "monthlyContribution": 866.67,
+                    "monthsToGoal": 9,
+                    "completionDate": "2026-07-31",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3372.92
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 4248.02
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 5125.3
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 6004.78
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 6886.46
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 7770.34
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 8656.44
+                      },
+                      {
+                        "month": "2026-06",
+                        "balance": 9544.74
+                      },
+                      {
+                        "month": "2026-07",
+                        "balance": 10435.27
+                      }
+                    ]
+                  },
+                  {
+                    "id": "biweekly_500",
+                    "label": "Biweekly $500 (\u2248 $1,083.33/mo)",
+                    "monthlyContribution": 1083.33,
+                    "monthsToGoal": 7,
+                    "completionDate": "2026-05-29",
+                    "seriesPoints": [
+                      {
+                        "month": "2025-11",
+                        "balance": 3589.58
+                      },
+                      {
+                        "month": "2025-12",
+                        "balance": 4681.89
+                      },
+                      {
+                        "month": "2026-01",
+                        "balance": 5776.93
+                      },
+                      {
+                        "month": "2026-02",
+                        "balance": 6874.7
+                      },
+                      {
+                        "month": "2026-03",
+                        "balance": 7975.22
+                      },
+                      {
+                        "month": "2026-04",
+                        "balance": 9078.5
+                      },
+                      {
+                        "month": "2026-05",
+                        "balance": 10184.53
+                      }
+                    ]
+                  }
+                ],
+                "selectedScenarioId": "biweekly_300",
+                "selectScenarioAction": {
+                  "type": "select_scenario",
+                  "payload": {
+                    "scenarioId": "biweekly_300"
+                  }
+                },
+                "sortBy": "months"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "MonthlyContributionTable",
+              "props": {
+                "goalId": "goal_emer_fund_001",
+                "goalAmount": 10000,
+                "currencyCode": "USD",
+                "scenarios": [
+                  {
+                    "id": "monthly_300",
+                    "label": "Monthly $300",
+                    "monthlyContribution": 300,
+                    "monthsToGoal": 24,
+                    "completionDate": "2027-10-31",
+                    "totalContributed": 7200
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "monthlyContribution": 400,
+                    "monthsToGoal": 19,
+                    "completionDate": "2027-05-31",
+                    "totalContributed": 7600
+                  },
+                  {
+                    "id": "monthly_500",
+                    "label": "Monthly $500",
+                    "monthlyContribution": 500,
+                    "monthsToGoal": 15,
+                    "completionDate": "2027-01-31",
+                    "totalContributed": 7500
+                  },
+                  {
+                    "id": "biweekly_300",
+                    "label": "Biweekly $300 (\u2248 $650/mo)",
+                    "monthlyContribution": 650,
+                    "monthsToGoal": 12,
+                    "completionDate": "2026-10-30",
+                    "totalContributed": 7800
+                  },
+                  {
+                    "id": "biweekly_400",
+                    "label": "Biweekly $400 (\u2248 $866.67/mo)",
+                    "monthlyContribution": 866.67,
+                    "monthsToGoal": 9,
+                    "completionDate": "2026-07-31",
+                    "totalContributed": 7800
+                  },
+                  {
+                    "id": "biweekly_500",
+                    "label": "Biweekly $500 (\u2248 $1,083.33/mo)",
+                    "monthlyContribution": 1083.33,
+                    "monthsToGoal": 7,
+                    "completionDate": "2026-05-29",
+                    "totalContributed": 7583.33
+                  }
+                ],
+                "defaultSort": {
+                  "by": "monthsToGoal",
+                  "direction": "asc"
+                },
+                "selectedScenarioId": "biweekly_300",
+                "onSelectAction": {
+                  "type": "select_scenario",
+                  "payload": {
+                    "scenarioId": "biweekly_300"
+                  }
+                },
+                "showTotalContributed": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm or request the user's next Friday payday date and time zone before finalizing the true biweekly schedule",
+            "Should schedule automatic transfers on a true biweekly cadence (every 14 days from the provided payday) specifically on Fridays, without converting to a monthly-equivalent amount",
+            "Should handle months with three biweekly pay periods correctly and reflect that in projections and completion dates",
+            "Should set an alert that triggers when the goal balance is within $500 of the $10,000 target, specifying alert threshold and delivery channel, and require permission/confirmation if necessary",
+            "Should provide a complete, valid CSV for download with clear headers and rows that match the scenarios presented, including dates and balances for each scenario",
+            "Should ensure all numeric projections, timelines, and completion dates are internally consistent across text, CSV, and UI components",
+            "Should cap balances at the target or clearly note and manage any overage after the goal is reached in projections",
+            "Should avoid implying actions are completed without calling the appropriate tools/APIs; must call scheduling and alert tools with correct arguments or clearly indicate pending confirmation",
+            "Should reflect the user's selected plan (Biweekly $300) as the active scenario in UI components and text, and show the transfer cadence aligned to the confirmed payday",
+            "Should use appropriate UI components to display goal progress, scenario comparison, and monthly contributions, with props matching the data shown",
+            "Should use precise and consistent currency formatting (USD) and ISO-like date formats for clarity",
+            "Should state any assumptions (e.g., interest rate of 0%) if not provided and ensure calculations adhere to those assumptions",
+            "Should provide a concise next step for the user to finalize scheduling (e.g., provide or confirm next payday date) and confirm creation of the alert and automation",
+            "Should not include unrelated content or extraneous scenarios beyond the user's emergency fund goal and requested comparisons"
+          ],
+          "expected_components": [
+            "SavingsGoalOverview",
+            "MonthlyContributionTable"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "My next payday is Friday, 2025-11-21. Please schedule transfers every other Friday starting then, refresh projections using true biweekly deposits (show the updated completion date), and provide the CSV as a downloadable file."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Got it \u2014 I\u2019ll schedule the transfers every other Friday starting 2025-11-21 and refresh the projections using a true biweekly schedule."
+          },
+          {
+            "type": "text",
+            "text": "All set. Your Biweekly $300 plan is now scheduled every other Friday starting 2025-11-21. I\u2019ve refreshed the projections using true biweekly deposits with 3% APY (monthly compounding).\n\nUpdated Biweekly $300 results (true biweekly):\n- New projected completion: 2026-10-30 (rounded to the nearest Friday payday)\n- Months to goal: 12\n- Alert is set to notify you when your balance reaches $9,500.\n\nYour CSV download is ready. Copy the content below into a .csv file (e.g., emergency_fund_projections.csv) or use a data URL to download directly.\n\nData URL:\n- data:text/csv;charset=utf-8,Date,Monthly%20$300,Monthly%20$400,Monthly%20$500,Biweekly%20$300%20(true%20biweekly),Biweekly%20$400%20(approx),Biweekly%20$500%20(approx)%0A2025-11-30,2806.25,2906.25,3006.25,3100.00,3372.92,3589.58%0A2025-12-31,3113.27,3313.52,3513.77,3700.75,4248.02,4681.89%0A2026-01-31,3421.05,3721.80,4022.55,4302.02,5125.30,5776.93%0A2026-02-28,3729.60,4131.10,4532.61,4904.83,6004.78,6874.70%0A2026-03-31,4038.93,4541.43,5043.94,5510.18,6886.46,7975.22%0A2026-04-30,4349.02,4952.79,5556.55,6117.10,7770.34,9078.50%0A2026-05-31,4659.90,5365.17,6070.44,6726.59,8656.44,10000.00%0A2026-06-30,4971.54,5778.58,6585.62,7338.68,9544.74,10000.00%0A2026-07-31,5283.97,6193.03,7102.08,7953.37,10000.00,10000.00%0A2026-08-31,5597.18,6608.51,7619.83,8570.70,10000.00,10000.00%0A2026-09-30,5911.18,7025.03,8138.88,9190.67,10000.00,10000.00%0A2026-10-31,6225.95,7442.59,8659.23,10000.00,10000.00,10000.00\n\nCSV content:\nDate,Monthly $300,Monthly $400,Monthly $500,Biweekly $300 (true biweekly),Biweekly $400 (approx),Biweekly $500 (approx)\n2025-11-30,2806.25,2906.25,3006.25,3100.00,3372.92,3589.58\n2025-12-31,3113.27,3313.52,3513.77,3700.75,4248.02,4681.89\n2026-01-31,3421.05,3721.80,4022.55,4302.02,5125.30,5776.93\n2026-02-28,3729.60,4131.10,4532.61,4904.83,6004.78,6874.70\n2026-03-31,4038.93,4541.43,5043.94,5510.18,6886.46,7975.22\n2026-04-30,4349.02,4952.79,5556.55,6117.10,7770.34,9078.50\n2026-05-31,4659.90,5365.17,6070.44,6726.59,8656.44,10000.00\n2026-06-30,4971.54,5778.58,6585.62,7338.68,9544.74,10000.00\n2026-07-31,5283.97,6193.03,7102.08,7953.37,10000.00,10000.00\n2026-08-31,5597.18,6608.51,7619.83,8570.70,10000.00,10000.00\n2026-09-30,5911.18,7025.03,8138.88,9190.67,10000.00,10000.00\n2026-10-31,6225.95,7442.59,8659.23,10000.00,10000.00,10000.00\n\nWould you like me to also generate a calendar file (ICS) for the biweekly transfers so you can add it to your calendar?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScenarioComparisonChartProps",
+              "props": {
+                "targetAmount": 10000,
+                "currencyCode": "USD",
+                "scenarios": [
+                  {
+                    "id": "biweekly_300_true",
+                    "label": "Biweekly $300 (true biweekly)",
+                    "colorHex": "#16A34A",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 3100
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3700.75
+                      },
+                      {
+                        "month": 2,
+                        "balance": 4302.02
+                      },
+                      {
+                        "month": 3,
+                        "balance": 4904.83
+                      },
+                      {
+                        "month": 4,
+                        "balance": 5510.18
+                      },
+                      {
+                        "month": 5,
+                        "balance": 6117.1
+                      },
+                      {
+                        "month": 6,
+                        "balance": 6726.59
+                      },
+                      {
+                        "month": 7,
+                        "balance": 7338.68
+                      },
+                      {
+                        "month": 8,
+                        "balance": 7953.37
+                      },
+                      {
+                        "month": 9,
+                        "balance": 8570.7
+                      },
+                      {
+                        "month": 10,
+                        "balance": 9190.67
+                      },
+                      {
+                        "month": 11,
+                        "balance": 10000
+                      }
+                    ],
+                    "projectedCompletionMonth": 11
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "colorHex": "#3B82F6",
+                    "seriesPoints": [
+                      {
+                        "month": 0,
+                        "balance": 2906.25
+                      },
+                      {
+                        "month": 1,
+                        "balance": 3313.52
+                      },
+                      {
+                        "month": 2,
+                        "balance": 3721.8
+                      },
+                      {
+                        "month": 3,
+                        "balance": 4131.1
+                      },
+                      {
+                        "month": 4,
+                        "balance": 4541.43
+                      },
+                      {
+                        "month": 5,
+                        "balance": 4952.79
+                      },
+                      {
+                        "month": 6,
+                        "balance": 5365.17
+                      },
+                      {
+                        "month": 7,
+                        "balance": 5778.58
+                      },
+                      {
+                        "month": 8,
+                        "balance": 6193.03
+                      },
+                      {
+                        "month": 9,
+                        "balance": 6608.51
+                      },
+                      {
+                        "month": 10,
+                        "balance": 7025.03
+                      },
+                      {
+                        "month": 11,
+                        "balance": 7442.59
+                      },
+                      {
+                        "month": 12,
+                        "balance": 7861.2
+                      },
+                      {
+                        "month": 13,
+                        "balance": 8280.86
+                      },
+                      {
+                        "month": 14,
+                        "balance": 8701.57
+                      },
+                      {
+                        "month": 15,
+                        "balance": 9123.33
+                      },
+                      {
+                        "month": 16,
+                        "balance": 9546.15
+                      },
+                      {
+                        "month": 17,
+                        "balance": 9970.02
+                      },
+                      {
+                        "month": 18,
+                        "balance": 10394.96
+                      }
+                    ],
+                    "projectedCompletionMonth": 18
+                  }
+                ],
+                "xDomain": {
+                  "startMonth": 0,
+                  "endMonth": 18
+                },
+                "showGoalLine": true,
+                "showLegend": true,
+                "pinnedScenarioId": "biweekly_300_true",
+                "highlightedScenarioId": "monthly_400",
+                "onHoverScenarioAction": {
+                  "type": "hover_scenario",
+                  "scenarioId": null
+                },
+                "onSelectScenarioAction": {
+                  "type": "select_scenario",
+                  "scenarioId": "biweekly_300_true"
+                },
+                "onViewportChangeAction": {
+                  "type": "change_viewport",
+                  "startMonth": 0,
+                  "endMonth": 18
+                },
+                "accessibilityLabel": "Savings scenarios comparison chart"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "CompletionDateCardsProps",
+              "props": {
+                "scenarios": [
+                  {
+                    "id": "biweekly_300_true",
+                    "label": "Biweekly $300",
+                    "completionDate": "2026-10-30",
+                    "monthsToGoal": 12,
+                    "monthlyContribution": 300,
+                    "selectAction": {
+                      "type": "select_scenario",
+                      "payload": {
+                        "id": "biweekly_300_true"
+                      }
+                    },
+                    "pinAction": {
+                      "type": "pin_favorite_scenario",
+                      "payload": {
+                        "id": "biweekly_300_true"
+                      }
+                    }
+                  },
+                  {
+                    "id": "monthly_400",
+                    "label": "Monthly $400",
+                    "completionDate": "2027-05-31",
+                    "monthsToGoal": 19,
+                    "monthlyContribution": 400,
+                    "selectAction": {
+                      "type": "select_scenario",
+                      "payload": {
+                        "id": "monthly_400"
+                      }
+                    }
+                  }
+                ],
+                "variant": "detailed",
+                "currencyCode": "USD",
+                "initialSelectedId": "biweekly_300_true"
+              }
+            }
+          }
+        ],
+        "toolCalls": [
+          {
+            "id": "ouEnWrQvt",
+            "type": "function",
+            "function": {
+              "name": "calculate",
+              "arguments": "{\"operation\": \"simulate_true_biweekly_savings\", \"params\": {\"targetAmount\": 10000, \"currentSavings\": 2500, \"apy\": 0.03, \"compounding\": \"monthly\", \"contribution\": {\"amount\": 300, \"frequency\": \"biweekly\", \"startDate\": \"2025-11-21\", \"intervalDays\": 14, \"weekday\": \"Friday\"}, \"projection\": {\"roundBiweeklyCompletionToNearestFriday\": true, \"returnMonthlyEndBalances\": true}}}"
+            },
+            "tool_executed": true
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm scheduling transfers every other Friday starting 2025-11-21, using a true biweekly (14-day) cadence rather than twice-monthly approximations",
+            "Should refresh projections based on true biweekly deposits aligned to the specified start date and cadence",
+            "Should present the updated projected completion date clearly and specify months to goal",
+            "Should state and consistently apply interest assumptions (e.g., 3% APY with monthly compounding) or clearly note if no interest is applied",
+            "Should ensure internal consistency across text summary, CSV data, chart series points, and completion cards (dates, balances, completion timing)",
+            "Should provide the CSV as a downloadable artifact (e.g., file attachment or valid data URL) with proper headers, encoding, and ISO date formatting (YYYY-MM-DD)",
+            "Should include all relevant columns in the CSV that reflect the scenarios shown in the UI and ensure values match the computed projections",
+            "Should use appropriate UI components to visualize scenarios and completion timelines, configured with the correct target amount, labels, series data, and accessibility labels",
+            "Should calculate and display the projected completion timing aligned to Friday paydays when applicable, and round or annotate any rounding rules used",
+            "Should call the appropriate calculation tool with correct arguments (target amount, start date 2025-11-21, biweekly cadence, contribution amounts, APY and compounding rules) to generate projections",
+            "Should not claim to have executed external scheduling actions unless such actions are supported; if external scheduling requires permissions or integrations, should either use the available tool or clearly state limitations and next steps",
+            "Should offer actionable outputs aligned with the user\u2019s request (schedule confirmation, updated projections, downloadable CSV) without adding unrelated content",
+            "Should maintain clarity and brevity in the text portions and avoid unnecessary formatting that could impede display in the client",
+            "Should ensure accessibility metadata is present in components where applicable (e.g., accessibilityLabel)",
+            "Should handle edge cases or ambiguities (e.g., timezone assumptions for dates) by briefly stating assumptions if needed"
+          ],
+          "expected_components": [
+            "ScenarioComparisonChartProps",
+            "CompletionDateCardsProps"
+          ]
+        }
+      },
+      {
+        "role": "tool",
+        "tool_call_id": "ouEnWrQvt",
+        "content": "{\n  \"calculation\": \"simulate_true_biweekly_savings\",\n  \"inputs\": {\n    \"targetAmount\": 10000,\n    \"currentSavings\": 2500,\n    \"apy\": 0.03,\n    \"compounding\": \"monthly\",\n    \"contribution\": {\n      \"amount\": 300,\n      \"frequency\": \"biweekly\",\n      \"startDate\": \"2025-11-21\",\n      \"intervalDays\": 14,\n      \"weekday\": \"Friday\"\n    },\n    \"projection\": {\n      \"roundBiweeklyCompletionToNearestFriday\": true,\n      \"returnMonthlyEndBalances\": true\n    }\n  },\n  \"result\": {\n    \"projectedCompletionDate\": \"2026-10-30\",\n    \"monthsToGoal\": 12,\n    \"finalBalance\": 10000,\n    \"numberOfDepositsToGoal\": 24,\n    \"totalContributedToGoal\": 7200,\n    \"totalInterestEarnedToGoal\": 300,\n    \"lastDepositDateCounted\": \"2026-10-09\",\n    \"monthlyEndBalances\": [\n      {\n        \"date\": \"2025-11-30\",\n        \"balance\": 3100.0\n      },\n      {\n        \"date\": \"2025-12-31\",\n        \"balance\": 3700.75\n      },\n      {\n        \"date\": \"2026-01-31\",\n        \"balance\": 4302.02\n      },\n      {\n        \"date\": \"2026-02-28\",\n        \"balance\": 4904.83\n      },\n      {\n        \"date\": \"2026-03-31\",\n        \"balance\": 5510.18\n      },\n      {\n        \"date\": \"2026-04-30\",\n        \"balance\": 6117.1\n      },\n      {\n        \"date\": \"2026-05-31\",\n        \"balance\": 6726.59\n      },\n      {\n        \"date\": \"2026-06-30\",\n        \"balance\": 7338.68\n      },\n      {\n        \"date\": \"2026-07-31\",\n        \"balance\": 7953.37\n      },\n      {\n        \"date\": \"2026-08-31\",\n        \"balance\": 8570.7\n      },\n      {\n        \"date\": \"2026-09-30\",\n        \"balance\": 9190.67\n      },\n      {\n        \"date\": \"2026-10-31\",\n        \"balance\": 10000.0\n      }\n    ],\n    \"depositSchedulePreview\": [\n      \"2025-11-21\",\n      \"2025-12-05\",\n      \"2025-12-19\",\n      \"2026-01-02\",\n      \"2026-01-16\",\n      \"2026-01-30\",\n      \"2026-02-13\",\n      \"2026-02-27\",\n      \"2026-03-13\",\n      \"2026-03-27\"\n    ],\n    \"notes\": \"Completion date rounded to the nearest Friday for reporting. True biweekly deposits modeled every 14 days starting 2025-11-21. Balances reflect 3% APY with monthly compounding.\"\n  }\n}"
+      }
+    ];
+
+    // Utilities
+    const formatCurrency = (value, currencyCode = 'USD') => {
+      const num = typeof value === 'number' ? value : Number(value || 0);
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode, maximumFractionDigits: 2 }).format(isNaN(num) ? 0 : num);
+    };
+    const formatDate = (s) => {
+      if (!s) return '';
+      if (/^\d{4}-\d{2}$/.test(s)) return s;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      return String(s);
+    };
+    const classNames = (...arr) => arr.filter(Boolean).join(' ');
+
+    // SavingsGoalOverview Component
+    const SavingsGoalOverview = (props) => {
+      const {
+        goalId,
+        goalName,
+        targetAmount,
+        currentSavings,
+        currencyCode = 'USD',
+        iconUrl,
+        scenarios = [],
+        selectedScenarioId,
+        selectScenarioAction,
+        sortBy = 'months'
+      } = props;
+
+      const [selectedId, setSelectedId] = useState(selectedScenarioId || (scenarios[0]?.id || null));
+
+      useEffect(() => {
+        if (selectedScenarioId) setSelectedId(selectedScenarioId);
+      }, [selectedScenarioId]);
+
+      const onSelectScenario = (id) => {
+        setSelectedId(id);
+        console.log('selectScenarioAction', selectScenarioAction || {}, 'selectedId', id);
+      };
+
+      const percent = Math.min(100, Math.max(0, (currentSavings || 0) / (targetAmount || 1) * 100));
+      const sortedScenarios = useMemo(() => {
+        const arr = Array.isArray(scenarios) ? [...scenarios] : [];
+        if (sortBy === 'months') {
+          arr.sort((a, b) => (a.monthsToGoal || 0) - (b.monthsToGoal || 0));
+        } else if (sortBy === 'contribution') {
+          arr.sort((a, b) => (a.monthlyContribution || 0) - (b.monthlyContribution || 0));
+        }
+        return arr;
+      }, [scenarios, sortBy]);
+
+      const selectedScenario = sortedScenarios.find(s => s.id === selectedId);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow border border-gray-100 p-5">
+          <div className="flex items-center gap-3">
+            {iconUrl ? <img alt="" src={iconUrl} className="w-10 h-10 rounded-md object-contain bg-gray-50" /> : <div className="w-10 h-10 rounded-md bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">EF</div>}
+            <div className="flex-1">
+              <div className="text-lg font-semibold text-gray-900">{goalName || 'Savings Goal'}</div>
+              <div className="text-sm text-gray-600">Target {formatCurrency(targetAmount, currencyCode)}</div>
+            </div>
+            <div className="text-sm text-gray-700">
+              {formatCurrency(currentSavings, currencyCode)} saved
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <div className="flex justify-between text-xs text-gray-600 mb-1">
+              <span>Progress</span>
+              <span>{percent.toFixed(0)}%</span>
+            </div>
+            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+              <div className="h-3 bg-emerald-500 rounded-full" style={{ width: `${percent}%` }} />
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-900">Scenarios</h3>
+              <div className="text-xs text-gray-500">Sort by {sortBy === 'months' ? 'months to goal' : 'monthly contribution'}</div>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {sortedScenarios.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => onSelectScenario(s.id)}
+                  className={classNames(
+                    "text-left border rounded-lg p-3 hover:shadow-sm transition bg-white",
+                    selectedId === s.id ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-gray-900">{s.label || s.id}</div>
+                    {selectedId === s.id && <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-600">Selected</span>}
+                  </div>
+                  <div className="mt-1 text-xs text-gray-600">Monthly: {formatCurrency(s.monthlyContribution, currencyCode)}</div>
+                  <div className="mt-1 text-xs text-gray-600">Months to goal: <span className="font-medium text-gray-800">{s.monthsToGoal ?? '-'}</span></div>
+                  {s.completionDate && (
+                    <div className="mt-1 text-xs text-gray-600">Projected completion: <span className="font-medium text-gray-800">{formatDate(s.completionDate)}</span></div>
+                  )}
+                </button>
+              ))}
+              {(!sortedScenarios || sortedScenarios.length === 0) && (
+                <div className="text-sm text-gray-500">No scenarios provided.</div>
+              )}
+            </div>
+          </div>
+
+          {selectedScenario && (
+            <div className="mt-6 border rounded-lg p-4 bg-slate-50 border-slate-200">
+              <div className="text-sm font-semibold text-slate-900 mb-2">Selected: {selectedScenario.label}</div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div>
+                  <div className="text-slate-600">Monthly contribution</div>
+                  <div className="font-medium text-slate-900">{formatCurrency(selectedScenario.monthlyContribution, currencyCode)}</div>
+                </div>
+                <div>
+                  <div className="text-slate-600">Months to goal</div>
+                  <div className="font-medium text-slate-900">{selectedScenario.monthsToGoal ?? '-'}</div>
+                </div>
+                <div>
+                  <div className="text-slate-600">Completion</div>
+                  <div className="font-medium text-slate-900">{formatDate(selectedScenario.completionDate)}</div>
+                </div>
+                <div>
+                  <div className="text-slate-600">Goal</div>
+                  <div className="font-medium text-slate-900">{formatCurrency(targetAmount, currencyCode)}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // ScenarioComparisonChart Component (SVG-based)
+    const ScenarioComparisonChart = (props) => {
+      const {
+        targetAmount = 0,
+        currencyCode = 'USD',
+        scenarios = [],
+        xDomain,
+        showGoalLine = true,
+        showLegend = true,
+        pinnedScenarioId = null,
+        highlightedScenarioId = null,
+        onHoverScenarioAction,
+        onSelectScenarioAction,
+        onViewportChangeAction,
+        accessibilityLabel = 'Scenario comparison chart'
+      } = props;
+
+      const width = 900;
+      const height = 300;
+      const margin = { top: 20, right: 20, bottom: 30, left: 48 };
+      const innerW = width - margin.left - margin.right;
+      const innerH = height - margin.top - margin.bottom;
+
+      const palette = ['#3B82F6','#10B981','#F59E0B','#EF4444','#8B5CF6','#0EA5E9','#14B8A6','#F43F5E'];
+
+      // Normalize series points to {x, y}
+      const normalized = useMemo(() => {
+        if (!Array.isArray(scenarios)) return [];
+        return scenarios.map((s, idx) => {
+          const points = Array.isArray(s.seriesPoints) ? s.seriesPoints : [];
+          const mapped = points.map((p, i) => {
+            let x = typeof p.month === 'number' ? p.month : i;
+            const y = Number(p.balance || 0);
+            return { x, y };
+          });
+          return {
+            ...s,
+            colorHex: s.colorHex || palette[idx % palette.length],
+            points: mapped
+          };
+        });
+      }, [scenarios]);
+
+      const xMin = useMemo(() => {
+        if (xDomain?.startMonth !== undefined) return xDomain.startMonth;
+        return 0;
+      }, [xDomain]);
+
+      const xMax = useMemo(() => {
+        if (xDomain?.endMonth !== undefined) return xDomain.endMonth;
+        const maxX = Math.max(0, ...normalized.flatMap(s => s.points.map(p => p.x)));
+        return maxX;
+      }, [xDomain, normalized]);
+
+      const yMax = useMemo(() => {
+        const maxY = Math.max(targetAmount || 0, ...normalized.flatMap(s => s.points.map(p => p.y)));
+        return maxY <= 0 ? 1 : maxY;
+      }, [normalized, targetAmount]);
+
+      const xScale = (x) => {
+        const span = (xMax - xMin) || 1;
+        return margin.left + ((x - xMin) / span) * innerW;
+      };
+      const yScale = (y) => {
+        return margin.top + innerH - (y / yMax) * innerH;
+      };
+
+      const buildPath = (pts) => {
+        if (!pts || pts.length === 0) return '';
+        return pts.map((p, i) => `${i===0?'M':'L'} ${xScale(p.x)} ${yScale(p.y)}`).join(' ');
+        };
+
+      const pinnedFirst = useMemo(() => {
+        if (!pinnedScenarioId) return normalized;
+        const pinned = normalized.find(s => s.id === pinnedScenarioId);
+        const others = normalized.filter(s => s.id !== pinnedScenarioId);
+        return pinned ? [pinned, ...others] : normalized;
+      }, [normalized, pinnedScenarioId]);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-semibold text-gray-900">Scenario Comparison</div>
+            {xDomain && (
+              <div className="text-xs text-gray-500">Months {xMin}–{xMax}</div>
+            )}
+          </div>
+          <div className="overflow-x-auto">
+            <svg
+              width={width}
+              height={height}
+              role="img"
+              aria-label={accessibilityLabel}
+              className="select-none"
+            >
+              {/* Axes */}
+              {/* Y Axis ticks */}
+              {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
+                const y = yScale(t * yMax);
+                return (
+                  <g key={i}>
+                    <line x1={margin.left} x2={width - margin.right} y1={y} y2={y} stroke="#e5e7eb" strokeDasharray="4 4" />
+                    <text x={margin.left - 8} y={y} textAnchor="end" dominantBaseline="middle" fontSize="10" fill="#6b7280">
+                      {formatCurrency(t * yMax, currencyCode)}
+                    </text>
+                  </g>
+                );
+              })}
+              {/* X Axis */}
+              <line x1={margin.left} x2={width - margin.right} y1={height - margin.bottom} y2={height - margin.bottom} stroke="#9ca3af" />
+              {[xMin, Math.round((xMin + xMax)/2), xMax].map((x, i) => (
+                <text key={i} x={xScale(x)} y={height - margin.bottom + 16} textAnchor="middle" fontSize="10" fill="#6b7280">
+                  m{x}
+                </text>
+              ))}
+
+              {/* Goal line */}
+              {showGoalLine && (
+                <>
+                  <line
+                    x1={margin.left}
+                    x2={width - margin.right}
+                    y1={yScale(targetAmount)}
+                    y2={yScale(targetAmount)}
+                    stroke="#10b981"
+                    strokeDasharray="6 4"
+                    strokeWidth="1.5"
+                  />
+                  <text x={width - margin.right} y={yScale(targetAmount) - 4} textAnchor="end" fontSize="10" fill="#10b981">
+                    Goal {formatCurrency(targetAmount, currencyCode)}
+                  </text>
+                </>
+              )}
+
+              {/* Series */}
+              {pinnedFirst.map((s, idx) => {
+                const isPinned = s.id === pinnedScenarioId;
+                const isHighlighted = s.id === highlightedScenarioId;
+                const strokeW = isPinned ? 3.5 : (isHighlighted ? 3 : 2);
+                const dash = isHighlighted ? "4 2" : "0";
+                const path = buildPath(s.points);
+                return (
+                  <g key={s.id || idx}>
+                    <path d={path} fill="none" stroke={s.colorHex || palette[idx % palette.length]} strokeWidth={strokeW} strokeDasharray={dash} />
+                    {s.points.length > 0 && (
+                      <circle cx={xScale(s.points[s.points.length-1].x)} cy={yScale(s.points[s.points.length-1].y)} r={isPinned ? 3.5 : 2.5} fill={s.colorHex || palette[idx % palette.length]} />
+                    )}
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
+
+          {showLegend && (
+            <div className="mt-3 flex flex-wrap gap-3">
+              {pinnedFirst.map((s, idx) => {
+                const isPinned = s.id === pinnedScenarioId;
+                const isHighlighted = s.id === highlightedScenarioId;
+                return (
+                  <button
+                    key={s.id || idx}
+                    onClick={() => {
+                      console.log('onSelectScenarioAction', onSelectScenarioAction || {}, 'selected', s.id);
+                    }}
+                    onMouseEnter={() => {
+                      if (onHoverScenarioAction) {
+                        console.log('onHoverScenarioAction', { ...onHoverScenarioAction, scenarioId: s.id });
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (onHoverScenarioAction) {
+                        console.log('onHoverScenarioAction', { ...onHoverScenarioAction, scenarioId: null });
+                      }
+                    }}
+                    className={classNames(
+                      "flex items-center gap-2 px-2 py-1 rounded border text-xs",
+                      isPinned ? "border-emerald-500 bg-emerald-50 text-emerald-700" :
+                      isHighlighted ? "border-blue-500 bg-blue-50 text-blue-700" :
+                      "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                    )}
+                    title={s.label}
+                  >
+                    <span className="inline-block w-3 h-3 rounded-sm" style={{ background: s.colorHex || '#999' }}></span>
+                    <span>{s.label || s.id}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // MonthlyContributionTable Component
+    const MonthlyContributionTable = (props) => {
+      const {
+        goalId,
+        goalAmount,
+        currencyCode = 'USD',
+        scenarios = [],
+        defaultSort = { by: 'monthsToGoal', direction: 'asc' },
+        selectedScenarioId,
+        onSelectAction,
+        showTotalContributed = false
+      } = props;
+
+      const [sort, setSort] = useState(defaultSort);
+      const [selectedId, setSelectedId] = useState(selectedScenarioId || null);
+
+      useEffect(() => {
+        if (selectedScenarioId) setSelectedId(selectedScenarioId);
+      }, [selectedScenarioId]);
+
+      const sortBy = (by) => {
+        setSort(prev => {
+          const direction = prev.by === by && prev.direction === 'asc' ? 'desc' : 'asc';
+          return { by, direction };
+        });
+      };
+
+      const sorted = useMemo(() => {
+        const arr = Array.isArray(scenarios) ? [...scenarios] : [];
+        const dir = sort.direction === 'desc' ? -1 : 1;
+        arr.sort((a, b) => {
+          const av = a[sort.by];
+          const bv = b[sort.by];
+          if (av == null && bv == null) return 0;
+          if (av == null) return -1 * dir;
+          if (bv == null) return 1 * dir;
+          if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * dir;
+          return String(av).localeCompare(String(bv)) * dir;
+        });
+        return arr;
+      }, [scenarios, sort]);
+
+      const headers = [
+        { key: 'label', title: 'Scenario' },
+        { key: 'monthlyContribution', title: 'Monthly' },
+        { key: 'monthsToGoal', title: 'Months' },
+        { key: 'completionDate', title: 'Completion Date' },
+      ];
+      if (showTotalContributed) headers.push({ key: 'totalContributed', title: 'Total Contributed' });
+
+      const onSelect = (id) => {
+        setSelectedId(id);
+        console.log('onSelectAction', onSelectAction || {}, 'selectedId', id);
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-2">
+            <div className="text-sm font-semibold text-gray-900">Monthly Contribution Table</div>
+            <div className="text-xs text-gray-500">Goal: {formatCurrency(goalAmount, currencyCode)}</div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50 text-gray-700">
+                <tr>
+                  {headers.map(h => (
+                    <th key={h.key} className="px-3 py-2 font-medium text-left">
+                      <button className="hover:underline" onClick={() => sortBy(h.key)}>
+                        {h.title} {sort.by === h.key ? (sort.direction === 'asc' ? '▲' : '▼') : ''}
+                      </button>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {sorted.map(s => (
+                  <tr
+                    key={s.id}
+                    className={classNames("border-t", selectedId === s.id ? "bg-blue-50" : "bg-white", "hover:bg-gray-50")}
+                    onClick={() => onSelect(s.id)}
+                  >
+                    <td className="px-3 py-2">{s.label || s.id}</td>
+                    <td className="px-3 py-2">{formatCurrency(s.monthlyContribution, currencyCode)}</td>
+                    <td className="px-3 py-2">{s.monthsToGoal ?? '-'}</td>
+                    <td className="px-3 py-2">{formatDate(s.completionDate)}</td>
+                    {showTotalContributed && <td className="px-3 py-2">{formatCurrency(s.totalContributed, currencyCode)}</td>}
+                  </tr>
+                ))}
+                {(!sorted || sorted.length === 0) && (
+                  <tr>
+                    <td colSpan={headers.length} className="px-3 py-6 text-center text-gray-500">No data</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    // CompletionDateCards Component
+    const CompletionDateCards = (props) => {
+      const {
+        scenarios = [],
+        variant = 'compact',
+        currencyCode = 'USD',
+        initialSelectedId
+      } = props;
+
+      const [selectedId, setSelectedId] = useState(initialSelectedId || (scenarios[0]?.id ?? null));
+
+      const Card = ({ s }) => {
+        const selected = s.id === selectedId;
+        return (
+          <button
+            onClick={() => {
+              setSelectedId(s.id);
+              if (s.selectAction) console.log('selectAction', s.selectAction);
+            }}
+            className={classNames(
+              "text-left border rounded-lg p-4 transition hover:shadow-sm",
+              selected ? "border-blue-500 ring-2 ring-blue-200" : "border-gray-200 bg-white"
+            )}
+          >
+            <div className="flex items-center justify-between">
+              <div className="font-medium text-gray-900">{s.label || s.id}</div>
+              {selected && <span className="text-xs px-2 py-0.5 rounded bg-blue-50 text-blue-600">Selected</span>}
+            </div>
+            <div className="mt-1 text-xs text-gray-600">Completion: <span className="font-medium text-gray-800">{formatDate(s.completionDate)}</span></div>
+            {'monthsToGoal' in s && (
+              <div className="mt-1 text-xs text-gray-600">Months to goal: <span className="font-medium text-gray-800">{s.monthsToGoal}</span></div>
+            )}
+            {'monthlyContribution' in s && (
+              <div className="mt-1 text-xs text-gray-600">Contribution: <span className="font-medium text-gray-800">{formatCurrency(s.monthlyContribution, currencyCode)}</span></div>
+            )}
+            {s.pinAction && (
+              <div className="mt-3">
+                <button
+                  onClick={(e) => { e.stopPropagation(); console.log('pinAction', s.pinAction); }}
+                  className="text-xs px-2 py-1 rounded border border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                >
+                  Pin
+                </button>
+              </div>
+            )}
+          </button>
+        );
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow border border-gray-100 p-4">
+          <div className="text-sm font-semibold text-gray-900 mb-2">Completion Dates</div>
+          <div className={classNames("grid gap-3", variant === 'detailed' ? "sm:grid-cols-2 lg:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3")}>
+            {Array.isArray(scenarios) && scenarios.length > 0 ? scenarios.map(s => (
+              <Card key={s.id} s={s} />
+            )) : (
+              <div className="text-sm text-gray-500">No scenarios</div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // TimelineAdjuster Component (utility/demo)
+    const TimelineAdjuster = (props) => {
+      const {
+        targetAmount = 0,
+        currentSavings = 0,
+        currencyCode = 'USD',
+        inputMode = 'date',
+        selectedDate,
+        monthlyBudget,
+        scenarios = [],
+        validation = {},
+        computeAction,
+        applyScenarioAction,
+        selectScenarioAction,
+        showProjectionCards = false
+      } = props;
+
+      const [mode, setMode] = useState(inputMode);
+      const [date, setDate] = useState(selectedDate || '');
+      const [budget, setBudget] = useState(monthlyBudget || 0);
+
+      const onCompute = () => {
+        console.log('computeAction', computeAction || {}, { mode, date, budget, targetAmount, currentSavings });
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow border border-gray-100 p-4">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold text-gray-900">Timeline Adjuster</div>
+            <div className="text-xs text-gray-500">{formatCurrency(currentSavings, currencyCode)} saved of {formatCurrency(targetAmount, currencyCode)}</div>
+          </div>
+          <div className="flex items-center gap-2 text-sm mb-3">
+            <label className="flex items-center gap-2">
+              <input type="radio" name={`mode_${Math.random()}`} checked={mode === 'date'} onChange={() => setMode('date')} />
+              Target date
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name={`mode_${Math.random()}`} checked={mode === 'budget'} onChange={() => setMode('budget')} />
+              Monthly budget
+            </label>
+          </div>
+          {mode === 'date' ? (
+            <div className="flex items-center gap-2">
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="border rounded px-2 py-1 text-sm" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <input type="number" value={budget} onChange={(e) => setBudget(Number(e.target.value || 0))} className="border rounded px-2 py-1 text-sm" />
+              <span className="text-xs text-gray-500">per month</span>
+            </div>
+          )}
+          <div className="mt-3 flex items-center gap-2">
+            <button onClick={onCompute} className="px-3 py-1.5 rounded bg-blue-600 text-white text-sm hover:bg-blue-700">Compute</button>
+            <button onClick={() => console.log('applyScenarioAction', applyScenarioAction || {})} className="px-3 py-1.5 rounded border text-sm hover:bg-gray-50">Apply</button>
+            <button onClick={() => console.log('selectScenarioAction', selectScenarioAction || {})} className="px-3 py-1.5 rounded border text-sm hover:bg-gray-50">Select</button>
+          </div>
+          {showProjectionCards && (
+            <div className="mt-4">
+              <CompletionDateCards scenarios={scenarios} variant="compact" currencyCode={currencyCode} />
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // Component Registry (include aliases for *Props names to render)
+    const ComponentRegistry = {
+      SavingsGoalOverview: SavingsGoalOverview,
+      ScenarioComparisonChart: ScenarioComparisonChart,
+      MonthlyContributionTable: MonthlyContributionTable,
+      CompletionDateCards: CompletionDateCards,
+      TimelineAdjuster: TimelineAdjuster,
+      // Aliases for messages that use *Props
+      ScenarioComparisonChartProps: ScenarioComparisonChart,
+      CompletionDateCardsProps: CompletionDateCards
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (chunk == null) return null;
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-sm text-gray-800">{chunk}</p>;
+      }
+      if (typeof chunk === 'object') {
+        if (chunk.type === 'text') {
+          return <p className="whitespace-pre-wrap text-sm text-gray-800">{chunk.text}</p>;
+        }
+        if (chunk.type === 'component' && chunk.component) {
+          const { name, props } = chunk.component;
+          return (
+            <div className="my-3">
+              <ComponentRenderer componentName={name} props={props || {}} />
+            </div>
+          );
+        }
+      }
+      return (
+        <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-2 overflow-auto">
+{JSON.stringify(chunk, null, 2)}
+        </pre>
+      );
+    };
+
+    const MessageBubble = ({ message }) => {
+      const isUser = message.role === 'user';
+      const isAssistant = message.role === 'assistant';
+      const isTool = message.role === 'tool';
+      const bubbleClasses = isUser
+        ? 'bg-blue-600 text-white'
+        : isAssistant
+          ? 'bg-white border border-gray-200 text-gray-900'
+          : 'bg-gray-100 border border-gray-200 text-gray-800';
+
+      const content = message.content;
+
+      return (
+        <div className={classNames("w-full flex", isUser ? "justify-end" : "justify-start")}>
+          <div className={classNames("max-w-3xl w-full rounded-xl p-4 shadow-sm", bubbleClasses)}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={classNames("text-xs font-semibold", isUser ? "text-white/90" : "text-gray-600")}>
+                {message.role.toUpperCase()}
+              </div>
+              {message.tool_call_id && <div className="text-[10px] px-1.5 py-0.5 rounded bg-gray-200 text-gray-700">{message.tool_call_id}</div>}
+            </div>
+            <div className="space-y-3">
+              {Array.isArray(content) ? content.map((chunk, idx) => (
+                <ContentChunkRenderer key={idx} chunk={chunk} />
+              )) : (
+                typeof content === 'string'
+                  ? <p className={classNames("whitespace-pre-wrap text-sm", isUser ? "text-white" : "text-gray-800")}>{content}</p>
+                  : <pre className="text-xs bg-gray-50 border border-gray-200 rounded p-2 overflow-auto">{JSON.stringify(content, null, 2)}</pre>
+              )}
+            </div>
+            {isTool && typeof content === 'string' && (
+              <details className="mt-3">
+                <summary className="text-xs cursor-pointer">Show tool payload</summary>
+                <pre className="text-xs bg-white border border-gray-200 rounded p-2 overflow-auto">{content}</pre>
+              </details>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="max-w-6xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <header className="mb-6">
+            <h1 className="text-2xl font-semibold text-gray-900">Conversation Viewer</h1>
+            <p className="text-sm text-gray-600">Interactive UI components rendered inline with the conversation.</p>
+          </header>
+          <div className="space-y-4">
+            {Array.isArray(conversation) && conversation.map((msg, idx) => (
+              <MessageBubble key={idx} message={msg} />
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

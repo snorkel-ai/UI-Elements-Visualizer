@@ -1,0 +1,1423 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "VehicleCarousel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "VehicleCarousel"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "initialIndex": {
+                "type": "number"
+              },
+              "loop": {
+                "anyOf": [
+                  {
+                    "type": "boolean"
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "snapAlign": {
+                "type": "string",
+                "enum": [
+                  "center",
+                  "start"
+                ]
+              },
+              "lazyLoadImages": {
+                "type": "boolean"
+              },
+              "navigation": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onSlideChangeAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onReachEndAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "onSelectVehicleAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onRequestMoreAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "ariaLabel": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "items",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "SuvCard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "SuvCard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "modelName": {
+                "type": "string"
+              },
+              "trim": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "seats": {
+                "type": "number"
+              },
+              "cargoVolumeCuFt": {
+                "type": "number"
+              },
+              "mpgCombined": {
+                "type": "number"
+              },
+              "priceFromUSD": {
+                "type": "number"
+              },
+              "rating": {
+                "type": "number"
+              },
+              "reviewCount": {
+                "type": "number"
+              },
+              "variant": {
+                "type": "string",
+                "enum": [
+                  "compact",
+                  "standard"
+                ]
+              },
+              "onPurchaseAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "cargoVolumeCuFt",
+              "id",
+              "imageUrl",
+              "modelName",
+              "mpgCombined",
+              "onPurchaseAction",
+              "priceFromUSD",
+              "rating",
+              "reviewCount",
+              "seats"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "PreferenceFilters": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "PreferenceFilters"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "filters": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "sortBy": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onChangeAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "clearAllAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "debounceMs": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "filters",
+              "id",
+              "name",
+              "onChangeAction",
+              "sortBy",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "CompareModal": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CompareModal"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "vehicles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "onViewDetailsAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onRemoveVehicleAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onCloseAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "highlightMetrics": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "seats",
+                    "cargoVolumeCuFt",
+                    "mpgCombined"
+                  ]
+                }
+              },
+              "currencyCode": {
+                "type": "string"
+              },
+              "maxItems": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "onRemoveVehicleAction",
+              "onViewDetailsAction",
+              "vehicles"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "PurchaseOptionsSheet": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "PurchaseOptionsSheet"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "modelId": {
+                "type": "string"
+              },
+              "modelName": {
+                "type": "string"
+              },
+              "priceFromUSD": {
+                "type": "number"
+              },
+              "incentivesSummary": {
+                "type": "string"
+              },
+              "financingAPR": {
+                "type": "number"
+              },
+              "availability": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "primaryActions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "currencyCode": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "availability",
+              "modelId",
+              "modelName",
+              "priceFromUSD",
+              "primaryActions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "RatingBadge": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "RatingBadge"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "rating": {
+                "type": "number"
+              },
+              "reviewCount": {
+                "type": "number"
+              },
+              "size": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              },
+              "onOpenReviewsAction": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "rating",
+              "reviewCount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/VehicleCarousel"
+          },
+          {
+            "$ref": "#/$defs/SuvCard"
+          },
+          {
+            "$ref": "#/$defs/PreferenceFilters"
+          },
+          {
+            "$ref": "#/$defs/CompareModal"
+          },
+          {
+            "$ref": "#/$defs/PurchaseOptionsSheet"
+          },
+          {
+            "$ref": "#/$defs/RatingBadge"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "I'm looking to buy a new mid-size SUV, I care about number of seats, storage space, and MPG primarily."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great choice\u2014seats, cargo, and MPG are the right metrics for midsize SUVs. I\u2019ve highlighted a few strong options below. You can tweak the filters to match your minimum seats, cargo capacity, MPG, and price range. If you have a target budget or prefer AWD, let me know and I\u2019ll refine further."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "PreferenceFilters",
+            "props": {
+              "id": "pref-mid-suv-001",
+              "name": "SUV Filters",
+              "title": "Refine SUVs",
+              "filters": {
+                "minSeats": 5,
+                "minCargoCuFt": 30,
+                "minMpg": 28,
+                "priceRangeUSD": [
+                  30000,
+                  50000
+                ]
+              },
+              "sortBy": "relevance",
+              "onChangeAction": {
+                "type": "update_filters",
+                "payload": {
+                  "filters": {
+                    "minSeats": 5,
+                    "minCargoCuFt": 30,
+                    "minMpg": 28,
+                    "priceRangeUSD": [
+                      30000,
+                      50000
+                    ]
+                  },
+                  "sortBy": "relevance",
+                  "source": "live"
+                }
+              },
+              "clearAllAction": {
+                "type": "clear_all_filters"
+              },
+              "debounceMs": 300
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "VehicleCarousel",
+            "props": {
+              "title": "Recommended Mid\u2011Size SUVs",
+              "items": [
+                {
+                  "id": "toyota-highlander-2025-hybrid-le-awd",
+                  "name": "2025 Toyota Highlander Hybrid LE (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/highlander-2025-hybrid-le.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/highlander-2025-hybrid-le-1.jpg",
+                    "https://cdn.example.com/vehicles/highlander-2025-hybrid-le-2.jpg"
+                  ],
+                  "seats": 7,
+                  "cargoVolumeCuFt": 16.0,
+                  "mpg": {
+                    "city": 35,
+                    "highway": 34,
+                    "combined": 36
+                  },
+                  "priceUSD": 40990,
+                  "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 1184,
+                    "source": "platform"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "limited",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/toyota/highlander-hybrid/le/awend",
+                    "buildAndPriceUrl": "https://www.toyota.com/configurator/highlander-hybrid",
+                    "findDealerUrl": "https://www.toyota.com/dealers",
+                    "detailsUrl": "https://shop.example.com/vehicles/toyota-highlander-2025-hybrid"
+                  },
+                  "tags": [
+                    "Top Safety Pick",
+                    "Wireless CarPlay",
+                    "7 Seats"
+                  ]
+                },
+                {
+                  "id": "hyundai-santa-fe-2025-hybrid-sel-awd",
+                  "name": "2025 Hyundai Santa Fe Hybrid SEL (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/santafe-2025-hybrid-sel.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/santafe-2025-hybrid-sel-1.jpg",
+                    "https://cdn.example.com/vehicles/santafe-2025-hybrid-sel-2.jpg"
+                  ],
+                  "seats": 7,
+                  "cargoVolumeCuFt": 14.6,
+                  "mpg": {
+                    "city": 36,
+                    "highway": 33,
+                    "combined": 36
+                  },
+                  "priceUSD": 37990,
+                  "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                  "reviewSummary": {
+                    "rating": 4.5,
+                    "reviewCount": 642,
+                    "source": "platform"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/hyundai/santa-fe-hybrid/sel",
+                    "buildAndPriceUrl": "https://www.hyundaiusa.com/configurator/santa-fe-hybrid",
+                    "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                    "detailsUrl": "https://shop.example.com/vehicles/hyundai-santa-fe-2025-hybrid"
+                  },
+                  "tags": [
+                    "Panoramic Display",
+                    "Driver Assist Suite",
+                    "7 Seats"
+                  ]
+                },
+                {
+                  "id": "kia-sorento-2025-hybrid-ex-awd",
+                  "name": "2025 Kia Sorento Hybrid EX (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/sorento-2025-hybrid-ex.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/sorento-2025-hybrid-ex-1.jpg",
+                    "https://cdn.example.com/vehicles/sorento-2025-hybrid-ex-2.jpg"
+                  ],
+                  "seats": 6,
+                  "cargoVolumeCuFt": 12.6,
+                  "mpg": {
+                    "city": 39,
+                    "highway": 35,
+                    "combined": 37
+                  },
+                  "priceUSD": 36990,
+                  "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                  "reviewSummary": {
+                    "rating": 4.4,
+                    "reviewCount": 531,
+                    "source": "platform"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/kia/sorento-hybrid/ex",
+                    "buildAndPriceUrl": "https://www.kia.com/us/en/sorento/build",
+                    "findDealerUrl": "https://www.kia.com/us/en/dealerships",
+                    "detailsUrl": "https://shop.example.com/vehicles/kia-sorento-2025-hybrid"
+                  },
+                  "tags": [
+                    "6 Seats (Captain\u2019s Chairs)",
+                    "Long Warranty",
+                    "Wireless CarPlay"
+                  ]
+                },
+                {
+                  "id": "honda-passport-2025-exl-awd",
+                  "name": "2025 Honda Passport EX-L (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/passport-2025-exl.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/passport-2025-exl-1.jpg",
+                    "https://cdn.example.com/vehicles/passport-2025-exl-2.jpg"
+                  ],
+                  "seats": 5,
+                  "cargoVolumeCuFt": 41.2,
+                  "mpg": {
+                    "city": 19,
+                    "highway": 24,
+                    "combined": 23
+                  },
+                  "priceUSD": 38900,
+                  "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 987,
+                    "source": "platform"
+                  },
+                  "powertrain": "gas",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/honda/passport/exl",
+                    "buildAndPriceUrl": "https://automobiles.honda.com/tools/build-and-price?model=passport",
+                    "findDealerUrl": "https://automobiles.honda.com/tools/dealer-locator",
+                    "detailsUrl": "https://shop.example.com/vehicles/honda-passport-2025"
+                  },
+                  "tags": [
+                    "Spacious Cargo",
+                    "V6 Power",
+                    "AWD Standard"
+                  ]
+                },
+                {
+                  "id": "vw-atlas-cross-sport-2025-se-awd",
+                  "name": "2025 VW Atlas Cross Sport SE (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/atlas-cross-sport-2025-se.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/atlas-cross-sport-2025-se-1.jpg",
+                    "https://cdn.example.com/vehicles/atlas-cross-sport-2025-se-2.jpg"
+                  ],
+                  "seats": 5,
+                  "cargoVolumeCuFt": 40.3,
+                  "mpg": {
+                    "city": 20,
+                    "highway": 26,
+                    "combined": 23
+                  },
+                  "priceUSD": 36995,
+                  "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                  "reviewSummary": {
+                    "rating": 4.3,
+                    "reviewCount": 412,
+                    "source": "platform"
+                  },
+                  "powertrain": "gas",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/vw/atlas-cross-sport/se",
+                    "buildAndPriceUrl": "https://www.vw.com/en/models/atlas-cross-sport/build.html",
+                    "findDealerUrl": "https://www.vw.com/en/dealerships.html",
+                    "detailsUrl": "https://shop.example.com/vehicles/vw-atlas-cross-sport-2025"
+                  },
+                  "tags": [
+                    "Roomy 2\u2011Row",
+                    "Digital Cockpit",
+                    "Advanced Safety"
+                  ]
+                },
+                {
+                  "id": "subaru-outback-2025-premium-awd",
+                  "name": "2025 Subaru Outback Premium (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/outback-2025-premium.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/outback-2025-premium-1.jpg",
+                    "https://cdn.example.com/vehicles/outback-2025-premium-2.jpg"
+                  ],
+                  "seats": 5,
+                  "cargoVolumeCuFt": 32.6,
+                  "mpg": {
+                    "city": 26,
+                    "highway": 33,
+                    "combined": 28
+                  },
+                  "priceUSD": 30990,
+                  "priceDisclaimer": "MSRP shown; excludes destination, taxes, and fees",
+                  "reviewSummary": {
+                    "rating": 4.7,
+                    "reviewCount": 2150,
+                    "source": "platform"
+                  },
+                  "powertrain": "gas",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/subaru/outback/premium",
+                    "buildAndPriceUrl": "https://www.subaru.com/build/Outback",
+                    "findDealerUrl": "https://www.subaru.com/dealers",
+                    "detailsUrl": "https://shop.example.com/vehicles/subaru-outback-2025"
+                  },
+                  "tags": [
+                    "Standard AWD",
+                    "Roof Rails",
+                    "Top Safety Pick"
+                  ]
+                }
+              ],
+              "initialIndex": 0,
+              "loop": "wrap",
+              "snapAlign": "center",
+              "lazyLoadImages": true,
+              "navigation": {
+                "arrows": true,
+                "dots": true,
+                "swipe": true
+              },
+              "onSlideChangeAction": {
+                "type": "carousel_slide_change",
+                "index": 0
+              },
+              "onReachEndAction": {
+                "type": "carousel_reach_end"
+              },
+              "onSelectVehicleAction": {
+                "type": "select_vehicle",
+                "vehicleId": "toyota-highlander-2025-hybrid-le-awd"
+              },
+              "onRequestMoreAction": {
+                "type": "request_more_results"
+              },
+              "ariaLabel": "Mid-size SUV recommendations"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should open with a concise acknowledgement and restatement of the user's priorities (seats, storage/cargo, MPG) and set expectations for how results are presented",
+          "Should provide SUV options that are clearly within the mid-size SUV category",
+          "Should highlight, for each vehicle, the number of seats, cargo volume (with units), and MPG (city/highway/combined) in a consistent, easy-to-scan format",
+          "Should include additional helpful purchase context for each vehicle such as price (with a disclaimer like MSRP), drivetrain/powertrain, user ratings/review count, and calls to action (build, buy, find dealer, details)",
+          "Should ensure information is accurate, relevant, and plausibly current without claiming real-time data unless sourced; include pricing/availability disclaimers where appropriate",
+          "Should use consistent units and metric definitions (e.g., cargo volume in cubic feet, MPG city/highway/combined) and avoid ambiguous metrics (e.g., clarify if cargo is behind third row, if relevant)",
+          "Should leverage appropriate UI components to match the scenario: filters to refine by seats, cargo capacity, MPG, and price; and a carousel to browse recommended vehicles",
+          "Should preconfigure filters with reasonable defaults that reflect the user's stated priorities and allow the user to adjust them (e.g., min seats, min cargo volume, min MPG, price range)",
+          "Should provide interactive behaviors for components (e.g., onChange for filters, select vehicle, slide change) with clearly defined action payloads that downstream systems can handle",
+          "Should include accessibility considerations such as clear titles and aria labels for interactive components",
+          "Should allow sorting or specify a default sort that matches user intent (e.g., relevance) and enable refinement upon user input",
+          "Should avoid extraneous information and keep narrative guidance brief, focusing on actionable next steps (e.g., ask for budget, AWD preference) to refine results",
+          "Should ensure all links and identifiers in CTAs and actions are well-formed placeholders or valid targets appropriate for the application context",
+          "Should avoid making unverified claims about incentives, real-time availability, or dealer inventory; if availability is mentioned, it should be clearly labeled and non-committal",
+          "Should ensure the visual carousel includes images with lazy loading or equivalent performance considerations and supports navigation (arrows, dots, swipe) appropriate for the app",
+          "Should ensure component properties and action schemas use valid types, required fields, and consistent naming conventions as expected by the host application"
+        ],
+        "expected_components": [
+          "PreferenceFilters",
+          "VehicleCarousel"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Budget up to $40k, need 7 seats, at least 20 cu ft behind the 3rd row, and 28+ MPG combined; AWD preferred and I\u2019m open to hybrids. Please sort by best value and show top picks with pricing and reviews."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Thanks\u2014those are clear priorities. With a $40k cap, 7 seats, 20+ cu ft behind the 3rd row, 28+ MPG combined, and AWD, the list gets tight. Your best-value match right now is the new Hyundai Santa Fe Hybrid (AWD), which checks every box. If you\u2019re open to nudging budget slightly higher, I can add options like Toyota Grand Highlander Hybrid (meets cargo/MPG but typically starts above $40k). Want me to include near-matches or keep strictly to your filters?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "PreferenceFilters",
+            "props": {
+              "id": "suv_filters_001",
+              "name": "SUV Filters",
+              "title": "Refine SUVs",
+              "filters": {
+                "minSeats": 7,
+                "minCargoCuFt": 20,
+                "minMpg": 28,
+                "priceRangeUSD": [
+                  0,
+                  40000
+                ]
+              },
+              "sortBy": "relevance",
+              "onChangeAction": {
+                "type": "update_filters",
+                "payload": {
+                  "filters": {
+                    "minSeats": 7,
+                    "minCargoCuFt": 20,
+                    "minMpg": 28,
+                    "priceRangeUSD": [
+                      0,
+                      40000
+                    ]
+                  },
+                  "sortBy": "relevance",
+                  "source": "live"
+                }
+              },
+              "clearAllAction": {
+                "type": "clear_all_filters"
+              },
+              "debounceMs": 300
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "VehicleCarousel",
+            "props": {
+              "title": "Best-value 3-row SUVs under $40k (AWD, 28+ MPG)",
+              "items": [
+                {
+                  "id": "hyundai-santafe-2025-hybrid-sel-awd",
+                  "name": "2025 Hyundai Santa Fe Hybrid SEL (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/2025-hyundai-santafe-hybrid-sel-awd.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/2025-santafe-hybrid-int-1.jpg",
+                    "https://cdn.example.com/vehicles/2025-santafe-hybrid-cargo.jpg"
+                  ],
+                  "seats": 7,
+                  "cargoVolumeCuFt": 20.6,
+                  "mpg": {
+                    "city": 36,
+                    "highway": 33,
+                    "combined": 34
+                  },
+                  "priceUSD": 38395,
+                  "priceDisclaimer": "Starting MSRP; excludes destination, taxes, and fees. Actual prices may vary.",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 217,
+                    "source": "platform"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.example.com/hyundai/santa-fe-hybrid/sel-awd/buy",
+                    "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/build/santa-fe-hybrid",
+                    "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                    "detailsUrl": "https://shop.example.com/hyundai/santa-fe-hybrid/2025/sel-awd"
+                  },
+                  "tags": [
+                    "Wireless CarPlay",
+                    "Advanced Safety Suite",
+                    "Panoramic Display"
+                  ]
+                }
+              ],
+              "initialIndex": 0,
+              "loop": "clamp",
+              "snapAlign": "center",
+              "lazyLoadImages": true,
+              "navigation": {
+                "arrows": true,
+                "dots": false,
+                "swipe": true
+              },
+              "onSlideChangeAction": {
+                "type": "carousel_slide_change",
+                "index": 0
+              },
+              "onReachEndAction": {
+                "type": "carousel_reach_end"
+              },
+              "onSelectVehicleAction": {
+                "type": "select_vehicle",
+                "vehicleId": "hyundai-santafe-2025-hybrid-sel-awd"
+              },
+              "onRequestMoreAction": {
+                "type": "request_more_results"
+              },
+              "ariaLabel": "Mid-size SUV recommendations matching your filters"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should restate and confirm the user's constraints: budget up to $40k, 7 seats, at least 20 cu ft behind the 3rd row, 28+ MPG combined, AWD preferred, hybrids acceptable",
+          "Should present multiple top picks (ideally 3\u20135) that strictly meet all filters; if very few matches exist, should clearly communicate scarcity and offer near-matches separately and only with explicit labeling",
+          "Should sort results by best value and make the sorting basis clear (e.g., price-to-feature balance, meeting all constraints at lowest total cost), or state the heuristic used if exact value scoring is not available",
+          "Should include for each vehicle: seating capacity, cargo volume behind the 3rd row, city/highway/combined MPG, drivetrain (AWD/2WD), powertrain (hybrid/non-hybrid), starting price within budget, and price disclaimer",
+          "Should include review information for each vehicle (rating, review count, and source) and avoid fabricating reviews; sources should be clearly labeled",
+          "Should prioritize AWD configurations; if AWD is optional rather than standard, this should be clearly indicated",
+          "Should avoid recommending vehicles that exceed the $40k cap unless explicitly labeled as near-match or budget stretch and only presented after offering in-budget matches",
+          "Should provide actionable next steps for each vehicle (e.g., buy, build and price, find dealer, view details) with valid CTAs",
+          "Should use PreferenceFilters to reflect the user\u2019s constraints pre-populated and allow refinement, including clear actions for updating and clearing filters",
+          "Should use VehicleCarousel to display the recommendations with images, concise specs, pricing, reviews, and accessible labels, supporting selection and request-more actions",
+          "Should ensure information accuracy for model year, trim, specs, pricing, and availability; if real-time data is not fetched, include a brief disclaimer about variability and advise verification",
+          "Should call appropriate data-fetching tools or services when live pricing, availability, or specs are required; if tools are not available, the response should clearly indicate that data is based on known MSRPs/specs and may vary",
+          "Should maintain neutrality and avoid unjustified brand favoritism; any claim of 'best-value' should be grounded in the stated criteria",
+          "Should avoid overpromising availability (e.g., 'in stock') unless sourced from a live inventory tool; otherwise, label availability more generally",
+          "Should keep the tone concise and helpful, ask permission before expanding to near-matches, and invite the user to refine filters if needed",
+          "Should ensure accessibility considerations such as descriptive aria labels for interactive components and images"
+        ],
+        "expected_components": [
+          "PreferenceFilters",
+          "VehicleCarousel"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Include near-matches up to $42k (and 2023+ CPO) with AWD, hybrids first. Please show out-the-door pricing, seats/cargo/MPG, user ratings, and current incentives, sorted by best value."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great\u2014I've prioritized hybrids with AWD, 7 seats, strong MPG, and at least 20 cu ft behind the 3rd row, plus near\u2011matches up to $42k (including 2023+ CPO). Strict matches are rare at this price, so I\u2019ve included clearly labeled near\u2011matches that miss only cargo or price slightly but offer strong value. I noted estimated out\u2011the\u2011door (OTD) pricing and current incentive highlights in the card details. If you share your ZIP, I can refine OTD and availability by region."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "PreferenceFilters",
+            "props": {
+              "id": "suv_filters_001",
+              "name": "SUV Filters",
+              "title": "Refine SUVs",
+              "filters": {
+                "minSeats": 7,
+                "minCargoCuFt": 20,
+                "minMpg": 28,
+                "priceRangeUSD": [
+                  0,
+                  42000
+                ]
+              },
+              "sortBy": "relevance",
+              "onChangeAction": {
+                "type": "update_filters",
+                "payload": {
+                  "filters": {
+                    "minSeats": 7,
+                    "minCargoCuFt": 20,
+                    "minMpg": 28,
+                    "priceRangeUSD": [
+                      0,
+                      42000
+                    ]
+                  },
+                  "sortBy": "relevance",
+                  "source": "live"
+                }
+              },
+              "clearAllAction": {
+                "type": "clear_all_filters"
+              },
+              "debounceMs": 300
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "VehicleCarousel",
+            "props": {
+              "title": "Best\u2011Value 3\u2011Row Midsize SUVs (Hybrids first)",
+              "items": [
+                {
+                  "id": "toyota-grand-highlander-2024-xle-hybrid-awd",
+                  "name": "2024 Toyota Grand Highlander Hybrid XLE (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/grand-highlander-2024-hybrid-xle-awd.jpg",
+                  "seats": 8,
+                  "cargoVolumeCuFt": 20.6,
+                  "mpg": {
+                    "city": 35,
+                    "highway": 33,
+                    "combined": 34
+                  },
+                  "priceUSD": 41950,
+                  "priceDisclaimer": "Est. OTD incl. destination & typical dealer fees; taxes vary by location.",
+                  "reviewSummary": {
+                    "rating": 4.7,
+                    "reviewCount": 982,
+                    "source": "edmunds"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "limited",
+                  "ctas": {
+                    "buyNewUrl": "https://shop.toyota.com/grand-highlander-hybrid/xle-awd",
+                    "buildAndPriceUrl": "https://www.toyota.com/configure/grandhighlanderhybrid/",
+                    "findDealerUrl": "https://www.toyota.com/dealers/",
+                    "detailsUrl": "https://www.toyota.com/grandhighlanderhybrid/"
+                  },
+                  "tags": [
+                    "Meets all filters",
+                    "Top Safety Pick",
+                    "Wireless CarPlay",
+                    "2.9% APR for qualified buyers"
+                  ]
+                },
+                {
+                  "id": "hyundai-santa-fe-2024-limited-hybrid-awd",
+                  "name": "2024 Hyundai Santa Fe Hybrid Limited (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/santa-fe-2024-hybrid-limited-awd.jpg",
+                  "seats": 7,
+                  "cargoVolumeCuFt": 14.6,
+                  "mpg": {
+                    "city": 36,
+                    "highway": 33,
+                    "combined": 35
+                  },
+                  "priceUSD": 38950,
+                  "priceDisclaimer": "Est. OTD incl. destination & typical dealer fees; taxes vary by location.",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 741,
+                    "source": "kbb"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://www.hyundaiusa.com/us/en/shop/santa-fe-hybrid",
+                    "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/build/santa-fe-hybrid",
+                    "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                    "detailsUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid"
+                  },
+                  "tags": [
+                    "Near\u2011match: cargo behind 3rd row < 20 cu ft",
+                    "Best warranty",
+                    "Wireless Android Auto",
+                    "$500 loyalty cash (select regions)"
+                  ]
+                },
+                {
+                  "id": "toyota-highlander-2024-xle-hybrid-awd-cpo",
+                  "name": "2024 Toyota Highlander Hybrid XLE (AWD) \u2014 CPO",
+                  "imageUrl": "https://cdn.example.com/vehicles/highlander-2024-hybrid-xle-awd.jpg",
+                  "seats": 8,
+                  "cargoVolumeCuFt": 16.0,
+                  "mpg": {
+                    "city": 35,
+                    "highway": 34,
+                    "combined": 35
+                  },
+                  "priceUSD": 37990,
+                  "priceDisclaimer": "Est. OTD for CPO; includes certification and typical fees; taxes vary.",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 1523,
+                    "source": "cars_com"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://www.cars.com/shopping/toyota-highlander-hybrid-2024/",
+                    "findDealerUrl": "https://www.toyotacertified.com/dealer-locator",
+                    "detailsUrl": "https://www.toyotacertified.com/vehicles/highlander-hybrid"
+                  },
+                  "tags": [
+                    "Near\u2011match: cargo behind 3rd row < 20 cu ft",
+                    "Toyota Certified (2023+)",
+                    "Great fuel economy",
+                    "Low APR offers on CPO (region dependent)"
+                  ]
+                },
+                {
+                  "id": "kia-sorento-2024-sx-prestige-awd-cpo",
+                  "name": "2024 Kia Sorento SX Prestige (AWD) \u2014 CPO",
+                  "imageUrl": "https://cdn.example.com/vehicles/sorento-2024-sx-prestige-awd.jpg",
+                  "seats": 7,
+                  "cargoVolumeCuFt": 12.6,
+                  "mpg": {
+                    "city": 23,
+                    "highway": 29,
+                    "combined": 26
+                  },
+                  "priceUSD": 34950,
+                  "priceDisclaimer": "Est. OTD for CPO; includes certification & typical fees; taxes vary.",
+                  "reviewSummary": {
+                    "rating": 4.5,
+                    "reviewCount": 893,
+                    "source": "platform"
+                  },
+                  "powertrain": "gas",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "findDealerUrl": "https://www.kia.com/us/en/certified-pre-owned/find-a-dealer",
+                    "detailsUrl": "https://www.kia.com/us/en/suvs/sorento"
+                  },
+                  "tags": [
+                    "Near\u2011match: MPG and cargo below target",
+                    "7 seats under $35k (CPO)",
+                    "Long CPO coverage"
+                  ]
+                },
+                {
+                  "id": "mazda-cx-90-2024-preferred-plus-awd",
+                  "name": "2024 Mazda CX-90 Preferred Plus (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/cx-90-2024-preferred-plus-awd.jpg",
+                  "seats": 8,
+                  "cargoVolumeCuFt": 15.9,
+                  "mpg": {
+                    "city": 24,
+                    "highway": 28,
+                    "combined": 25
+                  },
+                  "priceUSD": 40990,
+                  "priceDisclaimer": "Est. OTD incl. destination & typical dealer fees; taxes vary by location.",
+                  "reviewSummary": {
+                    "rating": 4.4,
+                    "reviewCount": 512,
+                    "source": "kbb"
+                  },
+                  "powertrain": "gas",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://www.mazdausa.com/shopping-tools/build-and-price/cx-90",
+                    "findDealerUrl": "https://www.mazdausa.com/shopping-tools/find-a-dealer",
+                    "detailsUrl": "https://www.mazdausa.com/vehicles/cx-90"
+                  },
+                  "tags": [
+                    "Near\u2011match: MPG and cargo below target",
+                    "Premium interior under $41k",
+                    "0.9% APR for well\u2011qualified buyers"
+                  ]
+                }
+              ],
+              "initialIndex": 0,
+              "loop": "wrap",
+              "snapAlign": "center",
+              "lazyLoadImages": true,
+              "navigation": {
+                "arrows": true,
+                "dots": false,
+                "swipe": true
+              },
+              "onReachEndAction": {
+                "type": "carousel_reach_end"
+              },
+              "ariaLabel": "Mid-size SUV recommendations"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should prioritize hybrids first and include AWD configurations for all vehicles featured",
+          "Should include strict matches and clearly labeled near-matches up to $42,000, also allowing 2023+ certified pre-owned (CPO) options",
+          "Should display for each vehicle: out-the-door (OTD) price estimate, seat count, cargo volume (explicitly behind the 3rd row where relevant), MPG (city/highway/combined), user rating with source and count, and current incentives",
+          "Should sort vehicles by best value and state the basis for value (e.g., price-to-features, MPG, space, incentives, warranty) or otherwise provide a clear rationale for ordering",
+          "Should provide clear labels for any criteria shortfall (e.g., near-match tags when cargo < 20 cu ft or MPG below target) and for any estimated or region-dependent values",
+          "Should use appropriate UI components to match the requested visual: a filter component to refine preferences and a carousel for browsing vehicle cards with the requested details",
+          "Should ensure component properties are populated correctly: filter thresholds (minSeats=7, minCargoCuFt=20, minMpg around target, priceRange up to $42k), sort control, and accessible labels for navigation",
+          "Should include relevant calls-to-action (e.g., build and price, find dealer, buy new/CPO details) for each vehicle card",
+          "Should provide pricing disclaimers clarifying what OTD includes and that taxes/fees vary by region",
+          "Should use accurate, current specs and incentive information, citing sources for ratings; if real-time accuracy is required, should call appropriate tools or APIs to fetch live pricing, incentives, and availability",
+          "Should avoid unsupported claims or broken/placeholder links; any regional offers should be labeled as region-dependent and provide a path to verify",
+          "Should invite optional user input (e.g., ZIP code) to refine OTD and availability by region without blocking the initial results",
+          "Should maintain consistency of units and terminology across all cards (e.g., cargo in cubic feet, MPG combined/city/highway, AWD/hybrid tags)",
+          "Should ensure the carousel is navigable (arrows/swipe), loads images efficiently, and handles end-of-list behavior gracefully",
+          "Should not expose internal implementation details beyond what is needed for the UI and should keep the response focused on the user's shopping context"
+        ],
+        "expected_components": [
+          "PreferenceFilters",
+          "VehicleCarousel"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "ZIP 94107. Please refresh OTD pricing/availability and show the top picks with current incentives (lease/finance), plus any 2024/2025 changes that affect MPG or cargo."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Thanks\u2014updated for ZIP 94107. I prioritized AWD hybrids with 7 seats and at least ~20 cu ft behind the 3rd row; I also included clearly labeled near\u2011matches up to $42k and 2023+ CPO. OTD estimates reflect San Francisco taxes/fees and current incentives; exact dealer quotes may vary day\u2011to\u2011day. Quick notes on 2024/2025 changes: \u2022 2024 Hyundai Santa Fe Hybrid: full redesign adds a standard 3rd row and increases cargo; AWD hybrid MPG remains mid\u201130s combined. \u2022 2025 Hyundai Santa Fe Hybrid: largely carries over MPG/cargo; minor feature shuffles. \u2022 2025 Kia Sorento Hybrid: refreshed tech/infotainment; MPG similar; most trims are 6\u2011seat layouts and cargo behind 3rd row remains tight. \u2022 Toyota Highlander Hybrid (\u201923\u2013\u201925): MPG mid\u201130s remains strong; cargo behind 3rd row is the main trade\u2011off. Want me to open a compare view for any two or more of these?"
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "VehicleCarousel",
+            "props": {
+              "title": "Best\u2011Value AWD Hybrid 3\u2011Row Picks near 94107",
+              "items": [
+                {
+                  "id": "hyundai-santafe-hybrid-2024-sel-awd",
+                  "name": "2024 Hyundai Santa Fe Hybrid SEL (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/2024-santafe-hybrid-sel-awd.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/2024-santafe-hybrid-int-3row.jpg",
+                    "https://cdn.example.com/vehicles/2024-santafe-hybrid-cargo.jpg"
+                  ],
+                  "seats": 7,
+                  "cargoVolumeCuFt": 20.6,
+                  "mpg": {
+                    "city": 36,
+                    "highway": 33,
+                    "combined": 34
+                  },
+                  "priceUSD": 41500,
+                  "priceDisclaimer": "Estimated OTD for 94107 incl. CA tax/fees; based on typical Bay Area pricing and current incentives. Actual dealer quote may vary.",
+                  "reviewSummary": {
+                    "rating": 4.7,
+                    "reviewCount": 512,
+                    "source": "edmunds"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://buy.hyundai.com/",
+                    "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid/build",
+                    "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                    "detailsUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid"
+                  },
+                  "tags": [
+                    "2.9% APR up to 48 mo (well\u2011qualified)",
+                    "$500 loyalty cash (select buyers)",
+                    "2024 redesign: adds 3rd row + more cargo",
+                    "Wireless CarPlay/Android Auto"
+                  ]
+                },
+                {
+                  "id": "hyundai-santafe-hybrid-2025-sel-awd",
+                  "name": "2025 Hyundai Santa Fe Hybrid SEL (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/2025-santafe-hybrid-sel-awd.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/2025-santafe-hybrid-cabin.jpg",
+                    "https://cdn.example.com/vehicles/2025-santafe-hybrid-cargo.jpg"
+                  ],
+                  "seats": 7,
+                  "cargoVolumeCuFt": 20.6,
+                  "mpg": {
+                    "city": 36,
+                    "highway": 33,
+                    "combined": 34
+                  },
+                  "priceUSD": 42900,
+                  "priceDisclaimer": "Estimated OTD for 94107 incl. CA tax/fees; typical Bay Area dealer pricing as of this week.",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 118,
+                    "source": "platform"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "limited",
+                  "ctas": {
+                    "buyNewUrl": "https://buy.hyundai.com/",
+                    "buildAndPriceUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid/build",
+                    "findDealerUrl": "https://www.hyundaiusa.com/us/en/dealer-locator",
+                    "detailsUrl": "https://www.hyundaiusa.com/us/en/vehicles/santa-fe-hybrid"
+                  },
+                  "tags": [
+                    "Intro APR from 3.49% (est., well\u2011qualified)",
+                    "Lease est.: $439/mo, $3,999 DAS (36/10k, est.)",
+                    "\u201925 carries over MPG/cargo; minor feature updates"
+                  ]
+                },
+                {
+                  "id": "toyota-highlander-hybrid-2023-le-awd-cpo",
+                  "name": "2023 Toyota Highlander Hybrid LE (AWD) \u2014 CPO",
+                  "imageUrl": "https://cdn.example.com/vehicles/2023-highlander-hybrid-le-awd.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/2023-highlander-hybrid-cargo.jpg"
+                  ],
+                  "seats": 8,
+                  "cargoVolumeCuFt": 16.0,
+                  "mpg": {
+                    "city": 35,
+                    "highway": 35,
+                    "combined": 35
+                  },
+                  "priceUSD": 40900,
+                  "priceDisclaimer": "Estimated OTD for 94107; based on recent CPO listings and typical CA fees/taxes.",
+                  "reviewSummary": {
+                    "rating": 4.6,
+                    "reviewCount": 1430,
+                    "source": "kbb"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "in_stock",
+                  "ctas": {
+                    "buyNewUrl": "https://www.toyota.com/",
+                    "buildAndPriceUrl": "https://www.toyota.com/configurator/",
+                    "findDealerUrl": "https://www.toyota.com/dealers/",
+                    "detailsUrl": "https://www.toyota.com/highlanderhybrid/"
+                  },
+                  "tags": [
+                    "CPO 2023+ eligible",
+                    "Near\u2011match: 16 cu ft behind 3rd row",
+                    "3.9% APR on certified (select buyers)",
+                    "Toyota Safety Sense 2.5+"
+                  ]
+                },
+                {
+                  "id": "kia-sorento-hybrid-2025-ex-awd",
+                  "name": "2025 Kia Sorento Hybrid EX (AWD)",
+                  "imageUrl": "https://cdn.example.com/vehicles/2025-sorento-hybrid-ex-awd.jpg",
+                  "galleryImageUrls": [
+                    "https://cdn.example.com/vehicles/2025-sorento-hybrid-3rdrow.jpg",
+                    "https://cdn.example.com/vehicles/2025-sorento-hybrid-cargo.jpg"
+                  ],
+                  "seats": 6,
+                  "cargoVolumeCuFt": 12.6,
+                  "mpg": {
+                    "city": 36,
+                    "highway": 33,
+                    "combined": 34
+                  },
+                  "priceUSD": 40500,
+                  "priceDisclaimer": "Estimated OTD for 94107; reflects typical Bay Area dealer pricing with current programs.",
+                  "reviewSummary": {
+                    "rating": 4.5,
+                    "reviewCount": 877,
+                    "source": "cars_com"
+                  },
+                  "powertrain": "hybrid",
+                  "drivetrain": "awd",
+                  "availability": "limited",
+                  "ctas": {
+                    "buyNewUrl": "https://www.kia.com/us/en/shopping-tools/build/sorento-hybrid",
+                    "buildAndPriceUrl": "https://www.kia.com/us/en/shopping-tools/build/sorento-hybrid",
+                    "findDealerUrl": "https://www.kia.com/us/en/shopping-tools/find-a-dealer",
+                    "detailsUrl": "https://www.kia.com/us/en/sorento-hybrid"
+                  },
+                  "tags": [
+                    "Near\u2011match: 6 seats & 12.6 cu ft",
+                    "Lease est.: $399/mo, $3,999 DAS (36/10k, est.)",
+                    "Refreshed \u201925 tech/UX"
+                  ]
+                }
+              ],
+              "initialIndex": 0,
+              "loop": "wrap",
+              "snapAlign": "center",
+              "lazyLoadImages": true,
+              "navigation": {
+                "arrows": true,
+                "dots": true,
+                "swipe": true
+              },
+              "onSlideChangeAction": {
+                "type": "carousel_slide_change",
+                "index": 0
+              },
+              "onReachEndAction": {
+                "type": "carousel_reach_end"
+              },
+              "onSelectVehicleAction": {
+                "type": "select_vehicle",
+                "vehicleId": "hyundai-santafe-hybrid-2024-sel-awd"
+              },
+              "onRequestMoreAction": {
+                "type": "request_more_results"
+              },
+              "ariaLabel": "Mid-size 3-row hybrid SUVs ranked by value for ZIP 94107"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should refresh and present OTD pricing specific to ZIP 94107, clearly stating that OTD includes local taxes/fees and that dealer quotes may vary",
+          "Should include current incentives for each vehicle (finance APRs and lease estimates) with basic terms (e.g., term length, miles/year, DAS) and eligibility notes",
+          "Should surface current availability status near the specified ZIP (e.g., in stock, limited, order) for each model shown",
+          "Should highlight seats, cargo volume behind the 3rd row, and MPG prominently for each model, as these are the user\u2019s primary criteria",
+          "Should prioritize AWD hybrid mid-size SUVs with 3 rows; if near-matches are included (e.g., 6 seats or lower cargo), they should be clearly labeled as near-matches",
+          "Should clearly note 2024/2025 model-year changes that affect MPG and/or cargo capacity, and distinguish carryover vs. redesigned models",
+          "Should provide concise, actionable comparisons and an option to compare models side-by-side or request more results",
+          "Should avoid including used or CPO vehicles unless the user consented or it is explicitly positioned as an alternative; if included, it must be clearly labeled CPO/used",
+          "Should call appropriate pricing/incentives/availability tools or data sources to fetch current figures; if live tools are not available, should label values as estimates and include a timestamp or recency note",
+          "Should use realistic, verifiable specifications (seats, cargo, MPG) and avoid speculative or inflated claims about incentives or pricing",
+          "Should include clear disclaimers on incentives (e.g., well-qualified buyers, regional programs) and note that terms can change",
+          "Should present a ranked or curated set of top picks, with rationale aligned to the user\u2019s priorities (seats, storage, MPG, AWD hybrid)",
+          "Should ensure the UI component displays key fields: model/trim/year, image(s), seats, cargo volume, MPG (city/highway/combined), OTD price estimate, availability, incentives, review summary, and purchase CTAs",
+          "Should ensure accessibility and usability basics for the carousel (e.g., navigation controls and aria label) and mobile-friendly behavior",
+          "Should keep language concise, avoid heavy formatting, and provide clear next actions (e.g., build and price, find dealer, request a quote)"
+        ],
+        "expected_components": [
+          "VehicleCarousel"
+        ]
+      }
+    }
+  ]
+}

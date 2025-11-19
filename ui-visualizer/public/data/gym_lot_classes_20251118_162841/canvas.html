@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback, useContext, createContext } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "My gym has a lot of classes. Help me find a weekly schedule that fits my availability and goals."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great\u2014let\u2019s tailor a weekly class plan to your schedule and goals. Use the panel below to set your goals, availability, preferred intensity, experience level, and how many sessions you want each week. Tap \u201cGenerate Plan\u201d and I\u2019ll recommend a balanced timetable you can book. If you prefer, you can also just tell me in plain text: your available days/times, goals (e.g., strength, cardio, mobility), preferred intensity, experience level, and target sessions per week."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "GoalPreferencesPanel",
+              "props": {
+                "id": "goals-panel-1",
+                "title": "Your Fitness Goals",
+                "goalsSelected": [],
+                "availabilityBlocks": [],
+                "preferredIntensity": "medium",
+                "experienceLevel": "beginner",
+                "targetSessionsPerWeek": 3,
+                "onGeneratePlanAction": {
+                  "type": "generate_plan",
+                  "panelId": "goals-panel-1"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should acknowledge the user's goal of building a weekly class schedule and set clear next steps to collect necessary preferences",
+            "Should request or provide inputs for availability, goals (e.g., strength, cardio, mobility), preferred intensity, experience level, and target sessions per week",
+            "Should generate or offer to generate a weekly timetable aligned to the provided availability and goals",
+            "Should present a filterable class timetable with goal-alignment tags (e.g., strength, cardio) and an overlay highlighting recommended sessions",
+            "Should provide access to class details (e.g., modality, difficulty, instructor, duration) via detail views or popovers",
+            "Should explain how the user can adjust preferences and regenerate the plan",
+            "Should not fabricate class data; if class data is required and unavailable, should prompt for data or call appropriate tools to fetch it",
+            "Should call appropriate tools or data sources with correct arguments when fetching class schedules or availability is necessary",
+            "Should use UI components appropriate for collecting preferences and displaying schedules, matching the expected visual (filters, timetable, recommendations, tags, details)",
+            "Should wire interactive components with correct actions/props for generating or updating the plan (e.g., onGeneratePlan action with the correct panel ID)",
+            "Should provide actionable outputs the user can book or follow (e.g., specific class names/times) once data is available",
+            "Should maintain clarity and brevity, guiding the user to either use the UI panel or provide the same info in plain text"
+          ],
+          "expected_components": [
+            "GoalPreferencesPanel",
+            "ClassTimetable",
+            "RecommendedScheduleOverlay",
+            "ClassFilters",
+            "ClassDetailPopover",
+            "GoalAlignmentTags"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Availability: Mon\u2013Thu 6\u20138 pm, Sat 9\u201311 am. Goals: build strength and cardio, with some mobility. Intensity: moderate to high; Experience: intermediate; Target: 4 classes/week."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Awesome\u2014thanks for the details. I built a 4-class plan aligned to strength + cardio with a mobility finisher, all within Mon\u2013Thu evenings and Sat morning. You can browse alternatives in the timetable and swap as needed; the recommended ones are highlighted. If you want me to bias toward more cardio or shift a day, just say the word."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ClassScheduleTimetable",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "classes": [
+                  {
+                    "id": "cls_mon_strength_circuit_1800",
+                    "title": "Strength Circuit",
+                    "start": "2025-11-17T18:00:00Z",
+                    "end": "2025-11-17T19:00:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "strength",
+                      "cardio"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_jlee",
+                    "instructorName": "Jordan Lee",
+                    "imageUrl": "https://images.example.com/classes/strength_circuit.jpg"
+                  },
+                  {
+                    "id": "cls_mon_core_cond_1915",
+                    "title": "Core & Conditioning",
+                    "start": "2025-11-17T19:15:00Z",
+                    "end": "2025-11-17T20:00:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "strength",
+                      "mobility"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_amendez",
+                    "instructorName": "Alex Mendez",
+                    "imageUrl": "https://images.example.com/classes/core_conditioning.jpg"
+                  },
+                  {
+                    "id": "cls_tue_kick_1800",
+                    "title": "Cardio Kickboxing",
+                    "start": "2025-11-18T18:00:00Z",
+                    "end": "2025-11-18T18:45:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_rkhan",
+                    "instructorName": "Riya Khan",
+                    "imageUrl": "https://images.example.com/classes/kickboxing.jpg"
+                  },
+                  {
+                    "id": "cls_tue_spin_1900",
+                    "title": "Spin Intervals",
+                    "start": "2025-11-18T19:00:00Z",
+                    "end": "2025-11-18T19:50:00Z",
+                    "location": "Cycling Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_cwong",
+                    "instructorName": "Chris Wong",
+                    "imageUrl": "https://images.example.com/classes/spin_intervals.jpg"
+                  },
+                  {
+                    "id": "cls_wed_vinyasa_1830",
+                    "title": "Vinyasa Flow",
+                    "start": "2025-11-19T18:30:00Z",
+                    "end": "2025-11-19T19:15:00Z",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility"
+                    ],
+                    "intensity": "low",
+                    "instructorId": "inst_achen",
+                    "instructorName": "Ariana Chen",
+                    "imageUrl": "https://images.example.com/classes/vinyasa.jpg"
+                  },
+                  {
+                    "id": "cls_wed_upper_1930",
+                    "title": "Upper Body Blast",
+                    "start": "2025-11-19T19:30:00Z",
+                    "end": "2025-11-19T20:15:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "strength"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_tmartin",
+                    "instructorName": "Taylor Martin",
+                    "imageUrl": "https://images.example.com/classes/upper_body.jpg"
+                  },
+                  {
+                    "id": "cls_thu_powerlifts_1830",
+                    "title": "Power Lifts",
+                    "start": "2025-11-20T18:30:00Z",
+                    "end": "2025-11-20T19:30:00Z",
+                    "location": "Weight Room",
+                    "goals": [
+                      "strength"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_nbrown",
+                    "instructorName": "Noah Brown",
+                    "imageUrl": "https://images.example.com/classes/power_lifts.jpg"
+                  },
+                  {
+                    "id": "cls_thu_hiit_1930",
+                    "title": "HIIT Express",
+                    "start": "2025-11-20T19:30:00Z",
+                    "end": "2025-11-20T20:00:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "cardio",
+                      "hiit"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_snguyen",
+                    "instructorName": "Sam Nguyen",
+                    "imageUrl": "https://images.example.com/classes/hiit_express.jpg"
+                  },
+                  {
+                    "id": "cls_sat_row_strength_0900",
+                    "title": "Row & Strength",
+                    "start": "2025-11-22T09:00:00Z",
+                    "end": "2025-11-22T09:45:00Z",
+                    "location": "Erg Zone",
+                    "goals": [
+                      "cardio",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_jhill",
+                    "instructorName": "Jordan Hill",
+                    "imageUrl": "https://images.example.com/classes/row_strength.jpg"
+                  },
+                  {
+                    "id": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow",
+                    "start": "2025-11-22T09:30:00Z",
+                    "end": "2025-11-22T10:15:00Z",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility"
+                    ],
+                    "intensity": "low",
+                    "instructorId": "inst_achen",
+                    "instructorName": "Ariana Chen",
+                    "imageUrl": "https://images.example.com/classes/mobility_flow.jpg"
+                  },
+                  {
+                    "id": "cls_sat_pilates_1015",
+                    "title": "Pilates Athletic",
+                    "start": "2025-11-22T10:15:00Z",
+                    "end": "2025-11-22T11:00:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "mobility",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_lpark",
+                    "instructorName": "Logan Park",
+                    "imageUrl": "https://images.example.com/classes/pilates_athletic.jpg"
+                  }
+                ],
+                "recommendedClassIds": [
+                  "cls_mon_strength_circuit_1800",
+                  "cls_tue_spin_1900",
+                  "cls_thu_powerlifts_1830",
+                  "cls_sat_mobility_0930"
+                ],
+                "timeSlotIntervalMinutes": 30
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "RecommendedPlanSummary",
+              "props": {
+                "planId": "plan_2025_wk47_strength_cardio_mobility",
+                "name": "Strength + Cardio with Mobility",
+                "weekStartDate": "2025-11-17",
+                "items": [
+                  {
+                    "classId": "cls_mon_strength_circuit_1800",
+                    "title": "Strength Circuit",
+                    "day": "Mon",
+                    "start": "18:00",
+                    "end": "19:00",
+                    "location": "Studio A",
+                    "goals": [
+                      "strength",
+                      "cardio"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_mon_strength_circuit_1800"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_tue_spin_1900",
+                    "title": "Spin Intervals",
+                    "day": "Tue",
+                    "start": "19:00",
+                    "end": "19:50",
+                    "location": "Cycling Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_tue_spin_1900"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_thu_powerlifts_1830",
+                    "title": "Power Lifts",
+                    "day": "Thu",
+                    "start": "18:30",
+                    "end": "19:30",
+                    "location": "Weight Room",
+                    "goals": [
+                      "strength"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_thu_powerlifts_1830"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow",
+                    "day": "Sat",
+                    "start": "09:30",
+                    "end": "10:15",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_sat_mobility_0930"
+                      }
+                    }
+                  }
+                ],
+                "totalSessions": 4,
+                "balanceScore": 86,
+                "conflicts": [],
+                "onConfirmPlanAction": {
+                  "type": "confirm_plan",
+                  "payload": {
+                    "planId": "plan_2025_wk47_strength_cardio_mobility"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present a weekly schedule tailored to the user's availability: Mon\u2013Thu between 18:00\u201320:00 and Sat between 09:00\u201311:00, avoiding classes outside these windows",
+            "Should recommend exactly 4 classes per week, one per selected day unless explicitly justified, and avoid overlapping times or conflicts",
+            "Should align class selection with the user's goals: primary focus on strength and cardio with inclusion of at least one mobility/flexibility session",
+            "Should match the requested intensity (moderate to high) and be suitable for an intermediate experience level",
+            "Should use a filterable timetable view and clearly highlight recommended classes within it",
+            "Should include a plan summary overlay listing the 4 recommended sessions with day, start/end times, location, goals, and total session count",
+            "Should ensure consistency and correctness of time handling, clearly indicating or converting from UTC to the user's local times, and using the same time basis across components",
+            "Should ensure recommendedClassIds map to valid class objects present in the timetable",
+            "Should ensure dates fall within the specified week (based on weekStartDate) and that day labels correspond to those dates",
+            "Should indicate no scheduling conflicts in the recommended plan when there are none, and include a conflicts field that accurately reflects any issues if present",
+            "Should provide actionable controls for plan management (e.g., remove individual items, confirm plan) with correctly structured action payloads",
+            "Should clearly label goal-alignment tags (e.g., strength, cardio, mobility), intensity, instructor, and location for each class",
+            "Should allow for easy customization or swapping of classes and mention how to bias the plan (e.g., more cardio or shifting days)",
+            "Should avoid unsupported claims and keep descriptions factual, focusing on schedule fit, goals, and class attributes",
+            "Should use the appropriate UI components for the scenario and populate all required props with coherent, valid data"
+          ],
+          "expected_components": [
+            "ClassScheduleTimetable",
+            "RecommendedPlanSummary"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Can you tilt the plan more toward cardio\u2014swap one strength class for a HIIT/conditioning slot\u2014and move the Thu session to Wed? Also, show quick details for the recommended classes (coach, focus, and intensity)."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done! I shifted the Thu session to Wed and tilted the plan toward cardio by swapping one strength slot for a HIIT/conditioning class. Here are quick details for the 4 recommended classes:\n- Mon \u2014 HIIT Conditioning 45 (Coach: Mia Torres) \u2022 Focus: cardio, hiit, endurance \u2022 Intensity: high\n- Tue \u2014 Strength Circuit (Coach: James Park) \u2022 Focus: strength, mobility \u2022 Intensity: medium\n- Wed \u2014 Spin Intervals (Coach: Ariana Chen) \u2022 Focus: cardio, endurance \u2022 Intensity: high\n- Sat \u2014 Mobility Flow + Core (Coach: Luis Romero) \u2022 Focus: mobility, flexibility, strength \u2022 Intensity: medium\nIf you want any of these swapped (e.g., a different cardio option on Wed or shorter sessions), tell me and I\u2019ll regenerate."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ClassScheduleTimetable",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "classes": [
+                  {
+                    "id": "cls_mon_hiit_1815",
+                    "title": "HIIT Conditioning 45",
+                    "start": "2025-11-17T18:15:00Z",
+                    "end": "2025-11-17T19:00:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "hiit",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_mia",
+                    "instructorName": "Mia Torres",
+                    "imageUrl": "https://images.example.com/classes/hiit.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_tue_strength_1900",
+                    "title": "Strength Circuit",
+                    "start": "2025-11-18T19:00:00Z",
+                    "end": "2025-11-18T20:00:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "strength",
+                      "mobility"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_james",
+                    "instructorName": "James Park",
+                    "imageUrl": "https://images.example.com/classes/strength.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_wed_spin_1830",
+                    "title": "Spin Intervals",
+                    "start": "2025-11-19T18:30:00Z",
+                    "end": "2025-11-19T19:15:00Z",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_ariana",
+                    "instructorName": "Ariana Chen",
+                    "imageUrl": "https://images.example.com/classes/spin.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow + Core",
+                    "start": "2025-11-22T09:30:00Z",
+                    "end": "2025-11-22T10:30:00Z",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_luis",
+                    "instructorName": "Luis Romero",
+                    "imageUrl": "https://images.example.com/classes/mobility.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_mon_yoga_1900",
+                    "title": "Power Yoga",
+                    "start": "2025-11-17T19:00:00Z",
+                    "end": "2025-11-17T20:00:00Z",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_sara",
+                    "instructorName": "Sara Lee",
+                    "imageUrl": "https://images.example.com/classes/yoga.jpg"
+                  },
+                  {
+                    "id": "cls_tue_box_1815",
+                    "title": "Cardio Boxing",
+                    "start": "2025-11-18T18:15:00Z",
+                    "end": "2025-11-18T19:00:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_omar",
+                    "instructorName": "Omar Vega",
+                    "imageUrl": "https://images.example.com/classes/boxing.jpg"
+                  },
+                  {
+                    "id": "cls_wed_bootcamp_1900",
+                    "title": "Evening Bootcamp",
+                    "start": "2025-11-19T19:00:00Z",
+                    "end": "2025-11-19T19:45:00Z",
+                    "location": "Turf Zone",
+                    "goals": [
+                      "cardio",
+                      "strength",
+                      "hiit"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_mia",
+                    "instructorName": "Mia Torres",
+                    "imageUrl": "https://images.example.com/classes/bootcamp.jpg"
+                  },
+                  {
+                    "id": "cls_thu_strength_1830",
+                    "title": "Barbell Fundamentals",
+                    "start": "2025-11-20T18:30:00Z",
+                    "end": "2025-11-20T19:30:00Z",
+                    "location": "Weight Room",
+                    "goals": [
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_james",
+                    "instructorName": "James Park",
+                    "imageUrl": "https://images.example.com/classes/barbell.jpg"
+                  },
+                  {
+                    "id": "cls_sat_spin_1000",
+                    "title": "Endurance Ride",
+                    "start": "2025-11-22T10:00:00Z",
+                    "end": "2025-11-22T10:50:00Z",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_ariana",
+                    "instructorName": "Ariana Chen",
+                    "imageUrl": "https://images.example.com/classes/spin_endurance.jpg"
+                  }
+                ],
+                "filters": {
+                  "days": [
+                    1,
+                    2,
+                    3,
+                    6
+                  ],
+                  "timeRange": {
+                    "start": "06:00",
+                    "end": "21:00"
+                  },
+                  "goals": [
+                    "cardio",
+                    "strength",
+                    "mobility"
+                  ]
+                },
+                "recommendedClassIds": [
+                  "cls_mon_hiit_1815",
+                  "cls_tue_strength_1900",
+                  "cls_wed_spin_1830",
+                  "cls_sat_mobility_0930"
+                ],
+                "timeSlotIntervalMinutes": 30,
+                "selectClassAction": {
+                  "type": "select_class",
+                  "payload": {
+                    "classId": "cls_mon_hiit_1815"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "RecommendedPlanSummary",
+              "props": {
+                "planId": "plan_2025_wk47_user_demo",
+                "name": "Cardio-Lean Plan (Strength Support)",
+                "weekStartDate": "2025-11-17",
+                "items": [
+                  {
+                    "classId": "cls_mon_hiit_1815",
+                    "title": "HIIT Conditioning 45",
+                    "day": "Mon",
+                    "start": "18:15",
+                    "end": "19:00",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "hiit",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_mon_hiit_1815"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_tue_strength_1900",
+                    "title": "Strength Circuit",
+                    "day": "Tue",
+                    "start": "19:00",
+                    "end": "20:00",
+                    "location": "Studio B",
+                    "goals": [
+                      "strength",
+                      "mobility"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_tue_strength_1900"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_wed_spin_1830",
+                    "title": "Spin Intervals",
+                    "day": "Wed",
+                    "start": "18:30",
+                    "end": "19:15",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_wed_spin_1830"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow + Core",
+                    "day": "Sat",
+                    "start": "09:30",
+                    "end": "10:30",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility",
+                      "strength"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_sat_mobility_0930"
+                      }
+                    }
+                  }
+                ],
+                "totalSessions": 4,
+                "balanceScore": 84,
+                "conflicts": [],
+                "onConfirmPlanAction": {
+                  "type": "confirm_plan",
+                  "payload": {
+                    "planId": "plan_2025_wk47_user_demo"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly implement both user modifications: replace one strength class with a HIIT/conditioning cardio class, and move the Thursday session to Wednesday (no remaining Thursday session in recommendations)",
+            "Should present quick details (coach, focus, intensity) for each recommended class in a clear, scannable text summary",
+            "Should ensure internal consistency between the textual summary and the component data (class titles, days, times, instructors, goals, intensity, locations)",
+            "Should align scheduled class dates with the specified weekStartDate and corresponding weekdays; day labels should match the ISO timestamps provided",
+            "Should use the ClassScheduleTimetable to display the week's classes with appropriate filters for the user's goals and availability, and highlight recommended classes via recommendedClassIds",
+            "Should use the RecommendedPlanSummary to list the recommended classes for the week, including day, time, location, goals, and actions (remove and confirm plan)",
+            "Should ensure the recommended set tilts toward cardio by net increasing cardio/HIIT focus relative to strength while keeping overall plan feasible (e.g., balanced intensity across the week)",
+            "Should avoid scheduling conflicts among recommended classes and ensure durations and overlaps are logically consistent",
+            "Should include actionable UI interactions where applicable (e.g., select_class, remove_item, confirm_plan) with correct payload identifiers",
+            "Should avoid unnecessary tool calls when not required by the task; if tools were needed, should call the correct tool with accurate arguments",
+            "Should avoid hallucinating non-existent component names or properties; only use properties that are relevant and plausible for the given components",
+            "Should maintain concise, user-friendly language and offer to adjust or regenerate the plan per user preferences (e.g., swap options or shorter sessions)",
+            "Should not introduce health or medical claims; keep guidance limited to scheduling and class selection",
+            "Should ensure timezones are handled consistently (e.g., Z timestamps correspond to the stated local day labels for the gym's locale)"
+          ],
+          "expected_components": [
+            "ClassScheduleTimetable",
+            "RecommendedPlanSummary"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Could you suggest two Tue 6\u20138 pm alternatives that lean cardio but still include some strength (medium intensity), and list exact start times for all four classes? If there\u2019s a 45\u2011min option on Sat around 9:30 am, I\u2019d prefer that."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Absolutely \u2014 I\u2019ll tilt Tues toward cardio-strength options and keep everything in your 6\u20138 pm window. Here are two Tuesday alternatives (both medium intensity, cardio-forward with strength):\n- Tue Option A: Cardio Sculpt 60 \u2014 18:00\u201319:00 (Coach: Sam Patel) \u2022 Focus: cardio, strength\n- Tue Option B: Athletic Conditioning \u2014 19:00\u201319:50 (Coach: Dana Lee) \u2022 Focus: cardio, strength\n\nExact start times for your 4 recommended sessions (with your requested Sat 45-min around 9:30):\n- Mon \u2014 HIIT Conditioning 45: 18:15\u201319:00\n- Tue \u2014 Strength Circuit: 18:15\u201319:05\n- Wed \u2014 Spin Intervals: 18:30\u201319:15\n- Sat \u2014 Mobility Flow + Core 45: 09:30\u201310:15\n\nIf you want me to switch Tuesday to Option A or B, say which one and I\u2019ll update the plan (or I can keep Strength Circuit as-is)."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ClassScheduleTimetable",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "classes": [
+                  {
+                    "id": "cls_mon_hiit_1815",
+                    "title": "HIIT Conditioning 45",
+                    "start": "2025-11-17T18:15:00Z",
+                    "end": "2025-11-17T19:00:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "hiit",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "coach_mia_t",
+                    "instructorName": "Mia Torres",
+                    "imageUrl": "https://example.com/img/hiit_mia.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_tue_strength_1815",
+                    "title": "Strength Circuit",
+                    "start": "2025-11-18T18:15:00Z",
+                    "end": "2025-11-18T19:05:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "strength",
+                      "mobility"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "coach_james_p",
+                    "instructorName": "James Park",
+                    "imageUrl": "https://example.com/img/strength_james.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_tue_cardiosculpt_1800_alt",
+                    "title": "Cardio Sculpt 60",
+                    "start": "2025-11-18T18:00:00Z",
+                    "end": "2025-11-18T19:00:00Z",
+                    "location": "Studio C",
+                    "goals": [
+                      "cardio",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "coach_sam_p",
+                    "instructorName": "Sam Patel",
+                    "imageUrl": "https://example.com/img/cardio_sculpt.jpg"
+                  },
+                  {
+                    "id": "cls_tue_athleticcond_1900_alt",
+                    "title": "Athletic Conditioning",
+                    "start": "2025-11-18T19:00:00Z",
+                    "end": "2025-11-18T19:50:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "coach_dana_l",
+                    "instructorName": "Dana Lee",
+                    "imageUrl": "https://example.com/img/athletic_conditioning.jpg"
+                  },
+                  {
+                    "id": "cls_wed_spin_1830",
+                    "title": "Spin Intervals",
+                    "start": "2025-11-19T18:30:00Z",
+                    "end": "2025-11-19T19:15:00Z",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "coach_ariana_c",
+                    "instructorName": "Ariana Chen",
+                    "imageUrl": "https://example.com/img/spin_ariana.jpg",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow + Core 45",
+                    "start": "2025-11-22T09:30:00Z",
+                    "end": "2025-11-22T10:15:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "mobility",
+                      "flexibility",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "coach_luis_r",
+                    "instructorName": "Luis Romero",
+                    "imageUrl": "https://example.com/img/mobility_core.jpg",
+                    "isRecommended": true
+                  }
+                ],
+                "recommendedClassIds": [
+                  "cls_mon_hiit_1815",
+                  "cls_tue_strength_1815",
+                  "cls_wed_spin_1830",
+                  "cls_sat_mobility_0930"
+                ],
+                "timeSlotIntervalMinutes": 30,
+                "selectClassAction": {
+                  "type": "select_class",
+                  "payload": {
+                    "classId": "cls_tue_strength_1815"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "RecommendedPlanSummary",
+              "props": {
+                "planId": "plan_2025_wk47_user_demo",
+                "name": "Cardio-Forward Balanced Plan",
+                "weekStartDate": "2025-11-17",
+                "items": [
+                  {
+                    "classId": "cls_mon_hiit_1815",
+                    "title": "HIIT Conditioning 45",
+                    "day": "Mon",
+                    "start": "18:15",
+                    "end": "19:00",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_mon_hiit_1815"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_tue_strength_1815",
+                    "title": "Strength Circuit",
+                    "day": "Tue",
+                    "start": "18:15",
+                    "end": "19:05",
+                    "location": "Studio B",
+                    "goals": [
+                      "strength",
+                      "mobility"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_tue_strength_1815"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_wed_spin_1830",
+                    "title": "Spin Intervals",
+                    "day": "Wed",
+                    "start": "18:30",
+                    "end": "19:15",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_wed_spin_1830"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow + Core 45",
+                    "day": "Sat",
+                    "start": "09:30",
+                    "end": "10:15",
+                    "location": "Studio B",
+                    "goals": [
+                      "mobility",
+                      "strength"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_sat_mobility_0930"
+                      }
+                    }
+                  }
+                ],
+                "totalSessions": 4,
+                "balanceScore": 84,
+                "conflicts": [],
+                "onConfirmPlanAction": {
+                  "type": "confirm_plan",
+                  "payload": {
+                    "planId": "plan_2025_wk47_user_demo"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should propose exactly two Tuesday alternatives scheduled between 18:00 and 20:00 that emphasize cardio while including some strength at medium intensity, each with clear titles, start/end times, and instructor names",
+            "Should list exact start times (and end times where relevant) for all four recommended sessions in a clear, human-readable format",
+            "Should include a Saturday 45-minute option around 09:30 with explicit start and end times demonstrating 45 minutes duration",
+            "Should keep all recommended Tuesday classes within the user's 18:00\u201320:00 availability window and clearly differentiate alternatives from the currently selected Tuesday class",
+            "Should ensure textual details and UI component data are fully consistent (titles, times, durations, locations, instructors, goals, intensity, IDs)",
+            "Should not invent unavailable classes; if data is uncertain or unavailable, should state limitations or request permission to fetch data",
+            "Should use the ClassScheduleTimetable to display the week\u2019s classes with recommended classes highlighted, valid ISO 8601 timestamps, and appropriate goal/intensity tags",
+            "Should use the RecommendedPlanSummary to present the four-item plan with accurate totalSessions, goal tags, and actionable remove/confirm controls",
+            "Should provide a clear user action to switch Tuesday to either alternative (e.g., select action or explicit instruction) without altering the plan until confirmed",
+            "Should avoid schedule conflicts and reflect the user\u2019s stated preferences and constraints (Tue 18:00\u201320:00, Sat ~09:30, medium intensity for Tue alternatives)",
+            "Should include appropriate goal tags (e.g., cardio, strength) and medium intensity for the Tuesday alternatives as requested",
+            "Should format times consistently (human-readable in text; ISO timestamps in components) and keep weekStartDate consistent across components",
+            "Should call appropriate tools with correct arguments when the request requires data fetching, computation, or external actions; otherwise avoid unnecessary tool calls",
+            "Should be concise, clear, and user-centered, offering actionable next steps"
+          ],
+          "expected_components": [
+            "ClassScheduleTimetable",
+            "RecommendedPlanSummary"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Switch Tuesday to Option B: Athletic Conditioning 19:00\u201319:50. Keep Mon, Wed, and Sat as listed. Save this as my weekly plan, set 30\u2011minute reminders, and tag each class with the appropriate cardio/strength/mobility goals."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set! I switched Tuesday to Athletic Conditioning (19:00\u201319:50), kept Mon/Wed/Sat as-is, saved this as your weekly plan, and set 30-minute reminders before each class. I\u2019ve also tagged each class with cardio/strength/mobility goals.\n\nQuick details and tags:\n- Mon \u2014 HIIT Conditioning 45 (18:15\u201319:00) \u2022 Coach: Mia Torres \u2022 Intensity: high \u2022 Goals: cardio, hiit, endurance\n- Tue \u2014 Athletic Conditioning (19:00\u201319:50) \u2022 Coach: Dana Lee \u2022 Intensity: medium \u2022 Goals: cardio, strength\n- Wed \u2014 Spin Intervals (18:30\u201319:15) \u2022 Coach: Ariana Chen \u2022 Intensity: high \u2022 Goals: cardio, endurance\n- Sat \u2014 Mobility Flow + Core 45 (09:30\u201310:15) \u2022 Coach: Luis Romero \u2022 Intensity: medium \u2022 Goals: mobility, flexibility, strength\n\nIf you want me to auto-book openings when spots are available or adjust reminder timing, just say the word."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "RecommendedPlanSummary",
+              "props": {
+                "planId": "plan_2025_wk47_user123",
+                "name": "Cardio-Forward Balanced Plan",
+                "weekStartDate": "2025-11-17",
+                "items": [
+                  {
+                    "classId": "cls_mon_hiit_1815",
+                    "title": "HIIT Conditioning 45",
+                    "day": "Mon",
+                    "start": "18:15",
+                    "end": "19:00",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "hiit",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_mon_hiit_1815"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_tue_athcond_1900",
+                    "title": "Athletic Conditioning",
+                    "day": "Tue",
+                    "start": "19:00",
+                    "end": "19:50",
+                    "location": "Studio B",
+                    "goals": [
+                      "cardio",
+                      "strength"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_tue_athcond_1900"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_wed_spin_1830",
+                    "title": "Spin Intervals",
+                    "day": "Wed",
+                    "start": "18:30",
+                    "end": "19:15",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_wed_spin_1830"
+                      }
+                    }
+                  },
+                  {
+                    "classId": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow + Core 45",
+                    "day": "Sat",
+                    "start": "09:30",
+                    "end": "10:15",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility",
+                      "strength"
+                    ],
+                    "removeAction": {
+                      "type": "remove_item",
+                      "payload": {
+                        "classId": "cls_sat_mobility_0930"
+                      }
+                    }
+                  }
+                ],
+                "totalSessions": 4,
+                "balanceScore": 81,
+                "conflicts": [],
+                "onConfirmPlanAction": {
+                  "type": "confirm_plan",
+                  "payload": {
+                    "planId": "plan_2025_wk47_user123"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ClassScheduleTimetable",
+              "props": {
+                "weekStartDate": "2025-11-17",
+                "classes": [
+                  {
+                    "id": "cls_mon_hiit_1815",
+                    "title": "HIIT Conditioning 45",
+                    "start": "2025-11-17T18:15:00Z",
+                    "end": "2025-11-17T19:00:00Z",
+                    "location": "Studio A",
+                    "goals": [
+                      "cardio",
+                      "hiit",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_mia_torres",
+                    "instructorName": "Mia Torres",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_tue_athcond_1900",
+                    "title": "Athletic Conditioning",
+                    "start": "2025-11-18T19:00:00Z",
+                    "end": "2025-11-18T19:50:00Z",
+                    "location": "Studio B",
+                    "goals": [
+                      "cardio",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_dana_lee",
+                    "instructorName": "Dana Lee",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_wed_spin_1830",
+                    "title": "Spin Intervals",
+                    "start": "2025-11-19T18:30:00Z",
+                    "end": "2025-11-19T19:15:00Z",
+                    "location": "Cycle Studio",
+                    "goals": [
+                      "cardio",
+                      "endurance"
+                    ],
+                    "intensity": "high",
+                    "instructorId": "inst_ariana_chen",
+                    "instructorName": "Ariana Chen",
+                    "isRecommended": true
+                  },
+                  {
+                    "id": "cls_sat_mobility_0930",
+                    "title": "Mobility Flow + Core 45",
+                    "start": "2025-11-22T09:30:00Z",
+                    "end": "2025-11-22T10:15:00Z",
+                    "location": "Studio C",
+                    "goals": [
+                      "mobility",
+                      "flexibility",
+                      "strength"
+                    ],
+                    "intensity": "medium",
+                    "instructorId": "inst_luis_romero",
+                    "instructorName": "Luis Romero",
+                    "isRecommended": true
+                  }
+                ],
+                "recommendedClassIds": [
+                  "cls_mon_hiit_1815",
+                  "cls_tue_athcond_1900",
+                  "cls_wed_spin_1830",
+                  "cls_sat_mobility_0930"
+                ],
+                "timeSlotIntervalMinutes": 30,
+                "selectClassAction": {
+                  "type": "select_class",
+                  "payload": {
+                    "classId": "cls_mon_hiit_1815"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm switching Tuesday to Option B: Athletic Conditioning 19:00\u201319:50 while keeping Monday, Wednesday, and Saturday classes unchanged",
+            "Should confirm the plan is saved as the user's weekly plan and that 30-minute reminders are set for each included class",
+            "Should include or display goal tags (cardio/strength/mobility) for each class and ensure they are appropriate to the class type",
+            "Should present an accurate, coherent weekly schedule summary that lists day, title, start/end times, and location for each class",
+            "Should maintain internal consistency between narrative text and UI components (class titles, times, days, locations, goals, IDs)",
+            "Should use appropriate UI components to summarize the recommended plan and visualize the weekly timetable with the recommended overlay",
+            "Should provide actionable UI interactions such as confirm/save plan and remove item actions where applicable",
+            "Should avoid implying external actions (e.g., bookings, calendar edits) that require tools unless such actions are represented via explicit UI actions or confirmed capabilities",
+            "Should not fabricate data; any additional details (instructor, intensity, locations, balance score) must be plausible and consistent with the displayed classes",
+            "Should clearly align with the scenario context by emphasizing availability fit and goal alignment in the plan",
+            "Should present times and dates in a clear, unambiguous format and ensure the Tuesday class reflects the specified 19:00\u201319:50 slot",
+            "Should avoid unnecessary tool usage; only call tools if data fetching, computation, or external actions are required"
+          ],
+          "expected_components": [
+            "RecommendedPlanSummary",
+            "ClassScheduleTimetable"
+          ]
+        }
+      }
+    ];
+
+    // Utilities and Action Context
+    const ActionContext = createContext({ trigger: () => {}, logs: [] });
+
+    const ActionProvider = ({ children }) => {
+      const [logs, setLogs] = useState([]);
+      const trigger = useCallback((action, meta = {}) => {
+        const entry = {
+          id: Math.random().toString(36).slice(2),
+          time: new Date().toISOString(),
+          action: action || {},
+          meta
+        };
+        setLogs(prev => [entry, ...prev].slice(0, 20));
+        // eslint-disable-next-line no-console
+        console.log("Action triggered:", entry);
+      }, []);
+      return (
+        <ActionContext.Provider value={{ trigger, logs }}>
+          {children}
+        </ActionContext.Provider>
+      );
+    };
+
+    const useAction = () => useContext(ActionContext);
+
+    const formatTimeLocal = (iso, style = "24h") => {
+      if (!iso) return "";
+      const d = new Date(iso);
+      const opts = style === "12h"
+        ? { hour: "numeric", minute: "2-digit" }
+        : { hour: "2-digit", minute: "2-digit", hour12: false };
+      try {
+        return new Intl.DateTimeFormat(undefined, opts).format(d);
+      } catch {
+        const pad = n => String(n).padStart(2, "0");
+        return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+    };
+
+    const formatDateLocal = (isoDate) => {
+      if (!isoDate) return "";
+      const d = new Date(isoDate);
+      try {
+        return new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" }).format(d);
+      } catch {
+        return isoDate;
+      }
+    };
+
+    const getWeekDays = (weekStartDate) => {
+      if (!weekStartDate) return [];
+      const start = new Date(weekStartDate);
+      const days = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        days.push(d);
+      }
+      return days;
+    };
+
+    const dayLabel = (d) => {
+      try {
+        return new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(d);
+      } catch {
+        const names = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+        return names[d.getDay()];
+      }
+    };
+
+    const sameLocalDay = (a, b) => {
+      return a.getFullYear() === b.getFullYear()
+        && a.getMonth() === b.getMonth()
+        && a.getDate() === b.getDate();
+    };
+
+    const hashGoalsToColor = (g) => {
+      const map = {
+        cardio: "bg-blue-100 text-blue-800",
+        strength: "bg-rose-100 text-rose-800",
+        mobility: "bg-emerald-100 text-emerald-800",
+        flexibility: "bg-teal-100 text-teal-800",
+        hiit: "bg-orange-100 text-orange-800",
+        endurance: "bg-indigo-100 text-indigo-800"
+      };
+      return map[g] || "bg-gray-100 text-gray-800";
+    };
+
+    const intensityColor = (v) => {
+      const map = {
+        low: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        medium: "bg-amber-50 text-amber-700 border-amber-200",
+        high: "bg-red-50 text-red-700 border-red-200"
+      };
+      return map[v] || "bg-gray-50 text-gray-700 border-gray-200";
+    };
+
+    // Components from schema
+
+    const ClassScheduleTimetable = (props) => {
+      const {
+        weekStartDate,
+        classes = [],
+        filters = {},
+        recommendedClassIds = [],
+        timeSlotIntervalMinutes = 30,
+        selectClassAction = {}
+      } = props;
+
+      const { trigger } = useAction();
+      const [expandedDay, setExpandedDay] = useState(null);
+      const [query, setQuery] = useState("");
+      const [showOnlyRecommended, setShowOnlyRecommended] = useState(false);
+
+      const days = useMemo(() => getWeekDays(weekStartDate), [weekStartDate]);
+
+      const filtered = useMemo(() => {
+        let list = Array.isArray(classes) ? classes.slice() : [];
+        if (query) {
+          const q = query.toLowerCase();
+          list = list.filter(c =>
+            c.title?.toLowerCase?.().includes(q) ||
+            c.instructorName?.toLowerCase?.().includes(q) ||
+            (Array.isArray(c.goals) && c.goals.join(" ").toLowerCase().includes(q))
+          );
+        }
+        if (Array.isArray(filters?.goals) && filters.goals.length > 0) {
+          list = list.filter(c => Array.isArray(c.goals) && c.goals.some(g => filters.goals.includes(g)));
+        }
+        if (Array.isArray(filters?.days) && filters.days.length > 0) {
+          list = list.filter(c => {
+            const d = new Date(c.start);
+            // 0=Sun ... 6=Sat, input days seem like 1=Mon etc
+            const isoDay = d.getDay(); // 0..6
+            const isoTo1Mon = isoDay === 0 ? 7 : isoDay; // Sun=7
+            return filters.days.includes(isoTo1Mon);
+          });
+        }
+        if (filters?.timeRange?.start && filters?.timeRange?.end) {
+          const [sH, sM] = String(filters.timeRange.start).split(":").map(Number);
+          const [eH, eM] = String(filters.timeRange.end).split(":").map(Number);
+          list = list.filter(c => {
+            const d = new Date(c.start);
+            const h = d.getHours();
+            const m = d.getMinutes();
+            const afterStart = (h > sH) || (h === sH && m >= sM);
+            const beforeEnd = (h < eH) || (h === eH && m <= eM);
+            return afterStart && beforeEnd;
+          });
+        }
+        if (showOnlyRecommended) {
+          list = list.filter(c => recommendedClassIds.includes(c.id) || c.isRecommended);
+        }
+        list.sort((a, b) => new Date(a.start) - new Date(b.start));
+        return list;
+      }, [classes, filters, query, showOnlyRecommended, recommendedClassIds]);
+
+      const groupedByDay = useMemo(() => {
+        const map = {};
+        days.forEach(d => {
+          const key = d.toDateString();
+          map[key] = [];
+        });
+        filtered.forEach(c => {
+          const start = new Date(c.start);
+          const dayKey = days.find(d => sameLocalDay(d, start))?.toDateString?.();
+          const key = dayKey || new Date(c.start).toDateString();
+          if (!map[key]) map[key] = [];
+          map[key].push(c);
+        });
+        return map;
+      }, [filtered, days]);
+
+      const handleSelect = (cls) => {
+        const payload = {
+          ...(selectClassAction?.payload || {}),
+          classId: cls?.id
+        };
+        const actionToSend = { ...selectClassAction, payload };
+        trigger(actionToSend, { source: "ClassScheduleTimetable", classId: cls?.id });
+      };
+
+      return (
+        <div className="w-full bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 border-b bg-gray-50">
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-gray-900">Weekly Timetable</h3>
+              <p className="text-xs text-gray-500">Times shown in your local timezone</p>
+            </div>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <input
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                placeholder="Search by class, coach, or goal"
+                className="w-full sm:w-64 text-sm px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <label className="inline-flex items-center gap-2 text-xs">
+                <input
+                  type="checkbox"
+                  checked={showOnlyRecommended}
+                  onChange={e => setShowOnlyRecommended(e.target.checked)}
+                />
+                <span>Recommended only</span>
+              </label>
+            </div>
+          </div>
+
+          {filters && Object.keys(filters).length > 0 && (
+            <div className="p-3 border-b bg-white">
+              <div className="flex flex-wrap gap-2">
+                {Array.isArray(filters.goals) && filters.goals.map(g => (
+                  <span key={g} className={`text-xs px-2 py-1 rounded-full ${hashGoalsToColor(g)} border`}>
+                    {g}
+                  </span>
+                ))}
+                {filters?.timeRange?.start && filters?.timeRange?.end && (
+                  <span className="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-800 border">
+                    {filters.timeRange.start}–{filters.timeRange.end}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="divide-y">
+            {days.map((d) => {
+              const key = d.toDateString();
+              const items = groupedByDay[key] || [];
+              return (
+                <div key={key} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-baseline gap-2">
+                      <h4 className="text-sm font-semibold text-gray-900">{dayLabel(d)}</h4>
+                      <span className="text-xs text-gray-500">{formatDateLocal(d)}</span>
+                    </div>
+                    <button
+                      className="text-xs text-indigo-600 hover:text-indigo-800"
+                      onClick={() => setExpandedDay(expandedDay === key ? null : key)}
+                    >
+                      {expandedDay === key ? "Collapse" : "Expand"}
+                    </button>
+                  </div>
+                  <div className={`mt-3 grid gap-3 ${expandedDay === key ? "sm:grid-cols-2 lg:grid-cols-3" : ""}`}>
+                    {items.length === 0 && (
+                      <div className="text-xs text-gray-500">No classes</div>
+                    )}
+                    {items.map(cls => {
+                      const recommended = recommendedClassIds.includes(cls.id) || cls.isRecommended;
+                      return (
+                        <div
+                          key={cls.id}
+                          className={`p-3 rounded-md border ${recommended ? "border-indigo-300 ring-1 ring-indigo-100" : "border-gray-200"} bg-white hover:shadow-sm transition`}
+                        >
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{cls.title || "Class"}</div>
+                              <div className="text-xs text-gray-600">
+                                {formatTimeLocal(cls.start)}–{formatTimeLocal(cls.end)} • {cls.location || "TBD"}
+                              </div>
+                              {cls.instructorName && (
+                                <div className="text-xs text-gray-500 mt-0.5">Coach: {cls.instructorName}</div>
+                              )}
+                            </div>
+                            {recommended && (
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">Recommended</span>
+                            )}
+                          </div>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {Array.isArray(cls.goals) && cls.goals.map(g => (
+                              <span key={g} className={`text-[10px] px-2 py-0.5 rounded-full ${hashGoalsToColor(g)} border`}>
+                                {g}
+                              </span>
+                            ))}
+                            {cls.intensity && (
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full border ${intensityColor(cls.intensity)}`}>
+                                {cls.intensity}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-3 flex items-center gap-2">
+                            <button
+                              className="text-xs px-2.5 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+                              onClick={() => handleSelect(cls)}
+                            >
+                              Select
+                            </button>
+                            <button
+                              className="text-xs px-2.5 py-1.5 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                              onClick={() => {
+                                // Emit a detail "show" action to demonstrate detail popover integration
+                                const action = { type: "show_class_details", payload: { classId: cls.id } };
+                                trigger(action, { source: "ClassScheduleTimetable", classId: cls.id });
+                              }}
+                            >
+                              Details
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-4 py-3 border-t text-[11px] text-gray-500 bg-gray-50">
+            Interval: {timeSlotIntervalMinutes} min • Week of {weekStartDate}
+          </div>
+        </div>
+      );
+    };
+
+    const ClassDetailPopover = (props) => {
+      const {
+        id,
+        title,
+        schedule = {},
+        meta = {},
+        goals = [],
+        status = {},
+        description = "",
+        actions = {},
+        timeDisplay = "24h"
+      } = props;
+
+      const { trigger } = useAction();
+
+      const start = schedule.start || meta.start;
+      const end = schedule.end || meta.end;
+
+      return (
+        <div className="w-full max-w-md bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+          <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">{title || "Class Details"}</h3>
+            <span className="text-[10px] text-gray-400">ID: {id}</span>
+          </div>
+          <div className="p-4 space-y-3">
+            {(start || end) && (
+              <div className="text-sm text-gray-700">
+                <span className="font-medium">Time:</span> {formatTimeLocal(start, timeDisplay)}–{formatTimeLocal(end, timeDisplay)}
+              </div>
+            )}
+            {meta?.location && (
+              <div className="text-sm text-gray-700">
+                <span className="font-medium">Location:</span> {meta.location}
+              </div>
+            )}
+            {meta?.instructorName && (
+              <div className="text-sm text-gray-700">
+                <span className="font-medium">Coach:</span> {meta.instructorName}
+              </div>
+            )}
+            {Array.isArray(goals) && goals.length > 0 && (
+              <div>
+                <div className="text-xs font-medium text-gray-700 mb-1">Goals</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {goals.map((g, idx) => {
+                    const text = typeof g === "string" ? g : (g?.label || JSON.stringify(g));
+                    return <span key={idx} className={`text-[10px] px-2 py-0.5 rounded-full ${hashGoalsToColor(text)} border`}>{text}</span>;
+                  })}
+                </div>
+              </div>
+            )}
+            {description && (
+              <p className="text-sm text-gray-600 whitespace-pre-line">{description}</p>
+            )}
+            {status && Object.keys(status).length > 0 && (
+              <div className="text-xs text-gray-500">
+                <span className="font-medium">Status:</span> {JSON.stringify(status)}
+              </div>
+            )}
+          </div>
+          <div className="p-3 border-t bg-gray-50 flex items-center justify-end gap-2">
+            <button
+              className="text-xs px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+              onClick={() => trigger(actions?.primary || { type: "detail_primary", payload: { id } }, { source: "ClassDetailPopover", id })}
+            >
+              Action
+            </button>
+            <button
+              className="text-xs px-3 py-1.5 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+              onClick={() => trigger({ type: "close_popover", payload: { id } }, { source: "ClassDetailPopover", id })}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const GoalPreferencesPanel = (props) => {
+      const {
+        id,
+        title,
+        goalsSelected = [],
+        availabilityBlocks = [],
+        preferredIntensity = "medium",
+        experienceLevel = "beginner",
+        targetSessionsPerWeek = 3,
+        onGeneratePlanAction = {}
+      } = props;
+
+      const { trigger } = useAction();
+
+      const [localGoals, setLocalGoals] = useState(Array.isArray(goalsSelected) ? goalsSelected.map(g => (typeof g === "string" ? g : g?.id || g?.name)).filter(Boolean) : []);
+      const [localAvailability, setLocalAvailability] = useState(Array.isArray(availabilityBlocks) ? availabilityBlocks : []);
+      const [intensity, setIntensity] = useState(preferredIntensity);
+      const [experience, setExperience] = useState(experienceLevel);
+      const [sessions, setSessions] = useState(targetSessionsPerWeek);
+
+      const toggleGoal = (g) => {
+        setLocalGoals(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
+      };
+
+      const addAvailability = () => {
+        const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+        const next = { day: "Mon", start: "18:00", end: "19:00" };
+        setLocalAvailability(prev => [...prev, next]);
+      };
+
+      const updateAvailability = (idx, field, value) => {
+        setLocalAvailability(prev => prev.map((b, i) => i === idx ? { ...b, [field]: value } : b));
+      };
+
+      const removeAvailability = (idx) => {
+        setLocalAvailability(prev => prev.filter((_, i) => i !== idx));
+      };
+
+      const handleGenerate = () => {
+        const payload = {
+          ...(onGeneratePlanAction?.payload || {}),
+          panelId: id,
+          preferences: {
+            goals: localGoals,
+            availability: localAvailability,
+            preferredIntensity: intensity,
+            experienceLevel: experience,
+            targetSessionsPerWeek: sessions
+          }
+        };
+        trigger({ ...onGeneratePlanAction, payload }, { source: "GoalPreferencesPanel", id });
+      };
+
+      const goalOptions = ["strength", "cardio", "mobility", "flexibility", "endurance", "hiit"];
+
+      return (
+        <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">{title || "Goals"}</h3>
+            <span className="text-[10px] text-gray-400">ID: {id}</span>
+          </div>
+          <div className="p-4 grid md:grid-cols-2 gap-4">
+            <div>
+              <div className="text-xs font-medium text-gray-700 mb-1">Goals</div>
+              <div className="flex flex-wrap gap-2">
+                {goalOptions.map(g => (
+                  <button
+                    key={g}
+                    onClick={() => toggleGoal(g)}
+                    className={`text-xs px-2.5 py-1.5 rounded-full border transition ${localGoals.includes(g) ? "bg-indigo-600 text-white border-indigo-600" : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"}`}
+                  >
+                    {g}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-gray-700 mb-1">Preferred Intensity</div>
+              <select
+                value={intensity}
+                onChange={e => setIntensity(e.target.value)}
+                className="w-full text-sm px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-gray-700 mb-1">Experience Level</div>
+              <select
+                value={experience}
+                onChange={e => setExperience(e.target.value)}
+                className="w-full text-sm px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+            <div>
+              <div className="text-xs font-medium text-gray-700 mb-1">Target Sessions / Week</div>
+              <input
+                type="number"
+                min="1"
+                max="12"
+                value={sessions}
+                onChange={e => setSessions(Number(e.target.value))}
+                className="w-full text-sm px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-medium text-gray-700 mb-1">Availability</div>
+                <button
+                  className="text-xs px-2 py-1 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                  onClick={addAvailability}
+                >
+                  + Add
+                </button>
+              </div>
+              <div className="space-y-2">
+                {localAvailability.length === 0 && (
+                  <div className="text-xs text-gray-500">No availability added yet.</div>
+                )}
+                {localAvailability.map((b, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <select
+                      value={b.day || "Mon"}
+                      onChange={e => updateAvailability(idx, "day", e.target.value)}
+                      className="text-xs px-2 py-1.5 border rounded-md"
+                    >
+                      {["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                    <input
+                      value={b.start || "18:00"}
+                      onChange={e => updateAvailability(idx, "start", e.target.value)}
+                      className="text-xs px-2 py-1.5 border rounded-md w-24"
+                      placeholder="Start"
+                    />
+                    <span className="text-xs text-gray-500">–</span>
+                    <input
+                      value={b.end || "19:00"}
+                      onChange={e => updateAvailability(idx, "end", e.target.value)}
+                      className="text-xs px-2 py-1.5 border rounded-md w-24"
+                      placeholder="End"
+                    />
+                    <button
+                      className="text-[11px] px-2 py-1 rounded-md bg-red-50 text-red-700 border border-red-200 hover:bg-red-100"
+                      onClick={() => removeAvailability(idx)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="p-4 border-t bg-gray-50 flex items-center justify-end">
+            <button
+              className="text-sm px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+              onClick={handleGenerate}
+            >
+              Generate Plan
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const RecommendedPlanSummary = (props) => {
+      const {
+        planId,
+        name,
+        weekStartDate,
+        items = [],
+        totalSessions = 0,
+        balanceScore = 0,
+        conflicts = [],
+        onConfirmPlanAction = {}
+      } = props;
+
+      const { trigger } = useAction();
+
+      return (
+        <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-4 border-b bg-gray-50 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-900">{name || "Recommended Plan"}</h3>
+              <p className="text-xs text-gray-500">Week of {weekStartDate} • Sessions: {totalSessions} • Balance score: {Math.round(balanceScore)}</p>
+            </div>
+            <span className="text-[10px] text-gray-400">Plan ID: {planId}</span>
+          </div>
+          <div className="p-4 space-y-3">
+            {Array.isArray(items) && items.length > 0 ? items.map(it => (
+              <div key={it.classId} className="p-3 rounded-md border border-gray-200 bg-white">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{it.day} — {it.title}</div>
+                    <div className="text-xs text-gray-600">{it.start}–{it.end} • {it.location || "TBD"}</div>
+                    {Array.isArray(it.goals) && (
+                      <div className="mt-1 flex flex-wrap gap-1.5">
+                        {it.goals.map(g => (
+                          <span key={g} className={`text-[10px] px-2 py-0.5 rounded-full ${hashGoalsToColor(g)} border`}>{g}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {it.removeAction && (
+                      <button
+                        className="text-[11px] px-2.5 py-1.5 rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200"
+                        onClick={() => trigger(it.removeAction, { source: "RecommendedPlanSummary", planId, classId: it.classId })}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )) : (
+              <div className="text-sm text-gray-500">No items in plan.</div>
+            )}
+            {Array.isArray(conflicts) && conflicts.length > 0 ? (
+              <div className="p-3 rounded-md border border-yellow-200 bg-yellow-50 text-yellow-800 text-sm">
+                Conflicts detected: {conflicts.length}. {JSON.stringify(conflicts)}
+              </div>
+            ) : (
+              <div className="p-3 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-800 text-sm">
+                No scheduling conflicts detected.
+              </div>
+            )}
+          </div>
+          <div className="p-3 border-t bg-gray-50 flex items-center justify-end">
+            <button
+              className="text-sm px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+              onClick={() => trigger(onConfirmPlanAction, { source: "RecommendedPlanSummary", planId })}
+            >
+              Confirm Plan
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const FilterChipsBar = (props) => {
+      const {
+        id,
+        title,
+        activeGoals = [],
+        activeDays = [],
+        timeOfDay = {},
+        intensity = {},
+        location = null,
+        onFilterChangeAction = {}
+      } = props;
+
+      const { trigger } = useAction();
+      const [goals, setGoals] = useState(Array.isArray(activeGoals) ? activeGoals : []);
+      const [days, setDays] = useState(Array.isArray(activeDays) ? activeDays : []);
+      const [time, setTime] = useState(timeOfDay || { start: "06:00", end: "21:00" });
+      const [inten, setInten] = useState(intensity || { value: "any" });
+      const [loc, setLoc] = useState(location);
+
+      const toggleGoal = (g) => setGoals(prev => prev.includes(g) ? prev.filter(x => x !== g) : [...prev, g]);
+
+      const emit = () => {
+        const payload = {
+          ...(onFilterChangeAction?.payload || {}),
+          id,
+          filters: { goals, days, timeOfDay: time, intensity: inten, location: loc }
+        };
+        trigger({ ...onFilterChangeAction, payload }, { source: "FilterChipsBar", id });
+      };
+
+      useEffect(() => {
+        // Emit on any change to mirror simple reactive behavior
+        emit();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [goals, days, time, inten, loc]);
+
+      return (
+        <div className="w-full bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-3 border-b bg-gray-50 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-gray-900">{title || "Filters"}</h3>
+            <span className="text-[10px] text-gray-400">ID: {id}</span>
+          </div>
+          <div className="p-3 flex flex-wrap items-center gap-2">
+            {["strength","cardio","mobility","flexibility","endurance","hiit"].map(g => (
+              <button
+                key={g}
+                className={`text-xs px-2.5 py-1.5 rounded-full border ${goals.includes(g) ? "bg-indigo-600 text-white border-indigo-600" : "bg-gray-50 text-gray-700 border-gray-200"}`}
+                onClick={() => toggleGoal(g)}
+              >
+                {g}
+              </button>
+            ))}
+            <div className="ml-auto flex items-center gap-2">
+              <select
+                value={inten?.value || "any"}
+                onChange={e => setInten({ value: e.target.value })}
+                className="text-xs px-2 py-1.5 border rounded-md"
+              >
+                <option value="any">Intensity: any</option>
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+              </select>
+              <input
+                value={time.start || "06:00"}
+                onChange={e => setTime({ ...(time || {}), start: e.target.value })}
+                className="text-xs px-2 py-1.5 border rounded-md w-20"
+              />
+              <span className="text-xs text-gray-500">–</span>
+              <input
+                value={time.end || "21:00"}
+                onChange={e => setTime({ ...(time || {}), end: e.target.value })}
+                className="text-xs px-2 py-1.5 border rounded-md w-20"
+              />
+              <input
+                placeholder="Location"
+                value={loc || ""}
+                onChange={e => setLoc(e.target.value)}
+                className="text-xs px-2 py-1.5 border rounded-md"
+              />
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      ClassScheduleTimetable: ClassScheduleTimetable,
+      ClassDetailPopover: ClassDetailPopover,
+      GoalPreferencesPanel: GoalPreferencesPanel,
+      RecommendedPlanSummary: RecommendedPlanSummary,
+      FilterChipsBar: FilterChipsBar
+    };
+
+    // Component Renderer
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    // Message rendering
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === "string") {
+        return <p className="whitespace-pre-line text-sm text-gray-800">{chunk}</p>;
+      }
+      if (chunk.type === "text") {
+        return <p className="whitespace-pre-line text-sm text-gray-800">{chunk.text || ""}</p>;
+      }
+      if (chunk.type === "component") {
+        const c = chunk.component || {};
+        return (
+          <div className="my-3">
+            <ComponentRenderer componentName={c.name} props={c.props || {}} />
+          </div>
+        );
+      }
+      return (
+        <pre className="text-xs bg-gray-50 p-2 rounded border border-gray-200 overflow-auto">{JSON.stringify(chunk, null, 2)}</pre>
+      );
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === "user";
+      const bubbleClass = isUser ? "bg-white border border-gray-200" : "bg-indigo-50 border border-indigo-100";
+      const align = isUser ? "items-start" : "items-start";
+      const name = isUser ? "You" : "Assistant";
+
+      return (
+        <div className={`w-full flex ${align}`}>
+          <div className={`w-full sm:w-11/12 lg:w-3/4 mx-auto my-3 p-4 rounded-lg ${bubbleClass}`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-6 h-6 rounded-full ${isUser ? "bg-gray-300" : "bg-indigo-400"}`}></div>
+              <div className={`text-xs font-medium ${isUser ? "text-gray-700" : "text-indigo-700"}`}>{name}</div>
+            </div>
+            <div className="space-y-3">
+              {Array.isArray(content)
+                ? content.map((chunk, idx) => <ContentChunkRenderer key={idx} chunk={chunk} />)
+                : <ContentChunkRenderer chunk={content} />
+              }
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ActionConsole = () => {
+      const { logs } = useAction();
+      const [open, setOpen] = useState(false);
+      return (
+        <div className="fixed bottom-4 right-4 z-50">
+          <div className={`w-80 max-h-[60vh] overflow-hidden rounded-lg shadow-lg border ${open ? "border-gray-200" : "border-transparent"}`}>
+            <button
+              className="w-full px-3 py-2 text-xs font-medium bg-gray-800 text-white hover:bg-gray-700 flex items-center justify-between"
+              onClick={() => setOpen(v => !v)}
+            >
+              <span>Action Console</span>
+              <span className="text-[10px] opacity-80">{open ? "Hide" : "Show"}</span>
+            </button>
+            {open && (
+              <div className="bg-white max-h-[50vh] overflow-auto">
+                {logs.length === 0 ? (
+                  <div className="p-3 text-xs text-gray-500">No actions yet. Interact with the UI to see dispatched actions here.</div>
+                ) : (
+                  <ul className="divide-y">
+                    {logs.map(l => (
+                      <li key={l.id} className="p-3">
+                        <div className="text-[10px] text-gray-500">{new Date(l.time).toLocaleString()}</div>
+                        <pre className="mt-1 text-[11px] bg-gray-50 p-2 rounded border border-gray-100 overflow-auto">{JSON.stringify(l.action, null, 2)}</pre>
+                        {l.meta && Object.keys(l.meta).length > 0 && (
+                          <pre className="mt-1 text-[10px] bg-indigo-50 p-2 rounded border border-indigo-100 overflow-auto text-indigo-900">{JSON.stringify(l.meta, null, 2)}</pre>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <ActionProvider>
+          <div className="min-h-screen">
+            <header className="bg-white border-b border-gray-200">
+              <div className="max-w-5xl mx-auto px-4 py-4">
+                <h1 className="text-lg font-semibold text-gray-900">Conversation Viewer</h1>
+                <p className="text-sm text-gray-500">UI component conversation about building a weekly gym class plan</p>
+              </div>
+            </header>
+            <main className="max-w-5xl mx-auto px-4 py-6">
+              {Array.isArray(conversation) && conversation.map((msg, idx) => (
+                <MessageBubble key={idx} role={msg.role} content={msg.content} />
+              ))}
+            </main>
+            <footer className="py-6 text-center text-xs text-gray-400">
+              Times are displayed in your browser's local timezone. This is a static demo; actions are logged in the Action Console.
+            </footer>
+            <ActionConsole />
+          </div>
+        </ActionProvider>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

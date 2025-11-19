@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "Track my grades across classes and show what I need to score on remaining assignments to hit my target GPA."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great—I’ll help you track each class and show exactly what you need on remaining assignments to hit your target GPA. To get this dialed in, please share:\n\n- Your current cumulative GPA and total credits completed\n- Your target GPA\n- Your classes this term (name and credit hours)\n- For each class: grading scheme (points/percentage/weighted categories) and the assignments (title, category, weight or points possible, due date, status, and any scores so far)\n\nIf you prefer, I can work with approximate info now and you can refine it later.\n\nOnce I have those, I will:\n- Compute your current per-class grades and category breakdowns\n- Show remaining assignment weights and due dates\n- Calculate the minimum scores needed on upcoming items to reach your target class grades and overall GPA\n- Provide what–if sliders so you can tweak future scores and immediately see the projected GPA\n\nYou can also adjust your target GPA anytime with the gauge below. When you send your class and assignment details, I’ll populate everything automatically."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ClassPerformanceDashboard",
+              "props": {
+                "classes": [],
+                "selectedClassId": null,
+                "assignments": [],
+                "currentGPA": 0,
+                "targetGPA": 3.5,
+                "creditInfo": {
+                  "totalCreditsAttempted": 0,
+                  "totalCreditsCompleted": 0
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ProjectedGPAGauge",
+              "props": {
+                "id": "gpa-gauge-setup",
+                "title": "Projected GPA",
+                "currentGPA": 0,
+                "projectedGPA": 0,
+                "targetGPA": 3.5,
+                "creditsCompleted": 0,
+                "creditsInProgress": 0,
+                "onAdjustTargetAction": {
+                  "type": "adjust_target_gpa",
+                  "payload": {
+                    "gaugeId": "gpa-gauge-setup",
+                    "targetGPA": 3.5
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should clearly restate the user's goal of tracking grades across classes and determining required scores to reach a target GPA",
+            "Should request all necessary inputs to perform calculations (e.g., cumulative GPA, credits completed, target GPA, current term classes with credits, grading schemes, assignments with weights/points/due dates/status/scores)",
+            "Should support working with partial or approximate information and indicate that details can be refined later",
+            "Should avoid fabricating data or claiming calculations are completed before the user provides sufficient information",
+            "Should outline the planned computations: current per-class grades, category breakdowns, remaining assignment weights and due dates, minimum required scores for target class grades and overall target GPA",
+            "Should provide actionable next steps for the user to supply data in a structured way",
+            "Should present or initialize visual elements that match the scenario: per-class grade breakdown, assignment table, projected GPA gauge, and what-if sliders/controls for future scores",
+            "Should use the specified UI components to display data appropriately and consistently with their intended purpose",
+            "Should ensure component properties are coherent and consistent with the text (e.g., target GPA values align across text and components, credits and GPA fields initialized sensibly)",
+            "Should include an interaction to adjust the target GPA (e.g., an action handler or control) and describe how the user can use it",
+            "Should avoid promising external data fetching or automation unless tools/integrations are available and authorized; otherwise, rely on user-provided data",
+            "Should maintain clarity and conciseness, focusing on the user's academic tracking needs and actionable outputs",
+            "Should be prepared to perform or trigger calculations once data is provided, including computing minimum required scores for remaining assignments",
+            "Should not expose sensitive personal information and should only request academic details necessary for the task"
+          ],
+          "expected_components": [
+            "ClassPerformanceDashboard",
+            "ProjectedGPAGauge"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Here’s my info to start:\n\n- Current GPA: 3.28 over 45 credits; Target GPA: 3.50 by end of this term.\n- Classes: Calculus II (4 cr), Organic Chemistry I (4 cr), Intro to Psychology (3 cr).\n\nCalculus II (weighted: Exams 60, Quizzes 20, HW 20)\n- Exams: Midterm 1 20% = 84; Midterm 2 20% = 78; Final 20% = remaining (due Dec 12)\n- Quizzes: 8 total; 6 done avg 92; 2 remaining (Nov 22, Dec 1)\n- Homework: 10 sets; 8 done avg 100; 2 remaining (Nov 25, Dec 8)\n\nOrganic Chemistry I (weighted: Exams 55, Lab 25, HW 10, Participation 10)\n- Exams: Exam 1 18% = 72; Exam 2 18% = 85; Final 19% remaining (Dec 15)\n- Lab: 12 labs; 8 done avg 88; 4 remaining (weekly through Dec 6)\n- Homework: 10 sets; 6 done avg 90; 4 remaining (weekly through Dec 10)\n- Participation: current 100\n\nIntro to Psychology (points out of 1000)\n- Completed: Exam 1 150/200; Paper 90/100; Quizzes 140/150; Attendance 50/50\n- Remaining: Exam 2 200 pts (Nov 20); Final 250 pts (Dec 14); Project 100 pts (Dec 1); 5 quizzes x10 pts (weekly)"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Thanks—this is enough to build your tracker and run projections. First, the big picture: To finish this term at a 3.50 cumulative from 3.28 over 45 credits, you’d need a 4.40 term GPA across 11 credits, which isn’t possible. Even with a perfect 4.00 this term, your cumulative would project to about 3.42. I’ll still show what you need in each class to maximize your term GPA and how close you can get to your target. Per-class status and what you need: - Calculus II (current ≈ 87%): If quizzes and HW stay at their current averages, you would need about a 96% on the final to finish at 90% overall (A). About 86% on the final gets you ~88% overall; ~71% gets you ~85% overall. - Organic Chemistry I (current ≈ 84.2%): With labs and HW holding at current averages, an A- (90%) isn’t reachable; the maximum is ~88.3% even with a 100% on the final. For 88% overall you’d need about a 99% final; for 85% overall, ~83% on the final. - Intro to Psychology (points out of 1000; current 430/500 = 86%): To finish at 90% overall (900/1000), you need 470 of the remaining 600 points—about 78.3% average on what’s left. Next steps: - Use the what–if sliders to set your planned scores on remaining assignments and instantly see your projected term and cumulative GPA. - Tell me which class you want to optimize first (e.g., “aim for A- in Calc, B+ in Orgo”), and I’ll compute the exact minimums per remaining item under that plan. I’ve preloaded Calculus II so you can start tweaking the final, quizzes, and HW right away."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ClassPerformanceDashboard",
+              "props": {
+                "classes": [
+                  {
+                    "id": "calc2",
+                    "name": "Calculus II",
+                    "currentGrade": 87,
+                    "creditHours": 4
+                  },
+                  {
+                    "id": "orgo1",
+                    "name": "Organic Chemistry I",
+                    "currentGrade": 84.2,
+                    "creditHours": 4
+                  },
+                  {
+                    "id": "psych101",
+                    "name": "Intro to Psychology",
+                    "currentGrade": 86,
+                    "creditHours": 3
+                  }
+                ],
+                "selectedClassId": "calc2",
+                "assignments": [
+                  {
+                    "id": "calc2-ex1",
+                    "title": "Midterm 1",
+                    "category": "Exams",
+                    "weight": 0.2,
+                    "dueDate": "2025-10-10",
+                    "status": "graded",
+                    "score": 84
+                  },
+                  {
+                    "id": "calc2-ex2",
+                    "title": "Midterm 2",
+                    "category": "Exams",
+                    "weight": 0.2,
+                    "dueDate": "2025-11-05",
+                    "status": "graded",
+                    "score": 78
+                  },
+                  {
+                    "id": "calc2-final",
+                    "title": "Final Exam",
+                    "category": "Exams",
+                    "weight": 0.2,
+                    "dueDate": "2025-12-12",
+                    "status": "planned",
+                    "plannedScore": 90
+                  },
+                  {
+                    "id": "calc2-qz1",
+                    "title": "Quiz 1",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-09-15",
+                    "status": "graded",
+                    "score": 92
+                  },
+                  {
+                    "id": "calc2-qz2",
+                    "title": "Quiz 2",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-09-22",
+                    "status": "graded",
+                    "score": 92
+                  },
+                  {
+                    "id": "calc2-qz3",
+                    "title": "Quiz 3",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-09-29",
+                    "status": "graded",
+                    "score": 92
+                  },
+                  {
+                    "id": "calc2-qz4",
+                    "title": "Quiz 4",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-10-06",
+                    "status": "graded",
+                    "score": 92
+                  },
+                  {
+                    "id": "calc2-qz5",
+                    "title": "Quiz 5",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-10-13",
+                    "status": "graded",
+                    "score": 92
+                  },
+                  {
+                    "id": "calc2-qz6",
+                    "title": "Quiz 6",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-10-20",
+                    "status": "graded",
+                    "score": 92
+                  },
+                  {
+                    "id": "calc2-qz7",
+                    "title": "Quiz 7",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-11-22",
+                    "status": "planned",
+                    "plannedScore": 92
+                  },
+                  {
+                    "id": "calc2-qz8",
+                    "title": "Quiz 8",
+                    "category": "Quizzes",
+                    "weight": 0.025,
+                    "dueDate": "2025-12-01",
+                    "status": "planned",
+                    "plannedScore": 92
+                  },
+                  {
+                    "id": "calc2-hw1",
+                    "title": "Homework 1",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-09-10",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw2",
+                    "title": "Homework 2",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-09-17",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw3",
+                    "title": "Homework 3",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-09-24",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw4",
+                    "title": "Homework 4",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-10-01",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw5",
+                    "title": "Homework 5",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-10-08",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw6",
+                    "title": "Homework 6",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-10-15",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw7",
+                    "title": "Homework 7",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-10-22",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw8",
+                    "title": "Homework 8",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-10-29",
+                    "status": "graded",
+                    "score": 100
+                  },
+                  {
+                    "id": "calc2-hw9",
+                    "title": "Homework 9",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-11-25",
+                    "status": "planned",
+                    "plannedScore": 100
+                  },
+                  {
+                    "id": "calc2-hw10",
+                    "title": "Homework 10",
+                    "category": "Homework",
+                    "weight": 0.02,
+                    "dueDate": "2025-12-08",
+                    "status": "planned",
+                    "plannedScore": 100
+                  }
+                ],
+                "currentGPA": 3.28,
+                "targetGPA": 3.5,
+                "creditInfo": {
+                  "totalCreditsAttempted": 45,
+                  "totalCreditsCompleted": 45,
+                  "qualityPointsEarned": 147.6,
+                  "currentTermCredits": 11
+                },
+                "gradingScheme": "weighted_category",
+                "assignmentView": {
+                  "sortBy": "dueDate",
+                  "sortDir": "asc",
+                  "filter": {
+                    "showOnlyRemaining": false
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ProjectedGPAGauge",
+              "props": {
+                "id": "gpa-gauge-fall-2025",
+                "title": "Projected GPA",
+                "currentGPA": 3.28,
+                "projectedGPA": 3.42,
+                "targetGPA": 3.5,
+                "creditsCompleted": 45,
+                "creditsInProgress": 11,
+                "onAdjustTargetAction": {
+                  "type": "adjust_target_gpa",
+                  "payload": {
+                    "gaugeId": "gpa-gauge-fall-2025",
+                    "targetGPA": 3.5
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should fully interpret the user's scenario and goal: track grades across three classes and show what is needed on remaining assignments to reach the target cumulative GPA by term end",
+            "Should compute and state the feasibility of reaching the target cumulative GPA using correct GPA math given current GPA, credits completed, and credits in progress (including the maximum achievable cumulative GPA with a 4.0 term)",
+            "Should provide accurate per-class calculations based on the provided weighting schemes and point systems, including current standing and required scores on remaining assignments to hit specified course targets (e.g., A, A-, B+)",
+            "Should correctly handle mixed grading schemas: weighted categories for Calculus II and Organic Chemistry I, and points-based totals for Psychology",
+            "Should transparently state assumptions used in projections (e.g., maintaining current averages for categories with remaining items unless adjusted via what-if sliders)",
+            "Should present actionable outputs: minimum required scores per remaining item or category to achieve user-specified course outcomes and the consequent impact on term and cumulative GPA",
+            "Should include interactive what-if controls for remaining assignments (plannedScore fields) so the user can adjust future scores and immediately see updated projections",
+            "Should provide a projected GPA visualization that reflects current GPA, projected cumulative GPA based on current plans, target GPA, and credits breakdown",
+            "Should ensure all displayed data (weights, due dates, categories, credits, current scores) matches the user's provided information and uses correct date formatting",
+            "Should avoid unsupported claims (e.g., term GPA above institutional maximum) and ensure numerical projections are internally consistent",
+            "Should avoid unnecessary tool calls; only call tools when external data fetching or complex computation beyond the provided data is required",
+            "Should use concise, clear language and structure to guide the user on next steps (e.g., which class to optimize first) without extraneous content"
+          ],
+          "expected_components": [
+            "ClassPerformanceDashboard",
+            "ProjectedGPAGauge"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Let’s aim for A- in Calculus II, B+ in Organic Chem, and A in Psych—what exact scores do I need on each remaining assignment to hit those? Also, if I pull a 4.0 this term, can you confirm my projected cumulative GPA?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here’s a clear plan to hit your targets. I’ll assume letter thresholds of A = 93%, A- = 90%, B+ = 87%. If your syllabus uses different cutoffs, tell me and I’ll recalc instantly. Summary of minimums under straightforward assumptions: - If you keep your current non-exam averages steady, the exact finals you’d need are:   • Calculus II (target A- ≥90%): Final ≥ 96% (keeping remaining quizzes ≈92% each and remaining HW ≈100% each).   • Organic Chemistry I (target B+ ≥87%): Final ≥ 93.4% (keeping remaining Labs ≈88% avg and remaining HW ≈90% avg).   • Intro to Psychology (target A ≥93% overall = 930/1000): Need 500 points across the last 600 points (≈83.3% average). For an even split that’s Exam 2 ≥167/200, Final ≥208/250, Project ≥83/100, Remaining quizzes ≥42/50 total (≈8–9 each). Details by class and alternative “balanced” plans: Calculus II (weighted: Exams 60, Quizzes 20, HW 20) - Current earned contributions: Midterm1 84% (20%), Midterm2 78% (20%), Quizzes so far 92% avg on 6/8 (15%), HW so far 100% avg on 8/10 (16%). Earned subtotal ≈ 62.2%. - Need to reach 90% overall: Remaining weight is Final 20% + 2 Quizzes 5% + 2 HW 4% = 29%.   Option A (keep current averages): If you hold Quizzes at 92% and HW at 100%, Final must be 96.0%. This yields class ≈ 90.0%.   Option B (balanced across all remaining items): If you score the same on Final, both Quizzes, and both HW, you need ≈ 95.9% on each remaining item. Organic Chemistry I (weighted: Exams 55, Lab 25, HW 10, Participation 10) - Current earned contributions: Exam1 72% (18%), Exam2 85% (18%), Labs so far 88% avg on 8/12 (≈16.67%), HW so far 90% avg on 6/10 (6%), Participation 100% (10%). Earned subtotal ≈ 58.33%. - Need to reach 87% overall: Remaining weight is Final 19% + Labs 8.33% + HW 4% = 31.33%.   Option A (keep current averages for non-exam): If you hold remaining Labs at 88% and HW at 90%, Final must be ≈ 93.4%.   Option B (balanced across final + remaining Labs + remaining HW): ≈ 91.6% average on each remaining lab, each remaining HW, and the Final. Intro to Psychology (points out of 1000; target A ≥ 93% = 930/1000) - Completed: 430/500 (86%). Remaining: 600 points (Exam 2 = 200, Final = 250, Project = 100, Quizzes = 50 total). - To reach 930 total, you need 500/600 = 83.33% average on what’s left.   Even distribution example: Exam 2 ≥ 167/200, Final ≥ 208/250, Project ≥ 83/100, Remaining quizzes ≥ 42/50 total (≈8–9 each).   Alternative split example: If you get 90/100 on the Project and 45/50 on the remaining quizzes, you’d still need 365 across Exam 2 + Final (e.g., 170/200 and 195/250). Projected cumulative GPA if you earn a 4.0 term: - With 45 completed credits at 3.28 and 11 in-progress credits, a 4.0 term yields (3.28*45 + 4.0*11) / 56 ≈ 3.42 cumulative. Under your class targets (A- Calc, B+ Orgo, A Psych) the term GPA is about 3.64, projecting your cumulative to ≈ 3.35. Want me to lock these targets into the planner and compute per-quiz and per-lab minimums week by week? I can also rerun with different letter cutoffs if your courses use nonstandard scales."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ProjectedGPAGaugeProps",
+              "props": {
+                "id": "gpa-gauge-fall-term",
+                "title": "Projected GPA",
+                "currentGPA": 3.28,
+                "projectedGPA": 3.35,
+                "targetGPA": 3.5,
+                "creditsCompleted": 45,
+                "creditsInProgress": 11,
+                "onAdjustTargetAction": {
+                  "type": "adjust_target_gpa",
+                  "payload": {
+                    "gaugeId": "gpa-gauge-fall-term",
+                    "targetGPA": 3.5
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WhatIfScoreSlidersProps",
+              "props": {
+                "id": "calc2-whatif",
+                "title": "What-if Scores · Calculus II",
+                "scope": "class",
+                "items": [
+                  {
+                    "id": "calc2-final",
+                    "label": "Final Exam",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 96,
+                    "weightPct": 20
+                  },
+                  {
+                    "id": "calc2-quiz7",
+                    "label": "Quiz 7",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 92,
+                    "weightPct": 2.5
+                  },
+                  {
+                    "id": "calc2-quiz8",
+                    "label": "Quiz 8",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 92,
+                    "weightPct": 2.5
+                  },
+                  {
+                    "id": "calc2-hw9",
+                    "label": "Homework 9",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 2
+                  },
+                  {
+                    "id": "calc2-hw10",
+                    "label": "Homework 10",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 2
+                  }
+                ],
+                "presetButtons": [
+                  {
+                    "key": "A",
+                    "label": "Aim for A (93%)",
+                    "value": 93
+                  },
+                  {
+                    "key": "A-",
+                    "label": "Aim for A- (90%)",
+                    "value": 90
+                  }
+                ],
+                "onAction": {
+                  "type": "adjust_item"
+                },
+                "showWeights": true,
+                "decimalPlaces": 0
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should interpret the user's targets (A- in Calculus II, B+ in Organic Chemistry, A in Psychology) and compute the exact minimum scores needed on each remaining assignment to reach those targets given the stated weightings and current scores",
+            "Should clearly state any grading-scale assumptions (e.g., A = 93%, A- = 90%, B+ = 87%) and instruct the user to provide different cutoffs if applicable",
+            "Should provide per-class breakdowns listing each remaining graded item, its weight (or points), and the exact minimum score required to reach the target course grade",
+            "Should handle points-based classes (e.g., Psychology) by calculating the exact points needed across remaining items, with at least one feasible allocation example and an option to adjust distributions",
+            "Should ensure numerical accuracy and consistency, including correct use of weights/points, correct subtotaling of earned contributions, and coherent rounding that does not understate minimum requirements",
+            "Should avoid fabricating data; any missing weights, scores, or scales should be requested from the user or explicitly marked as assumptions",
+            "Should confirm the projected cumulative GPA if the user earns a 4.0 term using the provided current GPA and credit totals, and show the resulting cumulative GPA calculation",
+            "Should include actionable next steps (e.g., offer to lock targets into a planner, compute per-quiz and per-lab minimums week by week, or rerun with different cutoffs)",
+            "Should use UI components to visualize the projected GPA and allow interactive what-if adjustments for class scores, pre-populated with the computed minimums where appropriate",
+            "Should ensure component properties are coherent (IDs, titles, current/projected/target GPA values, slider ranges, weights, decimal places, and action handlers) and align with the computed requirements",
+            "Should not call external tools unless additional data fetching or complex computation beyond the provided context is required"
+          ],
+          "expected_components": [
+            "ProjectedGPAGaugeProps",
+            "WhatIfScoreSlidersProps"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes, lock these targets and generate week-by-week minimums for each remaining quiz, HW, lab, and exam, and add reminders. Also, use A- = 92% for Calculus and B+ = 88% for Orgo and recalc the required finals; for Psych assume I get 90/100 on the project—what do I then need on Exam 2 and the Final?"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Got it—targets locked. I recalculated with A- = 92% for Calculus and B+ = 88% for Organic Chem, and set Psych project to 90/100. Key results and week-by-week minimums are below. Quick feasibility notes: - Calculus II: With your midterm scores, 92% overall is not attainable. The absolute max (even with 100% on the final, remaining quizzes, and HW) is ≈91.2% (A- on a 90–92.99 scale, but below your raised 92% cutoff). - Organic Chemistry I: 88% overall is attainable but requires a very strong final unless you raise lab/HW on the remaining items. - Psychology: With Project = 90/100, you’ll need a combined 365/450 across Exam 2 + Final assuming 45/50 on the remaining quizzes. If you do better/worse on quizzes, the combined requirement shifts accordingly. Exact minimums and schedules by class: Calculus II (target A- = 92%; max possible ≈ 91.2%) - Remaining items and minimums to maximize your grade:   • Quiz 7 (Nov 22): 100%   • HW 9 (Nov 25): 100%   • Quiz 8 (Dec 1): 100%   • HW 10 (Dec 8): 100%   • Final (Dec 12): 100%   Outcome: ≈ 91.2% overall (ceiling given prior midterms). If you instead hold your current non-exam averages (Quizzes ~92, HW ~100), you would need 106% on the Final to hit 92% overall—so 92% overall isn’t reachable. Organic Chemistry I (target B+ = 88%) - Path A (keep remaining Labs ~88 and HW ~90):   • Lab 9 (weekly thru Dec 6): 88%   • Lab 10: 88%   • Lab 11: 88%   • Lab 12: 88%   • HW 7 (weekly thru Dec 10): 90%   • HW 8: 90%   • HW 9: 90%   • HW 10: 90%   • Final (Dec 15): 98.7% (≈99%)   Outcome: ≈ 88.0% overall. - Path B (balanced raise on remaining labs/HW reduces final requirement):   • Labs 9–12: 95% each   • HW 7–10: 95% each   • Final (Dec 15): ≥94.5%   Outcome: ≈ 88.0% overall. Psychology (target A ≥ 93% = 930/1000) - Current: 430/500. Remaining 600 points: Exam 2 (200, Nov 20), Final (250, Dec 14), Project (100, Dec 1), Quizzes (5×10 = 50, weekly). - With Project = 90/100 and assuming remaining quizzes total 45/50: Needed on Exam 2 + Final combined = 365/450 (≈81.1% average across those two). Examples:   • If Exam 2 = 170/200 (85%), Final must be ≥195/250 (78%).   • If Exam 2 = 180/200 (90%), Final must be ≥185/250 (74%).   • If Exam 2 = 160/200 (80%), Final must be ≥205/250 (82%). If your quizzes end up perfect (50/50), the combined need drops to 360/450. If they’re 40/50, it rises to 370/450. Reminder schedule (added as action items you can save): - Nov 20 (Psych Exam 2): Aim ≥ the target you pick from the examples above (combined with Final to reach 365/450). - Nov 22 (Calc Quiz 7): Target 100%. - Nov 25 (Calc HW 9): Target 100%. - Weekly through Dec 6 (Orgo Labs 9–12): Path A: ≥88% each; Path B: ≥95% each. - Weekly through Dec 10 (Orgo HW 7–10): Path A: ≥90% each; Path B: ≥95% each. - Weekly quizzes (Psych, 5×10): Aim 9/10 each (total ≥45/50). - Dec 1 (Psych Project): 90/100 (fixed). - Dec 8 (Calc HW 10): Target 100%. - Dec 1 (Calc Quiz 8): Target 100%. - Dec 12 (Calc Final): To maximize, aim 100% (upper bound needed to reach ≈91.2%). - Dec 14 (Psych Final): Set based on your Exam 2 result using the trade-off table above. - Dec 15 (Orgo Final): Path A need ≈99%; Path B need ≈94.5%. 4.0-term check (confirmation): If you earn a perfect 4.0 term across 11 credits, your projected cumulative is (3.28×45 + 4.00×11) / 56 ≈ 3.42. Under the plan of Calc ≈ A- (3.7), Orgo ≈ B+ (3.3), Psych ≈ A (4.0), your term GPA is ≈3.64 and cumulative ≈3.35. Want me to save Path A or Path B for Orgo as your active plan and push calendar reminders? I can also recalc if your letter cutoffs differ in any class."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ProjectedGPAGaugeProps",
+              "props": {
+                "id": "gpa-gauge-fall-2025",
+                "title": "Projected GPA",
+                "currentGPA": 3.28,
+                "projectedGPA": 3.35,
+                "targetGPA": 3.5,
+                "creditsCompleted": 45,
+                "creditsInProgress": 11,
+                "onAdjustTargetAction": {
+                  "type": "adjust_target_gpa",
+                  "payload": {
+                    "gaugeId": "gpa-gauge-fall-2025",
+                    "targetGPA": 3.5
+                  }
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "WhatIfScoreSlidersProps",
+              "props": {
+                "id": "what-if-all-minimums",
+                "title": "What-if Minimums (Locked Targets)",
+                "scope": "all",
+                "items": [
+                  {
+                    "id": "calc-final",
+                    "label": "Calculus II · Final (Dec 12)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 20
+                  },
+                  {
+                    "id": "calc-quiz-7",
+                    "label": "Calculus II · Quiz 7 (Nov 22)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 2.5
+                  },
+                  {
+                    "id": "calc-quiz-8",
+                    "label": "Calculus II · Quiz 8 (Dec 1)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 2.5
+                  },
+                  {
+                    "id": "calc-hw-9",
+                    "label": "Calculus II · HW 9 (Nov 25)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 2
+                  },
+                  {
+                    "id": "calc-hw-10",
+                    "label": "Calculus II · HW 10 (Dec 8)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 100,
+                    "weightPct": 2
+                  },
+                  {
+                    "id": "orgo-lab-9",
+                    "label": "Orgo I · Lab 9 (by Dec 6)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 88,
+                    "weightPct": 2.083
+                  },
+                  {
+                    "id": "orgo-lab-10",
+                    "label": "Orgo I · Lab 10",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 88,
+                    "weightPct": 2.083
+                  },
+                  {
+                    "id": "orgo-lab-11",
+                    "label": "Orgo I · Lab 11",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 88,
+                    "weightPct": 2.083
+                  },
+                  {
+                    "id": "orgo-lab-12",
+                    "label": "Orgo I · Lab 12",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 88,
+                    "weightPct": 2.083
+                  },
+                  {
+                    "id": "orgo-hw-7",
+                    "label": "Orgo I · HW 7 (by Dec 10)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 90,
+                    "weightPct": 1
+                  },
+                  {
+                    "id": "orgo-hw-8",
+                    "label": "Orgo I · HW 8",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 90,
+                    "weightPct": 1
+                  },
+                  {
+                    "id": "orgo-hw-9",
+                    "label": "Orgo I · HW 9",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 90,
+                    "weightPct": 1
+                  },
+                  {
+                    "id": "orgo-hw-10",
+                    "label": "Orgo I · HW 10",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 90,
+                    "weightPct": 1
+                  },
+                  {
+                    "id": "orgo-final",
+                    "label": "Orgo I · Final (Dec 15)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 99,
+                    "weightPct": 19
+                  },
+                  {
+                    "id": "psych-exam2",
+                    "label": "Psych · Exam 2 (Nov 20) — pick & pair with Final",
+                    "minScore": 0,
+                    "maxScore": 200,
+                    "value": 170,
+                    "weightPct": 20
+                  },
+                  {
+                    "id": "psych-final",
+                    "label": "Psych · Final (Dec 14)",
+                    "minScore": 0,
+                    "maxScore": 250,
+                    "value": 195,
+                    "weightPct": 25
+                  },
+                  {
+                    "id": "psych-project",
+                    "label": "Psych · Project (Dec 1)",
+                    "minScore": 0,
+                    "maxScore": 100,
+                    "value": 90,
+                    "weightPct": 10
+                  },
+                  {
+                    "id": "psych-quizzes-rest",
+                    "label": "Psych · Remaining Quizzes (5×10pts)",
+                    "minScore": 0,
+                    "maxScore": 50,
+                    "value": 45,
+                    "weightPct": 5
+                  }
+                ],
+                "presetButtons": [
+                  {
+                    "key": "MAX",
+                    "label": "Maximize (100%)",
+                    "value": 100
+                  },
+                  {
+                    "key": "A",
+                    "label": "Aim for A (93%)",
+                    "value": 93
+                  }
+                ],
+                "onAction": {
+                  "type": "adjust_item"
+                },
+                "showWeights": true,
+                "decimalPlaces": 0
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm locking the user's target thresholds (A- = 92% for Calculus, B+ = 88% for Orgo) and use them in all calculations",
+            "Should compute and state feasibility ceilings when a target is mathematically unattainable, and provide the maximum achievable grade with assumptions",
+            "Should recalculate and clearly state the required final exam scores for Calculus and Organic Chemistry given the locked targets and current performance",
+            "Should compute Psychology requirements using Project = 90/100 and provide the combined Exam 2 + Final points needed, plus example pairings and sensitivity to quiz totals",
+            "Should produce a week-by-week list of minimum required scores for each remaining quiz, homework, lab, project, exam with due dates",
+            "Should add actionable reminders for each remaining item with dates matching the schedule and targets referenced in the plan",
+            "Should reflect the locked targets and minimums in the what-if sliders, pre-populating values and weights that match the assignment structure",
+            "Should update or present the projected term and cumulative GPA outcomes based on the recalculated paths and clearly label assumptions",
+            "Should present any infeasibility or trade-offs (e.g., multiple paths for Orgo) with clear thresholds that reduce required final exam scores",
+            "Should keep calculations internally consistent across text, components, weights, and dates (no contradictions between narrative and UI elements)",
+            "Should use concise, action-oriented language and avoid unnecessary formatting, relying on structured components for data display",
+            "Should use appropriate UI components to show the GPA gauge and what-if sliders and include an assignments/reminders list for schedule and notifications",
+            "Should provide on-action hooks or instructions for locking targets and creating reminders if tool calls are required for those actions",
+            "Should avoid calling external tools unless necessary; if reminders or calendar actions require tools, should call them with correct arguments (titles, dates, targets)"
+          ],
+          "expected_components": [
+            "ProjectedGPAGaugeProps",
+            "WhatIfScoreSlidersProps",
+            "AssignmentsTableProps",
+            "RemindersListProps"
+          ]
+        }
+      }
+    ];
+
+    // Utils
+    const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+    const fmtPct = (v, dp = 1) => `${(v ?? 0).toFixed(dp)}%`;
+    const fmtGPA = (v) => (v ?? 0).toFixed(2);
+    const fmtNum = (v, dp = 0) => (v ?? 0).toFixed(dp);
+    const sum = (arr) => (Array.isArray(arr) ? arr.reduce((a, b) => a + (Number(b) || 0), 0) : 0);
+    const formatDate = (s) => {
+      if (!s) return "-";
+      try {
+        const d = new Date(s);
+        if (isNaN(d.getTime())) return s;
+        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch {
+        return s;
+      }
+    };
+    const dispatchComponentAction = (action, extra = {}) => {
+      const detail = { action: action || {}, extra };
+      console.info("component_action", detail);
+      window.dispatchEvent(new CustomEvent("component_action", { detail }));
+    };
+
+    // Schema Components
+
+    const ClassPerformanceDashboard = (props) => {
+      const {
+        classes = [],
+        selectedClassId: selectedClassIdProp = null,
+        assignments = [],
+        currentGPA = 0,
+        targetGPA = 0,
+        creditInfo = {},
+        gradingScheme = "percentage",
+        assignmentView = {},
+        action = {}
+      } = props;
+
+      const [selectedClassId, setSelectedClassId] = useState(selectedClassIdProp || (classes[0]?.id ?? null));
+      const [filterRemaining, setFilterRemaining] = useState(assignmentView?.filter?.showOnlyRemaining || false);
+      const [sortBy, setSortBy] = useState(assignmentView?.sortBy || "dueDate");
+      const [sortDir, setSortDir] = useState(assignmentView?.sortDir || "asc");
+
+      useEffect(() => {
+        if (selectedClassIdProp && selectedClassIdProp !== selectedClassId) {
+          setSelectedClassId(selectedClassIdProp);
+        }
+      }, [selectedClassIdProp]);
+
+      const selectedClass = useMemo(() => {
+        return classes.find(c => c.id === selectedClassId) || null;
+      }, [classes, selectedClassId]);
+
+      const classAssignments = useMemo(() => {
+        if (!selectedClass) return [];
+        // Prefer explicit courseId, else infer by id prefix
+        const courseId = selectedClass.id;
+        const filtered = assignments.filter(a => {
+          const matchesCourse = a.courseId ? a.courseId === courseId : (typeof a.id === 'string' ? a.id.startsWith(courseId + "-") : false);
+          if (!matchesCourse) return false;
+          if (!filterRemaining) return true;
+          return a.status !== "graded";
+        });
+        const sorted = [...filtered].sort((a, b) => {
+          let va = a[sortBy], vb = b[sortBy];
+          if (sortBy === "dueDate") {
+            va = new Date(va || 0).getTime();
+            vb = new Date(vb || 0).getTime();
+          }
+          if (va < vb) return sortDir === "asc" ? -1 : 1;
+          if (va > vb) return sortDir === "asc" ? 1 : -1;
+          return 0;
+        });
+        return sorted;
+      }, [assignments, selectedClass, filterRemaining, sortBy, sortDir]);
+
+      const summary = useMemo(() => {
+        // Compute earned and projected using weights if available
+        let earnedContribution = 0;
+        let earnedWeight = 0;
+        let projectedContribution = 0;
+        let totalWeight = 0;
+        classAssignments.forEach(a => {
+          const w = (a.weight ?? 0);
+          totalWeight += w;
+          if (a.status === "graded") {
+            const s = Number(a.score ?? 0);
+            earnedContribution += w * s / 100;
+            earnedWeight += w;
+            projectedContribution += w * s / 100;
+          } else {
+            const p = Number(a.plannedScore ?? a.score ?? 0);
+            projectedContribution += w * p / 100;
+          }
+        });
+        const currentPct = earnedWeight > 0 ? (earnedContribution / earnedWeight) * 100 : (selectedClass?.currentGrade ?? 0);
+        const projectedPct = totalWeight > 0 ? (projectedContribution / totalWeight) * 100 : currentPct;
+        return { currentPct, projectedPct, earnedWeightPct: earnedWeight * 100, remainingWeightPct: Math.max(0, (totalWeight - earnedWeight) * 100) };
+      }, [classAssignments, selectedClass]);
+
+      const totalClasses = classes.length;
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100">
+          <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center gap-3">
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">Class Performance Dashboard</h2>
+              <p className="text-sm text-gray-600">Cumulative GPA {fmtGPA(currentGPA)} • Target {fmtGPA(targetGPA)} • Credits: {creditInfo?.totalCreditsCompleted ?? 0} completed{creditInfo?.currentTermCredits ? ` · ${creditInfo.currentTermCredits} in progress` : ""}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Show</label>
+              <select
+                className="text-sm border rounded-md px-2 py-1"
+                value={filterRemaining ? "remaining" : "all"}
+                onChange={(e) => setFilterRemaining(e.target.value === "remaining")}
+              >
+                <option value="all">All assignments</option>
+                <option value="remaining">Only remaining</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="p-4 grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-1">
+              <div className="border rounded-lg divide-y">
+                <div className="px-3 py-2 bg-gray-50 text-xs font-medium uppercase tracking-wide text-gray-600">Classes ({totalClasses})</div>
+                {Array.isArray(classes) && classes.length > 0 ? classes.map(c => (
+                  <button
+                    key={c.id}
+                    onClick={() => setSelectedClassId(c.id)}
+                    className={`w-full text-left px-3 py-2 hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 ${selectedClassId === c.id ? "bg-blue-50" : ""}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{c.name}</div>
+                        {"currentGrade" in c ? <div className="text-xs text-gray-600">Current: {fmtPct(c.currentGrade ?? 0, 1)}</div> : null}
+                      </div>
+                      <div className="text-xs text-gray-500">{c.creditHours ?? "-"} cr</div>
+                    </div>
+                  </button>
+                )) : (
+                  <div className="px-3 py-4 text-sm text-gray-500">No classes yet.</div>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2">
+              {selectedClass ? (
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <h3 className="text-base font-semibold text-gray-900">{selectedClass.name}</h3>
+                        <div className="text-sm text-gray-600">Grading scheme: {gradingScheme.replace("_", " ")}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm text-gray-600">Current</div>
+                        <div className="text-xl font-bold text-gray-900">{fmtPct(summary.currentPct, 1)}</div>
+                      </div>
+                    </div>
+                    <div className="mt-3">
+                      <div className="text-xs text-gray-600 mb-1">Projected overall</div>
+                      <div className="w-full h-2 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="h-2 bg-blue-500" style={{ width: `${clamp(summary.projectedPct, 0, 100)}%` }}></div>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-700">{fmtPct(summary.projectedPct, 1)} projected • Earned weight {fmtPct(summary.earnedWeightPct, 1)} • Remaining {fmtPct(summary.remainingWeightPct, 1)}</div>
+                    </div>
+                  </div>
+
+                  <div className="border rounded-lg">
+                    <div className="px-4 py-2 bg-gray-50 flex items-center justify-between">
+                      <div className="text-xs uppercase tracking-wide font-medium text-gray-600">Assignments</div>
+                      <div className="flex items-center gap-2">
+                        <label className="text-xs text-gray-600">Sort</label>
+                        <select
+                          className="text-xs border rounded-md px-2 py-1"
+                          value={`${sortBy}:${sortDir}`}
+                          onChange={(e) => {
+                            const [sb, sd] = e.target.value.split(":");
+                            setSortBy(sb); setSortDir(sd);
+                          }}
+                        >
+                          <option value="dueDate:asc">Due date ↑</option>
+                          <option value="dueDate:desc">Due date ↓</option>
+                          <option value="title:asc">Title A–Z</option>
+                          <option value="title:desc">Title Z–A</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="overflow-auto">
+                      <table className="min-w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Title</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Category</th>
+                            <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Status</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Weight</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Score</th>
+                            <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Due</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y">
+                          {Array.isArray(classAssignments) && classAssignments.length > 0 ? classAssignments.map(a => (
+                            <tr key={a.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-2">{a.title}</td>
+                              <td className="px-4 py-2 text-gray-600">{a.category || "-"}</td>
+                              <td className="px-4 py-2">
+                                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${a.status === "graded" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-800"}`}>
+                                  {a.status || "planned"}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2 text-right text-gray-700">{a.weight != null ? fmtPct((a.weight) * 100, 1) : "-"}</td>
+                              <td className="px-4 py-2 text-right">
+                                {a.status === "graded" ? (
+                                  <span className="font-medium text-gray-900">{fmtPct(a.score ?? 0, 0)}</span>
+                                ) : (
+                                  <span className="text-gray-700">{a.plannedScore != null ? fmtPct(a.plannedScore, 0) : "-"}</span>
+                                )}
+                              </td>
+                              <td className="px-4 py-2 text-right text-gray-600">{formatDate(a.dueDate)}</td>
+                            </tr>
+                          )) : (
+                            <tr>
+                              <td colSpan="6" className="px-4 py-6 text-center text-sm text-gray-500">No assignments to display.</td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">Select a class to view details.</div>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ClassGradeSummary = (props) => {
+      const {
+        classId = "",
+        className = "",
+        currentGradePct = 0,
+        categoryBreakdown = [],
+        remainingWeightPct = 0,
+        sectionLabel = "",
+        iconUrl = "",
+        setActiveAction = {},
+        defaultExpanded = false,
+        showProjectedGpaIndicator = false
+      } = props;
+
+      const [expanded, setExpanded] = useState(defaultExpanded);
+
+      const onSetActive = () => {
+        if (setActiveAction) {
+          dispatchComponentAction(setActiveAction, { classId });
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border rounded-lg shadow-sm p-4">
+          <div className="flex items-start gap-3">
+            {iconUrl ? <img src={iconUrl} alt="" className="w-8 h-8 rounded object-cover" /> : <div className="w-8 h-8 rounded bg-blue-100 text-blue-700 flex items-center justify-center text-sm font-semibold">{className?.slice(0,1) || "C"}</div>}
+            <div className="flex-1">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-gray-500">{sectionLabel || "Class"}</div>
+                  <div className="text-lg font-semibold text-gray-900">{className}</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-gray-500">Current</div>
+                  <div className="text-xl font-bold text-gray-900">{fmtPct(currentGradePct, 1)}</div>
+                </div>
+              </div>
+              <div className="mt-3">
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-2 bg-blue-500" style={{ width: `${clamp(100 - (remainingWeightPct || 0), 0, 100)}%` }}></div>
+                </div>
+                <div className="mt-1 text-xs text-gray-700">Remaining weight: {fmtPct(remainingWeightPct, 1)}</div>
+              </div>
+              {Array.isArray(categoryBreakdown) && categoryBreakdown.length > 0 ? (
+                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {categoryBreakdown.map((cat, idx) => (
+                    <div key={idx} className="border rounded px-2 py-1">
+                      <div className="text-xs text-gray-600">{cat.category || "Category"}</div>
+                      <div className="text-sm font-medium text-gray-900">{fmtPct(cat.scorePct ?? 0, 1)} <span className="text-gray-500 text-xs">· {fmtPct(cat.weightPct ?? 0, 1)}</span></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-3 text-sm text-gray-500">No category breakdown provided.</div>
+              )}
+              <div className="mt-3 flex items-center gap-2">
+                <button
+                  onClick={() => { setExpanded(!expanded); }}
+                  className="text-xs px-2 py-1 border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {expanded ? "Hide details" : "Show details"}
+                </button>
+                <button
+                  onClick={onSetActive}
+                  className="text-xs px-2 py-1 border rounded hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Set Active
+                </button>
+                {showProjectedGpaIndicator ? <span className="text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded">Impacts projected GPA</span> : null}
+              </div>
+              {expanded ? (
+                <div className="mt-3 text-sm text-gray-600">Additional details can be shown here.</div>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const AssignmentTable = (props) => {
+      const {
+        courseId = "",
+        courseName = "",
+        rows = [],
+        sort = {},
+        filters = {},
+        allowPlannedEdits = false,
+        dateFormat = "auto",
+        interaction = {}
+      } = props;
+
+      const [localRows, setLocalRows] = useState(Array.isArray(rows) ? rows : []);
+      const [sortBy, setSortBy] = useState(sort?.by || "dueDate");
+      const [sortDir, setSortDir] = useState(sort?.dir || "asc");
+      const [showRemaining, setShowRemaining] = useState(Boolean(filters?.showRemaining));
+
+      useEffect(() => {
+        setLocalRows(Array.isArray(rows) ? rows : []);
+      }, [rows]);
+
+      const displayed = useMemo(() => {
+        let r = [...localRows];
+        if (showRemaining) {
+          r = r.filter(x => x.status !== "graded");
+        }
+        r.sort((a, b) => {
+          let va = a[sortBy], vb = b[sortBy];
+          if (sortBy === "dueDate") {
+            va = new Date(va || 0).getTime();
+            vb = new Date(vb || 0).getTime();
+          }
+          if (va < vb) return sortDir === "asc" ? -1 : 1;
+          if (va > vb) return sortDir === "asc" ? 1 : -1;
+          return 0;
+        });
+        return r;
+      }, [localRows, sortBy, sortDir, showRemaining]);
+
+      const updatePlanned = (id, value) => {
+        setLocalRows(prev => prev.map(r => r.id === id ? { ...r, plannedScore: value } : r));
+        if (interaction) {
+          dispatchComponentAction(interaction, { courseId, assignmentId: id, plannedScore: value });
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border rounded-lg shadow-sm">
+          <div className="px-4 py-3 border-b flex items-center justify-between">
+            <div>
+              <div className="text-sm text-gray-500">Course</div>
+              <div className="text-base font-semibold text-gray-900">{courseName || courseId || "Course"}</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-600">Show</label>
+              <select className="text-xs border rounded px-2 py-1" value={showRemaining ? "remaining" : "all"} onChange={(e) => setShowRemaining(e.target.value === "remaining")}>
+                <option value="all">All</option>
+                <option value="remaining">Remaining</option>
+              </select>
+              <label className="text-xs text-gray-600">Sort</label>
+              <select className="text-xs border rounded px-2 py-1" value={`${sortBy}:${sortDir}`} onChange={(e) => {
+                const [sb, sd] = e.target.value.split(":");
+                setSortBy(sb); setSortDir(sd);
+              }}>
+                <option value="dueDate:asc">Due ↑</option>
+                <option value="dueDate:desc">Due ↓</option>
+                <option value="title:asc">Title A–Z</option>
+                <option value="title:desc">Title Z–A</option>
+              </select>
+            </div>
+          </div>
+          <div className="overflow-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Title</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Category</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-600">Status</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Weight/Points</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Score</th>
+                  <th className="px-4 py-2 text-right text-xs font-semibold text-gray-600">Due</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {Array.isArray(displayed) && displayed.length > 0 ? displayed.map(r => (
+                  <tr key={r.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-2">{r.title}</td>
+                    <td className="px-4 py-2 text-gray-600">{r.category || "-"}</td>
+                    <td className="px-4 py-2">
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${r.status === "graded" ? "bg-green-50 text-green-700" : "bg-yellow-50 text-yellow-800"}`}>
+                        {r.status || "planned"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-2 text-right text-gray-700">
+                      {"pointsPossible" in r ? `${r.pointsPossible}` : (r.weight != null ? fmtPct(r.weight * 100, 1) : "-")}
+                    </td>
+                    <td className="px-4 py-2 text-right">
+                      {r.status === "graded" ? (
+                        <span className="font-medium text-gray-900">
+                          {"pointsEarned" in r && "pointsPossible" in r ? `${r.pointsEarned}/${r.pointsPossible}` : fmtPct(r.score ?? 0, 0)}
+                        </span>
+                      ) : allowPlannedEdits ? (
+                        <input
+                          type="number"
+                          min="0"
+                          max={("pointsPossible" in r) ? r.pointsPossible : 100}
+                          step="1"
+                          value={r.plannedScore ?? ""}
+                          onChange={(e) => updatePlanned(r.id, Number(e.target.value))}
+                          className="w-24 text-right border rounded px-2 py-1"
+                        />
+                      ) : (
+                        <span className="text-gray-700">
+                          {("pointsPossible" in r) ? `${r.plannedScore ?? "-"}/${r.pointsPossible}` : (r.plannedScore != null ? fmtPct(r.plannedScore, 0) : "-")}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2 text-right text-gray-600">
+                      {dateFormat === "auto" ? formatDate(r.dueDate) : (r.dueDate || "-")}
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan="6" className="px-4 py-6 text-center text-sm text-gray-500">No assignments.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    };
+
+    const ProjectedGPAGauge = (props) => {
+      const {
+        id = "",
+        title = "Projected GPA",
+        currentGPA = 0,
+        projectedGPA = 0,
+        targetGPA: targetGPAProp = 0,
+        creditsCompleted = 0,
+        creditsInProgress = 0,
+        onAdjustTargetAction = {}
+      } = props;
+
+      const [targetGPA, setTargetGPA] = useState(targetGPAProp);
+
+      useEffect(() => {
+        setTargetGPA(targetGPAProp);
+      }, [targetGPAProp]);
+
+      const scaleMax = 4.0;
+      const widthPct = (v) => `${clamp((v / scaleMax) * 100, 0, 100)}%`;
+
+      const onChangeTarget = (v) => {
+        const val = Math.round(clamp(v, 0, 4.0) * 100) / 100;
+        setTargetGPA(val);
+        if (onAdjustTargetAction) {
+          dispatchComponentAction(onAdjustTargetAction, { id, targetGPA: val });
+        }
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm text-gray-500">GPA</div>
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            </div>
+            <div className="text-right text-sm text-gray-600">
+              <div>Completed: {creditsCompleted} cr</div>
+              <div>In progress: {creditsInProgress} cr</div>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            <div>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Current {fmtGPA(currentGPA)}</span>
+                <span>4.00</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-500" style={{ width: widthPct(currentGPA) }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Projected {fmtGPA(projectedGPA)}</span>
+                <span>4.00</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-blue-500" style={{ width: widthPct(projectedGPA) }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs text-gray-600 mb-1">
+                <span>Target {fmtGPA(targetGPA)}</span>
+                <span>4.00</span>
+              </div>
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden relative">
+                <div className="h-2 bg-emerald-500" style={{ width: widthPct(targetGPA) }}></div>
+              </div>
+              <div className="mt-2 flex items-center gap-2">
+                <input
+                  type="range"
+                  min="0"
+                  max="4"
+                  step="0.01"
+                  value={targetGPA}
+                  onChange={(e) => onChangeTarget(Number(e.target.value))}
+                  className="w-full"
+                  aria-label="Adjust target GPA"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  max="4"
+                  step="0.01"
+                  value={targetGPA}
+                  onChange={(e) => onChangeTarget(Number(e.target.value))}
+                  className="w-20 border rounded px-2 py-1 text-sm text-right"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const WhatIfScoreSliders = (props) => {
+      const {
+        id = "",
+        title = "What-if Scores",
+        scope = "class",
+        items: itemsProp = [],
+        presetButtons = [],
+        onAction = {},
+        showWeights = false,
+        decimalPlaces = 0
+      } = props;
+
+      const [items, setItems] = useState(Array.isArray(itemsProp) ? itemsProp : []);
+
+      useEffect(() => {
+        setItems(Array.isArray(itemsProp) ? itemsProp : []);
+      }, [itemsProp]);
+
+      const onChangeItem = (itemId, val) => {
+        setItems(prev => prev.map(it => it.id === itemId ? { ...it, value: val } : it));
+        if (onAction) {
+          dispatchComponentAction(onAction, { id, itemId, value: val });
+        }
+      };
+
+      const applyPreset = (value) => {
+        setItems(prev => prev.map(it => ({ ...it, value: clamp(value, it.minScore ?? 0, it.maxScore ?? 100) })));
+        if (onAction) {
+          dispatchComponentAction(onAction, { id, presetValue: value });
+        }
+      };
+
+      const weightedProjection = useMemo(() => {
+        let wsum = 0;
+        let contrib = 0;
+        items.forEach(it => {
+          const w = (it.weightPct ?? 0);
+          const v = Number(it.value ?? 0);
+          wsum += w;
+          contrib += w * (v / (it.maxScore || 100)) * 100;
+        });
+        const avg = wsum > 0 ? contrib / wsum : 0;
+        return { weightedPct: avg, totalWeight: wsum };
+      }, [items]);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <div className="text-sm text-gray-500">{scope === "all" ? "Across all classes" : "Per class"}</div>
+              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              {Array.isArray(presetButtons) && presetButtons.map(pb => (
+                <button
+                  key={pb.key || pb.label}
+                  onClick={() => applyPreset(pb.value)}
+                  className="text-xs px-2 py-1 border rounded hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {pb.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mt-4 space-y-4">
+            {Array.isArray(items) && items.length > 0 ? items.map(it => {
+              const min = it.minScore ?? 0;
+              const max = it.maxScore ?? 100;
+              const value = clamp(Number(it.value ?? min), min, max);
+              return (
+                <div key={it.id} className="border rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm font-medium text-gray-900">{it.label || it.id}</div>
+                    <div className="text-sm text-gray-700">
+                      <input
+                        type="number"
+                        min={min}
+                        max={max}
+                        step="1"
+                        value={value}
+                        onChange={(e) => onChangeItem(it.id, Number(e.target.value))}
+                        className="w-24 border rounded px-2 py-1 text-right"
+                      />
+                      <span className="ml-1 text-gray-500">/ {max}</span>
+                    </div>
+                  </div>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    step="1"
+                    value={value}
+                    onChange={(e) => onChangeItem(it.id, Number(e.target.value))}
+                    className="w-full mt-3"
+                  />
+                  <div className="mt-1 text-xs text-gray-600 flex items-center justify-between">
+                    <span>Min {min} · Max {max}</span>
+                    {showWeights ? <span>Weight {fmtPct(it.weightPct ?? 0, 2)}</span> : <span></span>}
+                  </div>
+                </div>
+              );
+            }) : (
+              <div className="text-sm text-gray-500">No what-if items configured.</div>
+            )}
+          </div>
+          {showWeights ? (
+            <div className="mt-4 border-t pt-3 text-sm text-gray-700">
+              Weighted projection across items: {fmtPct(weightedProjection.weightedPct, decimalPlaces)} · Total remaining weight {fmtPct(weightedProjection.totalWeight, 2)}
+            </div>
+          ) : null}
+        </div>
+      );
+    };
+
+    // Aliases for conversation component names not in schema (shims)
+    const ProjectedGPAGaugeProps = (props) => <ProjectedGPAGauge {...props} />;
+    const WhatIfScoreSlidersProps = (props) => <WhatIfScoreSliders {...props} />;
+
+    // Optional helper components for completeness (not in schema)
+    const AssignmentsTableProps = (props) => <AssignmentTable {...props} />;
+    const RemindersListProps = (props) => {
+      const { title = "Reminders", items = [] } = props;
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+          <ul className="mt-3 space-y-2">
+            {Array.isArray(items) && items.length > 0 ? items.map((it, idx) => (
+              <li key={idx} className="flex items-start gap-3 border rounded-lg p-3">
+                <div className="text-sm font-medium text-gray-900">{it.title || "Reminder"}</div>
+                <div className="ml-auto text-sm text-gray-600">{formatDate(it.date)}</div>
+              </li>
+            )) : <li className="text-sm text-gray-500">No reminders.</li>}
+          </ul>
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      ClassPerformanceDashboard: ClassPerformanceDashboard,
+      ClassGradeSummary: ClassGradeSummary,
+      AssignmentTable: AssignmentTable,
+      ProjectedGPAGauge: ProjectedGPAGauge,
+      WhatIfScoreSliders: WhatIfScoreSliders,
+      // Shims/aliases used in the conversation
+      ProjectedGPAGaugeProps: ProjectedGPAGaugeProps,
+      WhatIfScoreSlidersProps: WhatIfScoreSlidersProps,
+      AssignmentsTableProps: AssignmentsTableProps,
+      RemindersListProps: RemindersListProps
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === "string") {
+        return (
+          <div className="whitespace-pre-wrap text-gray-800 text-sm">
+            {chunk}
+          </div>
+        );
+      }
+      if (chunk.type === "text") {
+        return (
+          <div className="whitespace-pre-wrap text-gray-800 text-sm">
+            {chunk.text || ""}
+          </div>
+        );
+      }
+      if (chunk.type === "component" && chunk.component) {
+        const { name, props } = chunk.component;
+        return (
+          <div className="my-3">
+            <ComponentRenderer componentName={name} props={props || {}} />
+          </div>
+        );
+      }
+      return (
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded text-xs text-gray-600">
+          Unsupported content chunk
+        </div>
+      );
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === "user";
+      const bg = isUser ? "bg-blue-600 text-white" : "bg-white text-gray-900";
+      const border = isUser ? "" : "border border-gray-200";
+      const align = isUser ? "items-end" : "items-start";
+
+      const renderContent = () => {
+        if (Array.isArray(content)) {
+          return content.map((chunk, idx) => <ContentChunkRenderer key={idx} chunk={chunk} />);
+        }
+        if (typeof content === "string") {
+          return <ContentChunkRenderer chunk={content} />;
+        }
+        return <div className="text-sm text-gray-700">Unsupported message</div>;
+      };
+
+      return (
+        <div className={`w-full flex ${align}`}>
+          <div className={`max-w-3xl w-full rounded-2xl ${bg} ${border} p-4 shadow-sm`}>
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${isUser ? "bg-white text-blue-700" : "bg-blue-600 text-white"}`}>
+                {isUser ? "U" : "A"}
+              </div>
+              <div className={`text-xs uppercase tracking-wide ${isUser ? "text-blue-100" : "text-gray-500"}`}>{isUser ? "User" : "Assistant"}</div>
+            </div>
+            <div className={`space-y-3 ${isUser ? "" : ""}`}>
+              {renderContent()}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen">
+          <header className="sticky top-0 bg-white/80 backdrop-blur border-b border-gray-200 z-10">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <h1 className="text-lg font-semibold text-gray-900">Conversation Viewer</h1>
+              <div className="text-sm text-gray-600">UI Component Conversation</div>
+            </div>
+          </header>
+          <main className="max-w-5xl mx-auto px-4 py-6 space-y-6">
+            {Array.isArray(conversation) && conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            ))}
+          </main>
+          <footer className="py-8 text-center text-xs text-gray-500">
+            Built with React, Babel, and TailwindCSS
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

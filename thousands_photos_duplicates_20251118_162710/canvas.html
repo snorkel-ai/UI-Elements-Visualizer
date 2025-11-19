@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I have thousands of photos. Help me find duplicates, near-duplicates, and photos to archive."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great — I can help you scan your library, group similar shots, and quickly clear space by removing duplicates and archiving low‑value photos. Here’s a starter view with example clusters and a savings preview. If you’d like, I can begin a full scan next and populate this with your actual photos.\n\nRecommended next steps:\n- Start scan: I’ll analyze your library for exact duplicates, near-duplicates, series/bursts, and likely archive candidates (screenshots, receipts, blurry shots).\n- Review duplicates first: Use “Select all but best” per cluster to keep the sharpest/highest-res version.\n- Then near-duplicates/series: Bulk-select similar shots and keep just the best.\n- Archive low-value items: We’ll move screenshots, documents, and blurry photos to your archive to reclaim space safely.\n\nQuick preferences (optional):\n- When choosing the best photo, should I prioritize newest, highest resolution, or highest sharpness?\n- Do you want duplicates permanently deleted or moved to archive first?\n\nSay “Start the scan” and I’ll begin building your real clusters."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SimilarPhotoClustersPanel",
+              "props": {
+                "clusters": [
+                  {
+                    "id": "c_001",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/dup_001.jpg",
+                    "photoIds": [
+                      "p_101",
+                      "p_102"
+                    ],
+                    "type": "duplicate",
+                    "selected": true,
+                    "totalBytes": 10485760
+                  },
+                  {
+                    "id": "c_002",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/near_002.jpg",
+                    "photoIds": [
+                      "p_201",
+                      "p_202",
+                      "p_203"
+                    ],
+                    "type": "nearDuplicate",
+                    "selected": true,
+                    "totalBytes": 15728640
+                  },
+                  {
+                    "id": "c_003",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/series_003.jpg",
+                    "photoIds": [
+                      "p_301",
+                      "p_302",
+                      "p_303",
+                      "p_304"
+                    ],
+                    "type": "series",
+                    "selected": false,
+                    "totalBytes": 20971520
+                  }
+                ],
+                "summary": {
+                  "totalBytes": 47185920,
+                  "potentialSavingsBytes": 23592960,
+                  "counts": {
+                    "duplicate": 1,
+                    "nearDuplicate": 1,
+                    "series": 1
+                  }
+                },
+                "selectionMode": "all",
+                "defaultBulkAction": "review",
+                "onApplyAction": {
+                  "type": "apply_photo_cleanup",
+                  "payload": {
+                    "selectedClusterIds": [
+                      "c_001",
+                      "c_002"
+                    ],
+                    "bulkAction": "review",
+                    "selectionMode": "all"
+                  }
+                },
+                "showSavingsSummary": true,
+                "thumbnailSize": "m"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "StorageSavingsSummaryCard",
+              "props": {
+                "id": "savings-summary-1",
+                "title": "Potential Savings",
+                "bytesRecoverable": 23592960,
+                "selectedBytes": 13107200,
+                "counts": {
+                  "duplicate": 1,
+                  "nearDuplicate": 1,
+                  "archiveCandidates": 0
+                },
+                "ctaLabel": "Apply Cleanup",
+                "imageUrl": "https://cdn.example.com/icons/storage-savings.png",
+                "actions": {
+                  "applyCleanup": {
+                    "type": "apply_selected_cleanup",
+                    "payload": {
+                      "cardId": "savings-summary-1"
+                    }
+                  },
+                  "viewBreakdown": {
+                    "type": "view_savings_breakdown",
+                    "payload": {
+                      "cardId": "savings-summary-1"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should clearly acknowledge the user's goal to find duplicates, near-duplicates, and archive candidates, and outline an approach to achieve it",
+            "Should request explicit user consent before scanning or modifying the user's photo library",
+            "Should explain the categories used (duplicates, near-duplicates, series/bursts, archive candidates) and how they will be handled",
+            "Should provide actionable next steps (e.g., start scan, review duplicates first, apply cleanup) with clear calls to action",
+            "Should present a preview or starter view using placeholder/example data when no scan has been run, without implying access to the user's actual photos",
+            "Should use appropriate UI components to display clusters of similar photos and a storage savings summary, matching the scenario",
+            "Should include bulk-selection and review workflows (e.g., select all but best, review before deleting) to handle thousands of photos efficiently",
+            "Should offer user-settable preferences for selection criteria (e.g., newest, highest resolution, sharpness) and deletion vs archiving behavior",
+            "Should avoid destructive actions by default and require confirmation for permanent deletions",
+            "Should ensure component properties are well-formed and consistent (valid IDs, URLs, integer byte sizes, correct cluster counts, coherent savings totals)",
+            "Should align the narrative text with the data shown in components (cluster counts, selected states, savings figures) to avoid inconsistencies",
+            "Should not hallucinate specific user content and should clearly label example data as sample or starter view",
+            "Should call appropriate tools with correct arguments if and only if a real scan or cleanup operation is initiated or requested by the user",
+            "Should provide an option to view a breakdown of savings and to apply selected cleanup actions through component actions",
+            "Should communicate safety and reversibility (e.g., moving to archive first) and provide an option to undo or review before applying changes"
+          ],
+          "expected_components": [
+            "SimilarPhotoClustersPanel",
+            "StorageSavingsSummaryCard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Start the scan. Prioritize highest sharpness, then resolution, and if tied pick the newest. Move duplicates to the archive first, and include screenshots/receipts in archive candidates."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Got it — I’ll start the scan now with your preferences: keep the sharpest photo first, then highest resolution, then newest if tied. I’ll move confirmed duplicates to the archive (not delete), and I’ll include screenshots and receipts as archive candidates. As the scan progresses, I’ll group duplicates, near-duplicates, and series into reviewable clusters and surface a savings summary. You can pause or cancel anytime. I’ll notify you as soon as the first clusters are ready for review."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScanProgressBanner",
+              "props": {
+                "status": "scanning",
+                "progressPercent": 3,
+                "scannedCount": 0,
+                "primaryAction": {
+                  "type": "pause_scan"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly acknowledge and restate the user's scan preferences: prioritize highest sharpness, then resolution, then newest when tied",
+            "Should confirm initiation of the scan immediately upon request",
+            "Should state non-destructive handling: move duplicates to archive first (not delete)",
+            "Should state inclusion of screenshots and receipts in archive candidate detection",
+            "Should describe that results will be organized into clusters for duplicates, near-duplicates, and series for review",
+            "Should indicate that a storage savings summary will be surfaced during or after scanning",
+            "Should present clear user controls to pause or cancel the scan",
+            "Should provide a progress indication that is plausible and appropriately bounded (0–100%) and includes a scanned item count when available",
+            "Should use UI components appropriate to the task to display scan status and controls",
+            "Should use the ScanProgressBanner component to convey scanning status, progress, and actions with correct props (e.g., status='scanning', progressPercent as a number 0–100, scannedCount as a non-negative integer, and primaryAction for pausing or canceling)",
+            "Should avoid implying deletion or irreversible actions without explicit user confirmation",
+            "Should communicate that the user will be notified when the first clusters are ready for review",
+            "Should avoid unnecessary technical detail and keep tone concise, clear, and action-oriented",
+            "Should call appropriate tools or background processes to perform the scan if tool invocation is required by the system, passing the user's prioritization and archival preferences as parameters",
+            "Should not fabricate unavailable UI elements or data; any referenced visuals should align with the expected clusters, duplicate badges, bulk-select tools, and savings summary"
+          ],
+          "expected_components": [
+            "ScanProgressBanner"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Ping me when the first clusters are ready. Use a strict similarity threshold for near-duplicates, auto-select “keep best” for exact duplicates, and don’t archive anything in Favorites or shared albums."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Perfect. I’ve updated the scan settings as follows: strict similarity threshold for near-duplicates, auto-select “keep best” for exact duplicates based on sharpness > resolution > newest, and exclude anything in Favorites or shared albums from archiving. I’ll ping you the moment the first clusters are ready to review. The scan is underway—you can pause or cancel anytime."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScanProgressBanner",
+              "props": {
+                "status": "scanning",
+                "progressPercent": 11,
+                "scannedCount": 1320,
+                "totalCount": 12000,
+                "primaryAction": {
+                  "type": "pause_scan"
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm applying the user's requested settings: strict similarity threshold for near-duplicates, auto-select 'keep best' for exact duplicates, and exclusion of Favorites and shared albums from archiving",
+            "Should state how 'keep best' is determined for exact duplicates (e.g., sharpness, resolution, recency) or ask for user preferences if criteria are undefined",
+            "Should initiate the scan process and communicate that the assistant will notify the user when the first clusters are ready",
+            "Should use clear, actionable language and avoid vague promises about notifications; specify the notification/ping mechanism if relevant in this context",
+            "Should provide real-time progress feedback using an appropriate UI component, including status, percent complete (0–100), scanned count, total count, and available actions (pause/cancel)",
+            "Should avoid claiming changes or progress that require tool access unless such tools are correctly invoked; if tools are required to update settings or start scans, they should be called with correct arguments",
+            "Should not archive, delete, or move any items without explicit user confirmation; limit actions to scanning, clustering, and pre-selection",
+            "Should confirm that Favorites and shared albums are excluded from any archiving or bulk actions and reflect this constraint in subsequent actions and displays",
+            "Should indicate the next step when clusters are ready, including presenting clusters of similar photos with duplicate detection badges, bulk-select tools, and storage savings summaries",
+            "Should ensure all presented numbers are internally consistent (e.g., scannedCount ≤ totalCount; progressPercent corresponds roughly to scannedCount/totalCount)",
+            "Should keep the response concise and relevant to the user's request without unnecessary details or unrelated features"
+          ],
+          "expected_components": [
+            "ScanProgressBanner"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Quick check—any clusters ready yet? Also, please exclude RAW originals from archiving and prefer keeping edited versions over originals when de-duping."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Quick update: yes—your first clusters are ready to review. I’ve also applied your new preferences: RAW originals are excluded from archiving, and when de‑duping I’ll prefer edited versions over originals (still using sharpness > resolution > newest for tie‑breaks). Favorites and shared albums remain excluded from archiving. Auto “keep best” is applied for exact duplicates, with the rest pre‑selected for archiving.\n\nYou can start reviewing now or let the scan continue and I’ll keep surfacing new clusters as they’re ready."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "ScanProgressBanner",
+              "props": {
+                "status": "analyzing",
+                "progressPercent": 42,
+                "scannedCount": 3800,
+                "totalCount": 12000,
+                "primaryAction": {
+                  "type": "pause_scan"
+                }
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SimilarPhotoClustersPanel",
+              "props": {
+                "clusters": [
+                  {
+                    "id": "c_dup_001",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/dup_001.jpg",
+                    "photoIds": [
+                      "p101",
+                      "p102"
+                    ],
+                    "type": "duplicate",
+                    "selected": true,
+                    "totalBytes": 9200000
+                  },
+                  {
+                    "id": "c_dup_002",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/dup_002.jpg",
+                    "photoIds": [
+                      "p201",
+                      "p202",
+                      "p203"
+                    ],
+                    "type": "duplicate",
+                    "selected": true,
+                    "totalBytes": 15500000
+                  },
+                  {
+                    "id": "c_near_001",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/near_001.jpg",
+                    "photoIds": [
+                      "p301",
+                      "p302"
+                    ],
+                    "type": "nearDuplicate",
+                    "selected": false,
+                    "totalBytes": 8400000
+                  },
+                  {
+                    "id": "c_series_001",
+                    "representativeThumbnailUrl": "https://cdn.example.com/t/series_001.jpg",
+                    "photoIds": [
+                      "p401",
+                      "p402",
+                      "p403",
+                      "p404"
+                    ],
+                    "type": "series",
+                    "selected": false,
+                    "totalBytes": 24800000
+                  }
+                ],
+                "summary": {
+                  "totalBytes": 57900000,
+                  "potentialSavingsBytes": 18700000,
+                  "counts": {
+                    "duplicate": 2,
+                    "nearDuplicate": 1,
+                    "series": 1
+                  }
+                },
+                "selectionMode": "duplicates_only",
+                "defaultBulkAction": "archive",
+                "onApplyAction": {
+                  "type": "apply_photo_cleanup",
+                  "payload": {
+                    "selectedClusterIds": [
+                      "c_dup_001",
+                      "c_dup_002"
+                    ],
+                    "bulkAction": "archive",
+                    "selectionMode": "duplicates_only"
+                  }
+                },
+                "showSavingsSummary": true,
+                "thumbnailSize": "m"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm whether clusters are ready and present a clear status update",
+            "Should acknowledge and apply the user's preferences: exclude RAW originals from archiving and prefer keeping edited versions over originals during de-duplication",
+            "Should state or reflect the de-duplication tie-breaker logic (e.g., sharpness > resolution > recency) when relevant",
+            "Should provide actionable next steps, allowing the user to begin review immediately or continue scanning",
+            "Should present a progress indicator with status, percentage, scanned count, and total count",
+            "Should display clusters of similar photos with types (duplicate, near-duplicate, series), representative thumbnails, photo IDs, and byte sizes where available",
+            "Should preselect exact duplicate clusters for archiving if 'keep best' logic is applied, while leaving near-duplicates and series unselected by default unless otherwise requested",
+            "Should show a storage savings summary, including total bytes represented and potential savings from selected items",
+            "Should provide bulk action capability (e.g., archive) with a clear default aligned to the current selection mode",
+            "Should include a safe and reversible apply action, not performing destructive operations without explicit user confirmation",
+            "Should allow control of the scan (e.g., pause) without disrupting the current review context",
+            "Should ensure all displayed numbers (counts, totals, savings) are internally consistent with the listed clusters and selections",
+            "Should avoid calling external tools unless data fetching or computation beyond the presented UI state is required; if needed, should call tools with correct arguments",
+            "Should use concise, clear language and avoid unrelated information",
+            "Should not reveal or process RAW originals for archiving and should reflect that policy in selection and action configuration",
+            "Should ensure the on-apply action payload matches the current selection, action, and selection mode shown in the UI"
+          ],
+          "expected_components": [
+            "ScanProgressBanner",
+            "SimilarPhotoClustersPanel"
+          ]
+        }
+      }
+    ];
+
+    // Helpers
+    const formatBytes = (bytes) => {
+      if (bytes === 0 || bytes == null || isNaN(bytes)) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      const value = bytes / Math.pow(k, i);
+      return `${value.toFixed(value >= 10 || i === 0 ? 0 : 1)} ${sizes[i]}`;
+    };
+
+    const formatNumber = (n) => {
+      try {
+        return new Intl.NumberFormat().format(n ?? 0);
+      } catch {
+        return String(n ?? 0);
+      }
+    };
+
+    // Components per schema
+
+    const SimilarPhotoClustersPanel = (props) => {
+      const {
+        clusters = [],
+        summary = {},
+        selectionMode = 'all',
+        defaultBulkAction = 'review',
+        onApplyAction = {},
+        showSavingsSummary = true,
+        thumbnailSize = 'm'
+      } = props;
+
+      const sizeMap = { s: 'h-16 w-16', m: 'h-24 w-24', l: 'h-32 w-32' };
+      const thumbClass = sizeMap[thumbnailSize] || sizeMap.m;
+
+      const [localClusters, setLocalClusters] = useState(() => {
+        if (!Array.isArray(clusters)) return [];
+        return clusters.map(c => ({ ...c }));
+      });
+
+      useEffect(() => {
+        setLocalClusters(Array.isArray(clusters) ? clusters.map(c => ({ ...c })) : []);
+      }, [JSON.stringify(clusters)]);
+
+      const toggleSelect = (id) => {
+        setLocalClusters(prev => prev.map(c => c.id === id ? { ...c, selected: !c.selected } : c));
+      };
+
+      const selectedClusterIds = useMemo(() => {
+        return localClusters
+          .filter(c => c.selected && (selectionMode === 'all' || (selectionMode === 'duplicates_only' && c.type === 'duplicate')))
+          .map(c => c.id);
+      }, [localClusters, selectionMode]);
+
+      const selectedBytes = useMemo(() => {
+        return localClusters
+          .filter(c => c.selected && (selectionMode === 'all' || (selectionMode === 'duplicates_only' && c.type === 'duplicate')))
+          .reduce((acc, c) => acc + (c.totalBytes || 0), 0);
+      }, [localClusters, selectionMode]);
+
+      const totalClusters = {
+        duplicate: localClusters.filter(c => c.type === 'duplicate').length,
+        nearDuplicate: localClusters.filter(c => c.type === 'nearDuplicate').length,
+        series: localClusters.filter(c => c.type === 'series').length
+      };
+
+      const handleApply = () => {
+        const payload = {
+          ...(onApplyAction?.payload || {}),
+          selectedClusterIds,
+          bulkAction: onApplyAction?.payload?.bulkAction || defaultBulkAction,
+          selectionMode
+        };
+        if (typeof onApplyAction?.callback === 'function') {
+          onApplyAction.callback(payload);
+        } else {
+          alert(`Apply action\n${JSON.stringify({ type: onApplyAction?.type || 'apply_photo_cleanup', payload }, null, 2)}`);
+        }
+      };
+
+      return (
+        <section className="w-full bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+          <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between p-4 border-b border-gray-200 bg-gray-50">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">Similar Photo Clusters</h2>
+              <p className="text-sm text-gray-600">
+                Mode: <span className="font-medium">{selectionMode === 'duplicates_only' ? 'Duplicates only' : 'All types'}</span> •
+                Duplicates: {formatNumber(totalClusters.duplicate)} • Near-duplicates: {formatNumber(totalClusters.nearDuplicate)} • Series: {formatNumber(totalClusters.series)}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              {showSavingsSummary && (
+                <div className="px-3 py-2 rounded-lg bg-white border border-gray-200">
+                  <div className="text-xs text-gray-500">Potential savings</div>
+                  <div className="text-sm font-semibold text-gray-900">{formatBytes(summary?.potentialSavingsBytes || 0)}</div>
+                </div>
+              )}
+              <button
+                onClick={handleApply}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                Apply {defaultBulkAction === 'archive' ? 'Archive' : defaultBulkAction === 'delete' ? 'Delete' : 'Review'}
+              </button>
+            </div>
+          </header>
+
+          <div className="p-4">
+            <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+              {Array.isArray(localClusters) && localClusters.length > 0 ? (
+                localClusters.map((c) => (
+                  <div key={c.id} className="group relative rounded-lg border border-gray-200 bg-white hover:shadow-sm transition-shadow">
+                    <div className="p-3 flex items-start gap-3">
+                      <div className={`flex-shrink-0 rounded-md overflow-hidden bg-gray-100 ${thumbClass}`}>
+                        {c.representativeThumbnailUrl ? (
+                          <img
+                            src={c.representativeThumbnailUrl}
+                            alt={c.id}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            c.type === 'duplicate' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                            c.type === 'nearDuplicate' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                            'bg-blue-50 text-blue-700 border border-blue-100'
+                          }`}>
+                            {c.type}
+                          </span>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            checked={!!c.selected}
+                            onChange={() => toggleSelect(c.id)}
+                            title="Select cluster"
+                          />
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-sm font-medium text-gray-900">Cluster {c.id}</div>
+                          <div className="text-xs text-gray-600">
+                            Photos: {formatNumber(Array.isArray(c.photoIds) ? c.photoIds.length : 0)}
+                          </div>
+                          <div className="text-xs text-gray-600">Bytes: {formatBytes(c.totalBytes || 0)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full">
+                  <div className="p-6 text-center text-gray-600 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                    No clusters yet. Start a scan to populate this view.
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-6">
+              <div className="text-sm text-gray-700">
+                Selected clusters: <span className="font-semibold">{formatNumber(selectedClusterIds.length)}</span> • Selected bytes: <span className="font-semibold">{formatBytes(selectedBytes)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleApply}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  Apply {defaultBulkAction === 'archive' ? 'Archive' : defaultBulkAction === 'delete' ? 'Delete' : 'Review'} to selected
+                </button>
+                <div className="text-xs text-gray-500">
+                  Total bytes: {formatBytes(summary?.totalBytes || 0)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    const PhotoClusterCard = (props) => {
+      const {
+        clusterId = '',
+        clusterType = 'duplicate',
+        suggestedKeepPhotoId = '',
+        items = {},
+        onBulkSelectAction = {},
+        summarySavingsBytes = 0,
+        maxVisible = 5
+      } = props;
+
+      const [expanded, setExpanded] = useState(false);
+
+      const handleSelectAllButBest = () => {
+        const payload = {
+          clusterId,
+          action: 'select_all_but_best',
+          keepId: suggestedKeepPhotoId
+        };
+        if (typeof onBulkSelectAction?.callback === 'function') {
+          onBulkSelectAction.callback(payload);
+        } else {
+          alert(`Bulk select\n${JSON.stringify(payload, null, 2)}`);
+        }
+      };
+
+      const handleKeepBestOnly = () => {
+        const payload = {
+          clusterId,
+          action: 'keep_best_only',
+          keepId: suggestedKeepPhotoId
+        };
+        if (typeof onBulkSelectAction?.callback === 'function') {
+          onBulkSelectAction.callback(payload);
+        } else {
+          alert(`Keep best\n${JSON.stringify(payload, null, 2)}`);
+        }
+      };
+
+      const media = Array.isArray(items?.photos) ? items.photos : [];
+
+      return (
+        <div className="w-full bg-white rounded-lg border border-gray-200 p-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+              <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                clusterType === 'duplicate' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                clusterType === 'nearDuplicate' ? 'bg-amber-50 text-amber-700 border border-amber-100' :
+                'bg-blue-50 text-blue-700 border border-blue-100'
+              }`}>
+                {clusterType}
+              </span>
+              <h3 className="text-sm font-semibold text-gray-900">Cluster {clusterId}</h3>
+            </div>
+            <div className="text-xs text-gray-500">Savings: {formatBytes(summarySavingsBytes)}</div>
+          </div>
+          <div className="mt-3 grid grid-cols-3 sm:grid-cols-5 gap-2">
+            {media.slice(0, expanded ? media.length : Math.max(1, Math.min(maxVisible, media.length))).map((p, idx) => (
+              <div key={p?.id || idx} className={`relative aspect-square rounded-md overflow-hidden bg-gray-100 border ${p?.id === suggestedKeepPhotoId ? 'border-indigo-500' : 'border-gray-200'}`}>
+                {p?.thumbnailUrl ? (
+                  <img src={p.thumbnailUrl} alt={p?.id || 'photo'} className="h-full w-full object-cover" loading="lazy" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">No image</div>
+                )}
+                {p?.id === suggestedKeepPhotoId && (
+                  <div className="absolute top-1 left-1 text-[10px] px-1.5 py-0.5 rounded bg-indigo-600 text-white">Keep</div>
+                )}
+              </div>
+            ))}
+          </div>
+          {media.length > maxVisible && (
+            <button
+              onClick={() => setExpanded(v => !v)}
+              className="mt-2 text-xs text-indigo-700 hover:text-indigo-800 font-medium"
+            >
+              {expanded ? 'Show less' : `Show all ${formatNumber(media.length)}`}
+            </button>
+          )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              onClick={handleSelectAllButBest}
+              className="px-3 py-1.5 rounded-lg bg-gray-800 text-white text-xs font-medium hover:bg-black"
+            >
+              Select all but best
+            </button>
+            <button
+              onClick={handleKeepBestOnly}
+              className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-xs font-medium hover:bg-gray-50"
+            >
+              Keep best only
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    const StorageSavingsSummaryCard = (props) => {
+      const {
+        id = '',
+        title = 'Storage Savings',
+        bytesRecoverable = 0,
+        selectedBytes = 0,
+        counts = {},
+        ctaLabel = 'Apply',
+        imageUrl = '',
+        actions = {}
+      } = props;
+
+      const pct = Math.min(100, Math.max(0, bytesRecoverable ? Math.round((selectedBytes / bytesRecoverable) * 100) : 0));
+
+      const onApply = () => {
+        const payload = { id, type: actions?.applyCleanup?.type || 'apply_selected_cleanup', payload: actions?.applyCleanup?.payload || { cardId: id } };
+        if (typeof actions?.applyCleanup?.callback === 'function') {
+          actions.applyCleanup.callback(payload);
+        } else {
+          alert(`Apply cleanup\n${JSON.stringify(payload, null, 2)}`);
+        }
+      };
+
+      const onViewBreakdown = () => {
+        const payload = { id, type: actions?.viewBreakdown?.type || 'view_savings_breakdown', payload: actions?.viewBreakdown?.payload || { cardId: id } };
+        if (typeof actions?.viewBreakdown?.callback === 'function') {
+          actions.viewBreakdown.callback(payload);
+        } else {
+          alert(`Savings breakdown\n${JSON.stringify(payload, null, 2)}`);
+        }
+      };
+
+      return (
+        <section className="w-full rounded-xl border border-gray-200 bg-white overflow-hidden">
+          <div className="p-4 flex items-start gap-4">
+            <div className="flex-shrink-0 h-12 w-12 rounded-lg bg-indigo-50 flex items-center justify-center overflow-hidden">
+              {imageUrl ? (
+                <img src={imageUrl} alt="Savings" className="h-8 w-8 object-contain" />
+              ) : (
+                <span className="text-indigo-600 text-xl">💾</span>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+              <div className="mt-1 text-sm text-gray-700">
+                Recoverable: <span className="font-semibold">{formatBytes(bytesRecoverable)}</span> • Selected: <span className="font-semibold">{formatBytes(selectedBytes)}</span> ({pct}%)
+              </div>
+
+              <div className="mt-3">
+                <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+                  <div className="h-full bg-indigo-600" style={{ width: `${pct}%` }}></div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-600">
+                  {Object.keys(counts || {}).map((k) => (
+                    <div key={k} className="px-2 py-1 rounded bg-gray-50 border border-gray-200">
+                      {k}: <span className="font-medium">{formatNumber(counts[k])}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <button
+                onClick={onApply}
+                className="inline-flex items-center px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500"
+              >
+                {ctaLabel}
+              </button>
+              <button
+                onClick={onViewBreakdown}
+                className="text-xs text-gray-700 hover:text-gray-900 font-medium"
+              >
+                View breakdown
+              </button>
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    const ReviewToolbar = (props) => {
+      const {
+        id = '',
+        title = 'Review',
+        selectedCount = 0,
+        selectedBytes = 0,
+        filter = {},
+        sort = {},
+        sortOrder = 'desc',
+        actions = [],
+        iconUrl = '',
+        potentialSavingsBytes = 0
+      } = props;
+
+      const [localSortOrder, setLocalSortOrder] = useState(sortOrder);
+
+      const handleAction = (action) => {
+        if (typeof action?.callback === 'function') {
+          action.callback({ id, action });
+        } else {
+          alert(`Action\n${JSON.stringify({ id, action }, null, 2)}`);
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-xl p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {iconUrl ? (
+              <img src={iconUrl} alt="" className="h-8 w-8 object-contain" />
+            ) : (
+              <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500">🗂️</div>
+            )}
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{title}</div>
+              <div className="text-xs text-gray-600">
+                Selected: {formatNumber(selectedCount)} • {formatBytes(selectedBytes)} • Potential: {formatBytes(potentialSavingsBytes)}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <label className="text-xs text-gray-600">Sort</label>
+              <select
+                value={localSortOrder}
+                onChange={(e) => setLocalSortOrder(e.target.value)}
+                className="text-xs border-gray-300 rounded-md"
+              >
+                <option value="asc">Asc</option>
+                <option value="desc">Desc</option>
+              </select>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {Array.isArray(actions) && actions.map((a, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleAction(a)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                    a?.variant === 'primary'
+                      ? 'bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-700'
+                      : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {a?.label || 'Action'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const CompareAndResolveModal = (props) => {
+      const {
+        clusterId = '',
+        photos = [],
+        suggestedKeepId = '',
+        currentKeepId = '',
+        storageSavingsBytes = 0,
+        resolveAction = {},
+        defaultZoom = 1,
+        showMetadataOverlayByDefault = false
+      } = props;
+
+      const [open, setOpen] = useState(true);
+      const [keepId, setKeepId] = useState(currentKeepId || suggestedKeepId || (Array.isArray(photos) && photos[0]?.id) || '');
+      const [zoom, setZoom] = useState(defaultZoom || 1);
+      const [showMeta, setShowMeta] = useState(!!showMetadataOverlayByDefault);
+
+      const handleResolve = () => {
+        const payload = { clusterId, keepId, savings: storageSavingsBytes };
+        if (typeof resolveAction?.callback === 'function') {
+          resolveAction.callback(payload);
+        } else {
+          alert(`Resolve cluster\n${JSON.stringify({ type: resolveAction?.type || 'resolve_cluster', payload }, null, 2)}`);
+        }
+        setOpen(false);
+      };
+
+      if (!open) return null;
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-5xl bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="p-4 flex items-center justify-between border-b">
+              <div>
+                <div className="text-sm font-semibold text-gray-900">Compare & Resolve</div>
+                <div className="text-xs text-gray-600">Cluster {clusterId} • Potential savings: {formatBytes(storageSavingsBytes)}</div>
+              </div>
+              <button onClick={() => setOpen(false)} className="p-2 rounded-lg hover:bg-gray-100">✕</button>
+            </div>
+
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <label className="text-xs text-gray-600">Zoom</label>
+                <input
+                  type="range"
+                  min="0.5"
+                  max="2"
+                  step="0.1"
+                  value={zoom}
+                  onChange={(e) => setZoom(parseFloat(e.target.value))}
+                  className="w-40"
+                />
+                <span className="text-xs text-gray-700">{Math.round(zoom * 100)}%</span>
+                <label className="ml-4 inline-flex items-center gap-2 text-xs text-gray-700">
+                  <input type="checkbox" checked={showMeta} onChange={(e) => setShowMeta(e.target.checked)} />
+                  Show metadata
+                </label>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Array.isArray(photos) && photos.map((p, idx) => (
+                  <div key={p?.id || idx} className={`relative rounded-lg border ${keepId === p?.id ? 'border-indigo-500' : 'border-gray-200'} overflow-hidden`}>
+                    <div className="aspect-video bg-gray-100 overflow-hidden">
+                      {p?.url || p?.thumbnailUrl ? (
+                        <img
+                          src={p.url || p.thumbnailUrl}
+                          alt={p?.id || 'photo'}
+                          style={{ transform: `scale(${zoom})` }}
+                          className="h-full w-full object-contain origin-center transition-transform"
+                        />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-gray-400 text-sm">No image</div>
+                      )}
+                    </div>
+                    {showMeta && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[10px] p-2">
+                        {p?.metadata ? JSON.stringify(p.metadata) : 'No metadata'}
+                      </div>
+                    )}
+                    <div className="p-2 flex items-center justify-between">
+                      <div className="text-xs text-gray-700 truncate">{p?.id || `Photo ${idx + 1}`}</div>
+                      <button
+                        onClick={() => setKeepId(p?.id)}
+                        className={`px-2 py-1 rounded-md text-xs font-medium border ${
+                          keepId === p?.id
+                            ? 'bg-indigo-600 text-white border-indigo-600'
+                            : 'bg-white text-gray-800 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {keepId === p?.id ? 'Keeping' : 'Keep this'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="p-4 border-t flex items-center justify-end gap-2">
+              <button onClick={() => setOpen(false)} className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm hover:bg-gray-50">Cancel</button>
+              <button onClick={handleResolve} className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700">Resolve</button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ScanProgressBanner = (props) => {
+      const {
+        status = 'idle',
+        progressPercent = 0,
+        scannedCount = 0,
+        totalCount = null,
+        primaryAction = {}
+      } = props;
+
+      const labelMap = {
+        idle: 'Idle',
+        scanning: 'Scanning…',
+        analyzing: 'Analyzing…',
+        complete: 'Complete',
+        error: 'Error'
+      };
+
+      const actionLabel = (type) => {
+        switch (type) {
+          case 'pause_scan': return 'Pause';
+          case 'resume_scan': return 'Resume';
+          case 'cancel_scan': return 'Cancel';
+          case 'start_scan': return 'Start';
+          default: return 'Action';
+        }
+      };
+
+      const pct = Math.min(100, Math.max(0, Math.round(progressPercent || 0)));
+      const onAction = () => {
+        if (typeof primaryAction?.callback === 'function') {
+          primaryAction.callback({ type: primaryAction?.type });
+        } else {
+          alert(`Scan action\n${JSON.stringify({ type: primaryAction?.type || 'noop' }, null, 2)}`);
+        }
+      };
+
+      const progressText = totalCount != null
+        ? `${formatNumber(scannedCount || 0)} / ${formatNumber(totalCount)}`
+        : `${formatNumber(scannedCount || 0)} scanned`;
+
+      return (
+        <div className="w-full rounded-xl border border-gray-200 bg-white p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+              status === 'error' ? 'bg-red-50 text-red-600' :
+              status === 'complete' ? 'bg-emerald-50 text-emerald-600' :
+              'bg-indigo-50 text-indigo-600'
+            }`}>
+              {status === 'complete' ? '✅' : status === 'error' ? '⚠️' : '🔎'}
+            </div>
+            <div>
+              <div className="text-sm font-semibold text-gray-900">{labelMap[status] || 'Status'}</div>
+              <div className="text-xs text-gray-600">{progressText}</div>
+            </div>
+          </div>
+          <div className="flex-1 sm:max-w-md">
+            <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div className={`h-full ${status === 'error' ? 'bg-red-500' : 'bg-indigo-600'}`} style={{ width: `${pct}%` }}></div>
+            </div>
+            <div className="mt-1 text-right text-[11px] text-gray-600">{pct}%</div>
+          </div>
+          <div>
+            {primaryAction?.type && (
+              <button
+                onClick={onAction}
+                className="px-4 py-2 rounded-lg bg-gray-900 text-white text-sm font-medium hover:bg-black"
+              >
+                {actionLabel(primaryAction.type)}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      SimilarPhotoClustersPanel: SimilarPhotoClustersPanel,
+      PhotoClusterCard: PhotoClusterCard,
+      StorageSavingsSummaryCard: StorageSavingsSummaryCard,
+      ReviewToolbar: ReviewToolbar,
+      CompareAndResolveModal: CompareAndResolveModal,
+      ScanProgressBanner: ScanProgressBanner
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-sm text-gray-800">{chunk}</p>;
+      }
+
+      if (chunk.type === 'text') {
+        return <p className="whitespace-pre-wrap text-sm text-gray-800">{chunk.text || ''}</p>;
+      }
+
+      if (chunk.type === 'component' && chunk.component?.name) {
+        return (
+          <div className="my-3">
+            <ComponentRenderer componentName={chunk.component.name} props={chunk.component.props || {}} />
+          </div>
+        );
+      }
+
+      return (
+        <pre className="text-xs bg-gray-50 p-2 rounded border border-gray-200 overflow-auto">
+          {JSON.stringify(chunk, null, 2)}
+        </pre>
+      );
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const containerClass = isUser ? 'items-end' : 'items-start';
+      const bubbleClass = isUser
+        ? 'bg-indigo-600 text-white'
+        : 'bg-white text-gray-900 border border-gray-200';
+
+      const contentArray = Array.isArray(content) ? content : [{ type: 'text', text: content }];
+
+      return (
+        <div className={`w-full flex ${containerClass}`}>
+          <div className="max-w-3xl w-full">
+            <div className={`rounded-2xl ${bubbleClass} p-4`}>
+              {contentArray.map((chunk, idx) => (
+                <ContentChunkRenderer key={idx} chunk={chunk} />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="max-w-5xl mx-auto px-4 py-6">
+          <header className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Conversation Viewer</h1>
+            <p className="text-sm text-gray-600">Interactive components render inline within messages.</p>
+          </header>
+
+          <div className="flex flex-col gap-4">
+            {Array.isArray(conversation) && conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

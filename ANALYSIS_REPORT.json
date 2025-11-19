@@ -1,0 +1,1535 @@
+{
+  "generatedAt": "2025-11-19T02:32:08.045Z",
+  "tier1": [
+    {
+      "folderName": "analyze_last_months_20251118_161628",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 12449
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 121978
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 100873
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "attending_day_conference_20251118_162630",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 11298
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 139549
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 105754
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "audit_subscriptions_these_20251118_160955",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13828
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 79383
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 50914
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "balanced_weekly_meal_20251118_161332",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 19178
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 187843
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 156755
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "buy_new_mid_20251118_160932",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 12462
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 84288
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 61354
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "compare_last_months_20251118_161005",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 10113
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 80321
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 54321
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "compare_prices_grocery_20251118_162627",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 11589
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 81369
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 58330
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "evaluate_home_office_20251118_163310",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 9541
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 79307
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 59357
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "generate_hour_emergency_20251118_161401",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13818
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 102859
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 80743
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "gym_lot_classes_20251118_162841",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 10526
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 91157
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 61597
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "here_job_description_20251118_160934",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 15167
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 89202
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 59104
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "learning_spanish_create_20251118_162757",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 14879
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 111266
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 89766
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "our_household_fairly_20251118_162733",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 14895
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 82794
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 59321
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "plan_gifts_birthdays_20251118_162633",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 11237
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 64768
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 44719
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "plants_different_watering_20251118_161102",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13722
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 120214
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 97756
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "practice_piano_daily_20251118_163433",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 11377
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 74995
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 51501
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "pull_analytics_last_20251118_160839",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13227
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 69056
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 58302
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "renovating_kitchen_track_20251118_162648",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 9940
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 70386
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 51604
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "running_workshops_next_20251118_161006",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13973
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 74937
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 47576
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "shortlist_photographers_nyc_20251118_160931",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 14299
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 51687
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 46936
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "taking_multiple_online_20251118_162153",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 9920
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 46315
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 32048
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "thousands_photos_duplicates_20251118_162710",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 14872
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 51680
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 30302
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_car_past_20251118_162520",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13690
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 88525
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 64500
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_college_applications_20251118_161539",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 14068
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 157107
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 133737
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_dog_vaccinations_20251118_161943",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 17608
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 78052
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 55052
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_last_weeks_20251118_160646",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 12427
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 54361
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 49026
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "turn_list_job_20251118_161107",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13303
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 75586
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 64029
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "uploaded_csv_books_20251118_161053",
+      "confidence": 5,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 11876
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 88964
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 63261
+        }
+      },
+      "ready": true,
+      "notes": "All validation checks passed and all required files exist"
+    }
+  ],
+  "tier2": [],
+  "tier3": [
+    {
+      "folderName": "compare_living_capitol_20251118_162141",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 18763
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 173640
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 152223
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "documented_items_home_20251118_161231",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 12572
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 115126
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 85965
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "multiple_freelance_clients_20251118_160817",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 12250
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 73563
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 48352
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "plan_next_weeks_20251118_162430",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13300
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 68456
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 51542
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "planning_day_trip_20251118_161344",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 14300
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 102326
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 84631
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "run_small_online_20251118_162614",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 11327
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 83000
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 60162
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "save_000_emergency_20251118_163506",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 13851
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 190780
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 164001
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "track_grades_across_20251118_162726",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 12634
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 78996
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 49796
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "turn_list_into_20251118_161221",
+      "confidence": 1,
+      "fileChecks": {
+        "componentsTs": {
+          "exists": true,
+          "size": 15111
+        },
+        "canvasHtml": {
+          "exists": true,
+          "size": 72422
+        },
+        "conversationJson": {
+          "exists": true,
+          "size": 48059
+        }
+      },
+      "issueTypes": {
+        "exportInterface": false,
+        "reactNode": false,
+        "propsMismatch": true,
+        "schemaMismatch": false,
+        "validationError": false
+      },
+      "fixable": false,
+      "disqualifying": true,
+      "ready": false,
+      "notes": "Critical issues that may disqualify"
+    }
+  ],
+  "fileChecks": {
+    "analyze_last_months_20251118_161628": {
+      "componentsTs": {
+        "exists": true,
+        "size": 12449
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 121978
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 100873
+      }
+    },
+    "attending_day_conference_20251118_162630": {
+      "componentsTs": {
+        "exists": true,
+        "size": 11298
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 139549
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 105754
+      }
+    },
+    "audit_subscriptions_these_20251118_160955": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13828
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 79383
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 50914
+      }
+    },
+    "balanced_weekly_meal_20251118_161332": {
+      "componentsTs": {
+        "exists": true,
+        "size": 19178
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 187843
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 156755
+      }
+    },
+    "buy_new_mid_20251118_160932": {
+      "componentsTs": {
+        "exists": true,
+        "size": 12462
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 84288
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 61354
+      }
+    },
+    "compare_last_months_20251118_161005": {
+      "componentsTs": {
+        "exists": true,
+        "size": 10113
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 80321
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 54321
+      }
+    },
+    "compare_prices_grocery_20251118_162627": {
+      "componentsTs": {
+        "exists": true,
+        "size": 11589
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 81369
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 58330
+      }
+    },
+    "evaluate_home_office_20251118_163310": {
+      "componentsTs": {
+        "exists": true,
+        "size": 9541
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 79307
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 59357
+      }
+    },
+    "generate_hour_emergency_20251118_161401": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13818
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 102859
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 80743
+      }
+    },
+    "gym_lot_classes_20251118_162841": {
+      "componentsTs": {
+        "exists": true,
+        "size": 10526
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 91157
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 61597
+      }
+    },
+    "here_job_description_20251118_160934": {
+      "componentsTs": {
+        "exists": true,
+        "size": 15167
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 89202
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 59104
+      }
+    },
+    "learning_spanish_create_20251118_162757": {
+      "componentsTs": {
+        "exists": true,
+        "size": 14879
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 111266
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 89766
+      }
+    },
+    "our_household_fairly_20251118_162733": {
+      "componentsTs": {
+        "exists": true,
+        "size": 14895
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 82794
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 59321
+      }
+    },
+    "plan_gifts_birthdays_20251118_162633": {
+      "componentsTs": {
+        "exists": true,
+        "size": 11237
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 64768
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 44719
+      }
+    },
+    "plants_different_watering_20251118_161102": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13722
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 120214
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 97756
+      }
+    },
+    "practice_piano_daily_20251118_163433": {
+      "componentsTs": {
+        "exists": true,
+        "size": 11377
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 74995
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 51501
+      }
+    },
+    "pull_analytics_last_20251118_160839": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13227
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 69056
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 58302
+      }
+    },
+    "renovating_kitchen_track_20251118_162648": {
+      "componentsTs": {
+        "exists": true,
+        "size": 9940
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 70386
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 51604
+      }
+    },
+    "running_workshops_next_20251118_161006": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13973
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 74937
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 47576
+      }
+    },
+    "shortlist_photographers_nyc_20251118_160931": {
+      "componentsTs": {
+        "exists": true,
+        "size": 14299
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 51687
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 46936
+      }
+    },
+    "taking_multiple_online_20251118_162153": {
+      "componentsTs": {
+        "exists": true,
+        "size": 9920
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 46315
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 32048
+      }
+    },
+    "thousands_photos_duplicates_20251118_162710": {
+      "componentsTs": {
+        "exists": true,
+        "size": 14872
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 51680
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 30302
+      }
+    },
+    "track_car_past_20251118_162520": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13690
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 88525
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 64500
+      }
+    },
+    "track_college_applications_20251118_161539": {
+      "componentsTs": {
+        "exists": true,
+        "size": 14068
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 157107
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 133737
+      }
+    },
+    "track_dog_vaccinations_20251118_161943": {
+      "componentsTs": {
+        "exists": true,
+        "size": 17608
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 78052
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 55052
+      }
+    },
+    "track_last_weeks_20251118_160646": {
+      "componentsTs": {
+        "exists": true,
+        "size": 12427
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 54361
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 49026
+      }
+    },
+    "turn_list_job_20251118_161107": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13303
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 75586
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 64029
+      }
+    },
+    "uploaded_csv_books_20251118_161053": {
+      "componentsTs": {
+        "exists": true,
+        "size": 11876
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 88964
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 63261
+      }
+    },
+    "compare_living_capitol_20251118_162141": {
+      "componentsTs": {
+        "exists": true,
+        "size": 18763
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 173640
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 152223
+      }
+    },
+    "documented_items_home_20251118_161231": {
+      "componentsTs": {
+        "exists": true,
+        "size": 12572
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 115126
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 85965
+      }
+    },
+    "multiple_freelance_clients_20251118_160817": {
+      "componentsTs": {
+        "exists": true,
+        "size": 12250
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 73563
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 48352
+      }
+    },
+    "plan_next_weeks_20251118_162430": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13300
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 68456
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 51542
+      }
+    },
+    "planning_day_trip_20251118_161344": {
+      "componentsTs": {
+        "exists": true,
+        "size": 14300
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 102326
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 84631
+      }
+    },
+    "run_small_online_20251118_162614": {
+      "componentsTs": {
+        "exists": true,
+        "size": 11327
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 83000
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 60162
+      }
+    },
+    "save_000_emergency_20251118_163506": {
+      "componentsTs": {
+        "exists": true,
+        "size": 13851
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 190780
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 164001
+      }
+    },
+    "track_grades_across_20251118_162726": {
+      "componentsTs": {
+        "exists": true,
+        "size": 12634
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 78996
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 49796
+      }
+    },
+    "turn_list_into_20251118_161221": {
+      "componentsTs": {
+        "exists": true,
+        "size": 15111
+      },
+      "canvasHtml": {
+        "exists": true,
+        "size": 72422
+      },
+      "conversationJson": {
+        "exists": true,
+        "size": 48059
+      }
+    }
+  },
+  "reviewChecklist": [
+    {
+      "folderName": "compare_living_capitol_20251118_162141",
+      "tier": 3,
+      "questions": [
+        "Are the issues for compare_living_capitol_20251118_162141 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 5 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 2, Component NeighborhoodComparisonDashboardProps: No schema found",
+            "Message 14, Component AmenitiesMapProps: No schema found",
+            "Message 14, Component GuideLinkCardsProps: No schema found",
+            "Message 20, Component NeighborhoodScorecardProps: No schema found",
+            "Message 20, Component NeighborhoodScorecardProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "documented_items_home_20251118_161231",
+      "tier": 3,
+      "questions": [
+        "Are the issues for documented_items_home_20251118_161231 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 7 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 2, Component CoverageOverviewDashboardProps: No schema found",
+            "Message 4, Component CoverageOverviewDashboardProps: No schema found",
+            "Message 4, Component RiskRatingScorecardProps: No schema found",
+            "Message 6, Component CoverageOverviewDashboardProps: No schema found",
+            "Message 6, Component HighValueItemsTableProps: No schema found",
+            "Message 8, Component CoverageOverviewDashboardProps: No schema found",
+            "Message 8, Component CoverageEstimateCardProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "multiple_freelance_clients_20251118_160817",
+      "tier": 3,
+      "questions": [
+        "Are the issues for multiple_freelance_clients_20251118_160817 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 4 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 2, Component InvoiceOverviewDashboardProps: No schema found",
+            "Message 4, Component InvoiceOverviewDashboardProps: No schema found",
+            "Message 6, Component InvoiceOverviewDashboardProps: No schema found",
+            "Message 10, Component InvoiceStatusTableProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "plan_next_weeks_20251118_162430",
+      "tier": 3,
+      "questions": [
+        "Are the issues for plan_next_weeks_20251118_162430 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 4 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 2, Component NewsletterPlanningBoardProps: No schema found",
+            "Message 4, Component NewsletterPlanningBoardProps: No schema found",
+            "Message 6, Component NewsletterPlanningBoardProps: No schema found",
+            "Message 8, Component NewsletterPlanningBoardProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "planning_day_trip_20251118_161344",
+      "tier": 3,
+      "questions": [
+        "Are the issues for planning_day_trip_20251118_161344 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 1 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 10, Component NeighborhoodComparisonDashboardProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "run_small_online_20251118_162614",
+      "tier": 3,
+      "questions": [
+        "Are the issues for run_small_online_20251118_162614 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 1 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 2, Component ProfitabilityDashboardProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "save_000_emergency_20251118_163506",
+      "tier": 3,
+      "questions": [
+        "Are the issues for save_000_emergency_20251118_163506 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 2 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 11, Component ScenarioComparisonChartProps: No schema found",
+            "Message 11, Component CompletionDateCardsProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "track_grades_across_20251118_162726",
+      "tier": 3,
+      "questions": [
+        "Are the issues for track_grades_across_20251118_162726 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 4 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 6, Component ProjectedGPAGaugeProps: No schema found",
+            "Message 6, Component WhatIfScoreSlidersProps: No schema found",
+            "Message 8, Component ProjectedGPAGaugeProps: No schema found",
+            "Message 8, Component WhatIfScoreSlidersProps: No schema found"
+          ]
+        }
+      ]
+    },
+    {
+      "folderName": "turn_list_into_20251118_161221",
+      "tier": 3,
+      "questions": [
+        "Are the issues for turn_list_into_20251118_161221 fixable?",
+        "Are props in conversation actually valid according to schema?",
+        "Are all required files present?"
+      ],
+      "issues": [
+        {
+          "check": "Props match schema",
+          "message": "Found 3 prop(s) in conversation that don't match schema params.",
+          "details": [
+            "Message 2, Component SchedulingConstraintsPanelProps: No schema found",
+            "Message 4, Component TimeBlockGridProps: No schema found",
+            "Message 4, Component ConflictWarningBannerProps: No schema found"
+          ]
+        }
+      ]
+    }
+  ]
+}

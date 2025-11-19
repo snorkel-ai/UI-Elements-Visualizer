@@ -1,0 +1,32 @@
+Final 20 High-Confidence Folders:
+
+1. track_college_applications_20251118_161539
+2. track_car_past_20251118_162520
+3. thousands_photos_duplicates_20251118_162710
+4. renovating_kitchen_track_20251118_162648
+5. learning_spanish_create_20251118_162757
+6. compare_prices_grocery_20251118_162627
+7. analyze_last_months_20251118_161628
+8. running_workshops_next_20251118_161006
+9. gym_lot_classes_20251118_162841
+10. shortlist_photographers_nyc_20251118_160931
+11. compare_last_months_20251118_161005
+12. buy_new_mid_20251118_160932
+13. uploaded_csv_books_20251118_161053
+14. plan_gifts_birthdays_20251118_162633
+15. evaluate_home_office_20251118_163310
+16. balanced_weekly_meal_20251118_161332
+17. attending_day_conference_20251118_162630
+18. track_dog_vaccinations_20251118_161943
+19. practice_piano_daily_20251118_163433
+20. generate_hour_emergency_20251118_161401
+
+Excluded (8 weakest):
+- pull_analytics_last_20251118_160839 (10 safe mismatches, lower component usage)
+- turn_list_job_20251118_161107 (10 safe mismatches, domain overlap)
+- plants_different_watering_20251118_161102 (8 safe mismatches, niche use case)
+- track_last_weeks_20251118_160646 (8 safe mismatches, simpler structure)
+- here_job_description_20251118_160934 (7 safe mismatches, shorter conversation, domain overlap)
+- audit_subscriptions_these_20251118_160955 (6 safe mismatches, moderate usage)
+- our_household_fairly_20251118_162733 (6 safe mismatches, shorter conversation)
+- taking_multiple_online_20251118_162153 (5 safe mismatches but lower component usage ratio)

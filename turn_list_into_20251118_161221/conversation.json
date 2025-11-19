@@ -1,0 +1,1275 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "TimeBlockGrid": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "TimeBlockGrid"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "timeRange": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "currentTime": {
+                "type": "string"
+              },
+              "blocks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "goalProgress": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "blockClickAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "blockDragAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "blockResizeAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "markCompleteAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "resolveConflictAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "showDetailsAction": {
+                "type": "object",
+                "properties": {
+                  "type": {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                },
+                "required": [
+                  "type"
+                ],
+                "additionalProperties": false
+              },
+              "timeStepMinutes": {
+                "type": "number"
+              },
+              "showNowIndicator": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "blocks",
+              "date",
+              "goalProgress",
+              "timeRange"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "TodoTaskList": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "TodoTaskList"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "dayIsoDate": {
+                "type": "string"
+              },
+              "tasks": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "onAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "showConflictWarnings": {
+                "type": "boolean"
+              },
+              "dailyGoal": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "timeZone": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "dayIsoDate",
+              "onAction",
+              "tasks"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "CalendarEventsSidebar": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CalendarEventsSidebar"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "date": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "availableCalendars": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "visibleCalendarIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "timeFormat": {
+                "type": "string",
+                "enum": [
+                  "12h",
+                  "24h"
+                ]
+              },
+              "workHours": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "showConflictWarnings": {
+                "type": "boolean"
+              },
+              "toggleCalendarVisibilityAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "openEventDetailsAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "changeDayAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "tooltipDelayMs": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "availableCalendars",
+              "changeDayAction",
+              "date",
+              "events",
+              "openEventDetailsAction",
+              "timezone",
+              "toggleCalendarVisibilityAction",
+              "visibleCalendarIds"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "SchedulingConstraintsPanel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "SchedulingConstraintsPanel"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "constraints": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onAction": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              }
+            },
+            "required": [
+              "constraints",
+              "id",
+              "onAction",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "ConflictWarningBanner": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ConflictWarningBanner"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "conflicts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "applySuggestionAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "resolveAllAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "openBlockEditorAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "maxVisibleConflicts": {
+                "type": "number"
+              },
+              "showSeverityLegend": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "applySuggestionAction",
+              "conflicts",
+              "id",
+              "resolveAllAction",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/TimeBlockGrid"
+          },
+          {
+            "$ref": "#/$defs/TodoTaskList"
+          },
+          {
+            "$ref": "#/$defs/CalendarEventsSidebar"
+          },
+          {
+            "$ref": "#/$defs/SchedulingConstraintsPanel"
+          },
+          {
+            "$ref": "#/$defs/ConflictWarningBanner"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "Turn my to-do list into a time-blocked schedule around my existing calendar events."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great\u2014let\u2019s turn your to-do list into a time-blocked day around your calendar. To generate the schedule, I\u2019ll need a few details:\n\n1) What day are we planning? (e.g., today or a specific date)\n2) Your time zone (e.g., America/Los_Angeles)\n3) Your working hours for that day (start\u2013end)\n4) Your to-do list with for each task: title, estimated duration (mins), priority (Low/Med/High), effort (S/M/L), and any due time if relevant\n5) Your existing calendar events for that day (or grant me permission to pull them)\n\nOnce you share that, I\u2019ll auto-generate a time-blocked grid with priority/effort tags, conflict warnings, and a daily goal progress bar. You can also adjust the constraints below and hit Apply, and I\u2019ll use those when building your schedule."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "SchedulingConstraintsPanelProps",
+            "props": {
+              "id": "daily-constraints",
+              "title": "Scheduling Constraints",
+              "constraints": {
+                "workHours": {
+                  "start": "09:00",
+                  "end": "17:30"
+                },
+                "focusWindows": [
+                  {
+                    "start": "10:00",
+                    "end": "12:00"
+                  },
+                  {
+                    "start": "14:00",
+                    "end": "16:00"
+                  }
+                ],
+                "bufferMinutes": 10,
+                "maxBlockLengthMins": 90,
+                "breakPolicy": "Short",
+                "autoReschedule": true
+              },
+              "onAction": {
+                "type": "apply_constraints",
+                "payload": {
+                  "constraints": {
+                    "workHours": {
+                      "start": "09:00",
+                      "end": "17:30"
+                    },
+                    "focusWindows": [
+                      {
+                        "start": "10:00",
+                        "end": "12:00"
+                      },
+                      {
+                        "start": "14:00",
+                        "end": "16:00"
+                      }
+                    ],
+                    "bufferMinutes": 10,
+                    "maxBlockLengthMins": 90,
+                    "breakPolicy": "Short",
+                    "autoReschedule": true
+                  },
+                  "source": "user_apply"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should confirm or collect all required inputs before scheduling: planning date, time zone, working hours, to-do list with title/duration/priority/effort/due times, and existing calendar events or explicit permission to fetch them",
+          "Should not fabricate calendar data or tasks; must either use provided events or obtain permission to fetch them via appropriate tools",
+          "Should generate a clear, time-blocked schedule aligned to the user's working hours and time zone",
+          "Should respect and apply stated constraints (focus windows, buffer minutes, maximum block length, break policy, auto-reschedule) when creating the schedule",
+          "Should detect and flag conflicts with existing calendar events and propose resolutions (e.g., reschedule, shorten, defer)",
+          "Should tag scheduled tasks with priority and effort indicators in the output",
+          "Should calculate and display a daily goal progress indicator based on scheduled or completed tasks versus planned goals",
+          "Should provide an actionable, visual schedule output (time blocks) that matches the user's expectation for a time-blocked grid",
+          "Should allow users to adjust constraints via the provided UI component and reflect changes when constraints are applied",
+          "Should use appropriate tools to fetch or update calendar data if tool access is available and user grants permission; otherwise, should request the necessary data from the user",
+          "Should ensure date/time handling is accurate, including time zone consistency and correct formatting",
+          "Should handle over-capacity days by prioritizing tasks (based on priority/effort/due times) and recommending deferrals or splits as needed",
+          "Should avoid unnecessary verbosity and present the plan and controls succinctly and clearly",
+          "Should not perform external actions (e.g., calendar changes) without explicit user consent",
+          "Should provide a path for iterative refinement (e.g., re-apply constraints, adjust durations, reorder priorities) and reflect updates in the schedule"
+        ],
+        "expected_components": [
+          "SchedulingConstraintsPanelProps",
+          "TimeBlockGrid",
+          "ConflictWarningsPanel",
+          "DailyGoalProgressBar"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Planning for today (Nov 19) in America/Los_Angeles; working hours 8:30am\u20136:00pm. \nTo-do: 1) Prep slides for Client A\u201460m\u2014High\u2014M\u2014due by 12pm; 2) Write Q4 report draft\u201490m\u2014High\u2014L\u2014due by 3pm; 3) Deep work: analytics\u2014120m\u2014High\u2014L; 4) Code review PR#482\u201445m\u2014Med\u2014M; 5) Inbox triage\u201430m\u2014Med\u2014S; 6) Follow up with vendor\u201420m\u2014Low\u2014S; 7) Plan 2026 roadmap\u201460m\u2014Low\u2014M. \nCalendar today: Standup 9:00\u20139:15; 1:1 w/ manager 10:30\u201311:00; Client A sync 1:00\u20131:30; Team retro 3:30\u20134:15."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "I built a focused plan for today around your meetings and due times. Highlights:\n- Due-first: \u201cPrep slides for Client A\u201d is slotted 9:15\u201310:15, well before the 12pm deadline. \u201cQ4 report draft\u201d is split 11:00\u201312:00 and 13:30\u201314:00 to finish before 3pm.\n- Meetings respected: Standup, 1:1, Client A sync, and Retro are all kept clear with clean transitions.\n- Deep work: \u201cAnalytics\u201d is split across 14:45\u201315:30 and 16:15\u201317:30 to avoid the 3:30\u20134:15 Retro.\n- Still open: \u201cPlan 2026 roadmap\u201d remains unscheduled today given the workload; options include: swap it in for part of Deep Work, or push to tomorrow\u2019s plan.\n\nTip: You can drag blocks to fine-tune, or click a block to mark it Done as you complete it. If you want me to prioritize a lunch block or add buffers between every block, say the word and I\u2019ll reflow the schedule."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "TimeBlockGridProps",
+            "props": {
+              "date": "2025-11-19",
+              "timeRange": {
+                "start": "08:30",
+                "end": "18:00"
+              },
+              "blocks": [
+                {
+                  "id": "b_inbox",
+                  "title": "Inbox triage",
+                  "start": "08:30",
+                  "end": "09:00",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_prep_slides",
+                  "title": "Prep slides for Client A",
+                  "start": "09:15",
+                  "end": "10:15",
+                  "priority": "High",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_q4_p1",
+                  "title": "Write Q4 report draft (Part 1)",
+                  "start": "11:00",
+                  "end": "12:00",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_vendor_followup",
+                  "title": "Follow up with vendor",
+                  "start": "12:00",
+                  "end": "12:20",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_q4_p2",
+                  "title": "Write Q4 report draft (Finish)",
+                  "start": "13:30",
+                  "end": "14:00",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_code_review",
+                  "title": "Code review PR#482",
+                  "start": "14:00",
+                  "end": "14:45",
+                  "priority": "Med",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_analytics_1",
+                  "title": "Deep work: analytics (Block 1)",
+                  "start": "14:45",
+                  "end": "15:30",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_analytics_2",
+                  "title": "Deep work: analytics (Block 2)",
+                  "start": "16:15",
+                  "end": "17:30",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                }
+              ],
+              "goalProgress": {
+                "completed": 0,
+                "total": 8
+              },
+              "blockClickAction": {
+                "type": "edit_block"
+              },
+              "blockDragAction": {
+                "type": "move_block"
+              },
+              "blockResizeAction": {
+                "type": "resize_block"
+              },
+              "markCompleteAction": {
+                "type": "mark_complete"
+              },
+              "resolveConflictAction": {
+                "type": "resolve_conflict"
+              },
+              "showDetailsAction": {
+                "type": "show_block_details"
+              },
+              "timeStepMinutes": 15,
+              "showNowIndicator": true
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ConflictWarningBannerProps",
+            "props": {
+              "id": "conflicts-2025-11-19",
+              "title": "No scheduling conflicts detected",
+              "conflicts": [],
+              "applySuggestionAction": {
+                "type": "apply_conflict_suggestion",
+                "payload": {
+                  "blockId": "",
+                  "suggestion": "Shift"
+                }
+              },
+              "resolveAllAction": {
+                "type": "resolve_all_conflicts",
+                "payload": {
+                  "conflictIds": [],
+                  "strategy": "apply_suggestions"
+                }
+              },
+              "openBlockEditorAction": {
+                "type": "open_block_editor",
+                "payload": {
+                  "blockId": ""
+                }
+              },
+              "maxVisibleConflicts": 3,
+              "showSeverityLegend": true
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should interpret the specified date (Nov 19) and timezone (America/Los_Angeles) correctly and schedule within the working hours 08:30\u201318:00 local time",
+          "Should place fixed calendar events (Standup 9:00\u20139:15; 1:1 10:30\u201311:00; Client A sync 13:00\u201313:30; Retro 15:30\u201316:15) as immovable and avoid overlapping tasks with these times",
+          "Should allocate time blocks that match each task\u2019s estimated duration, splitting tasks as needed to fit around meetings and within working hours",
+          "Should prioritize and schedule due-by tasks so they complete before their deadlines (Prep slides by 12:00; Q4 report by 15:00)",
+          "Should sequence high-priority tasks before medium/low where feasible, while still honoring deadlines and calendar constraints",
+          "Should include all to-do items in the plan or explicitly identify any items deferred or unscheduled, with rationale or options to reschedule",
+          "Should present a concise textual summary highlighting due-first items, meeting accommodations, deep work placement, and any open/unscheduled tasks with actionable suggestions",
+          "Should ensure no overlapping blocks exist and reflect this in the conflicts component (either showing no conflicts or listing any detected conflicts with suggestions)",
+          "Should use the TimeBlockGridProps component to render a timeline with: date, timeRange matching working hours, non-overlapping blocks each with id/title/start/end/priority/effort/status, and appropriate user actions (move/resize/edit/mark complete)",
+          "Should include a goal/progress indicator that accurately reflects the number of planned blocks or tasks for the day",
+          "Should use the ConflictWarningBannerProps component to report conflicts, provide resolution actions, and optionally a severity legend per the scenario expectations",
+          "Should use reasonable granularity for scheduling (e.g., 15-minute increments) and enable a current time indicator for usability",
+          "Should keep task titles and metadata (priority, effort, duration) consistent with the user's to-do list",
+          "Should avoid unnecessary tool calls; no external tools are required for this scheduling task",
+          "Should produce accurate times and durations that fit within the available time between meetings and within the overall working window",
+          "Should format component props with consistent and valid values (e.g., ISO date for date field, 24-hour HH:MM for times)"
+        ],
+        "expected_components": [
+          "TimeBlockGridProps",
+          "ConflictWarningBannerProps"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Add a 30-min lunch at 12:00, 5-min buffers between all blocks, and try to fit the 2026 roadmap by swapping with some Deep Work if needed. Please confirm the Q4 draft still finishes before 3pm and show the progress bar starting at 0%."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Done. I added a 12:00\u201312:30 lunch, inserted 5\u2011minute buffers between every block, and fit the 2026 roadmap by swapping some Deep Work to later. The Q4 report draft still finishes before 3:00pm (completed by 2:15pm). Progress bar starts at 0%. If you want me to rebalance to fit more Deep Work today or shift anything, say the word."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "TimeBlockGrid",
+            "props": {
+              "date": "2025-11-19",
+              "timeRange": {
+                "start": "08:30",
+                "end": "18:00"
+              },
+              "blocks": [
+                {
+                  "id": "task_vendor",
+                  "title": "Follow up with vendor",
+                  "start": "08:30",
+                  "end": "08:50",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "cal_standup",
+                  "title": "Standup (Calendar)",
+                  "start": "09:00",
+                  "end": "09:15",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_prep_slides",
+                  "title": "Prep slides for Client A",
+                  "start": "09:20",
+                  "end": "10:20",
+                  "priority": "High",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "cal_11_1on1",
+                  "title": "1:1 w/ manager (Calendar)",
+                  "start": "10:30",
+                  "end": "11:00",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_q4_p1",
+                  "title": "Write Q4 report draft (Part 1)",
+                  "start": "11:05",
+                  "end": "11:55",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "block_lunch",
+                  "title": "Lunch",
+                  "start": "12:00",
+                  "end": "12:30",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_inbox_p1",
+                  "title": "Inbox triage (Part 1)",
+                  "start": "12:35",
+                  "end": "12:55",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "cal_client_sync",
+                  "title": "Client A sync (Calendar)",
+                  "start": "13:00",
+                  "end": "13:30",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_q4_p2",
+                  "title": "Write Q4 report draft (Part 2)",
+                  "start": "13:35",
+                  "end": "14:15",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_code_review",
+                  "title": "Code review PR#482",
+                  "start": "14:20",
+                  "end": "15:05",
+                  "priority": "Med",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_inbox_p2",
+                  "title": "Inbox triage (Part 2)",
+                  "start": "15:10",
+                  "end": "15:20",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "cal_retro",
+                  "title": "Team retro (Calendar)",
+                  "start": "15:30",
+                  "end": "16:15",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_roadmap",
+                  "title": "Plan 2026 roadmap",
+                  "start": "16:20",
+                  "end": "17:20",
+                  "priority": "Low",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "task_deepwork_p1",
+                  "title": "Deep work: analytics (Focus)",
+                  "start": "17:25",
+                  "end": "18:00",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                }
+              ],
+              "goalProgress": {
+                "completed": 0,
+                "total": 9
+              },
+              "blockClickAction": {
+                "type": "edit_block"
+              },
+              "blockDragAction": {
+                "type": "move_block"
+              },
+              "blockResizeAction": {
+                "type": "resize_block"
+              },
+              "markCompleteAction": {
+                "type": "mark_complete"
+              },
+              "resolveConflictAction": {
+                "type": "resolve_conflict"
+              },
+              "showDetailsAction": {
+                "type": "show_block_details"
+              },
+              "timeStepMinutes": 5,
+              "showNowIndicator": true
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should add a 30-minute Lunch block starting at 12:00 without overlapping existing calendar events",
+          "Should insert 5-minute buffer gaps between every adjacent block (including before and after meetings and tasks) throughout the working window",
+          "Should schedule the 'Plan 2026 roadmap' block by swapping with or moving Deep Work as needed, preserving required buffers and avoiding conflicts with calendar events",
+          "Should ensure the Q4 report draft (all parts) is scheduled to finish before 15:00 and explicitly confirm this in the text",
+          "Should set the progress bar to start at 0% with goalProgress.completed = 0 and total reflecting the number of goal-tracked blocks",
+          "Should respect existing calendar events (marked clearly, e.g., with a Calendar tag) and avoid overlapping them",
+          "Should show all blocks with clear titles, start and end times, and include priority, effort, and status tags for each",
+          "Should maintain chronological ordering of blocks within the defined workday time range",
+          "Should ensure block durations and buffers are internally consistent (end time equals start time plus duration; 5-minute gaps between blocks)",
+          "Should avoid time conflicts and, if any arise, expose an action or mechanism to resolve conflicts (e.g., resolve_conflict action)",
+          "Should provide an actionable confirmation text summarizing the changes (lunch insertion, buffers added, roadmap fitting, Q4 deadline confirmation)",
+          "Should include appropriate interactive actions for blocks (e.g., edit, move, resize, mark complete)",
+          "Should configure the component with a time step granularity of 5 minutes and show a now indicator if supported",
+          "Should use a date consistent with the scheduling context and present a reasonable workday time range",
+          "Should not call external tools unless data fetching or computations beyond local scheduling are required"
+        ],
+        "expected_components": [
+          "TimeBlockGrid"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Show me the updated time-block grid with priority/effort tags and any conflict warnings. If possible, ensure at least 90 minutes of Deep Work today by pushing Inbox Triage to the end, and add 5\u2011minute reminders before each block."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Here\u2019s your updated schedule with 5-minute buffers, a 12:00 lunch, at least 90 minutes of Deep Work, and Inbox Triage pushed to the end. The Q4 report draft still finishes before 3pm (done by 2:15pm). I also set 5-minute reminders before each block. If you want me to keep Inbox/Vendor strictly within working hours, I can reflow by trimming deep work or moving them to tomorrow."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "TimeBlockGrid",
+            "props": {
+              "date": "2025-11-19",
+              "timeRange": {
+                "start": "08:30",
+                "end": "19:00"
+              },
+              "currentTime": "2025-11-19T08:30:00-08:00",
+              "blocks": [
+                {
+                  "id": "b_cr_1",
+                  "title": "Code review PR#482 (part 1)",
+                  "start": "08:30",
+                  "end": "08:55",
+                  "priority": "Med",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_0",
+                  "title": "Buffer",
+                  "start": "08:55",
+                  "end": "09:00",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_evt_standup",
+                  "title": "Standup (Calendar)",
+                  "start": "09:00",
+                  "end": "09:15",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_1",
+                  "title": "Buffer",
+                  "start": "09:15",
+                  "end": "09:20",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_prep_slides",
+                  "title": "Prep slides for Client A",
+                  "start": "09:20",
+                  "end": "10:20",
+                  "priority": "High",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_2",
+                  "title": "Buffer",
+                  "start": "10:20",
+                  "end": "10:25",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_evt_11",
+                  "title": "1:1 w/ manager (Calendar)",
+                  "start": "10:30",
+                  "end": "11:00",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_3",
+                  "title": "Buffer",
+                  "start": "11:00",
+                  "end": "11:05",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_q4_1",
+                  "title": "Write Q4 report draft (part 1)",
+                  "start": "11:05",
+                  "end": "11:55",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_4",
+                  "title": "Buffer",
+                  "start": "11:55",
+                  "end": "12:00",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_lunch",
+                  "title": "Lunch",
+                  "start": "12:00",
+                  "end": "12:30",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_5",
+                  "title": "Buffer",
+                  "start": "12:30",
+                  "end": "12:35",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_cr_2",
+                  "title": "Code review PR#482 (part 2)",
+                  "start": "12:35",
+                  "end": "12:55",
+                  "priority": "Med",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_6",
+                  "title": "Buffer",
+                  "start": "12:55",
+                  "end": "13:00",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_evt_client",
+                  "title": "Client A sync (Calendar)",
+                  "start": "13:00",
+                  "end": "13:30",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_7",
+                  "title": "Buffer",
+                  "start": "13:30",
+                  "end": "13:35",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_q4_2",
+                  "title": "Write Q4 report draft (part 2)",
+                  "start": "13:35",
+                  "end": "14:15",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_8",
+                  "title": "Buffer",
+                  "start": "14:15",
+                  "end": "14:20",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_roadmap",
+                  "title": "Plan 2026 roadmap",
+                  "start": "14:20",
+                  "end": "15:25",
+                  "priority": "Low",
+                  "effort": "M",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_9",
+                  "title": "Buffer",
+                  "start": "15:25",
+                  "end": "15:30",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_evt_retro",
+                  "title": "Team retro (Calendar)",
+                  "start": "15:30",
+                  "end": "16:15",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_10",
+                  "title": "Buffer",
+                  "start": "16:15",
+                  "end": "16:20",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_deep_1",
+                  "title": "Deep work: analytics (part 1)",
+                  "start": "16:20",
+                  "end": "17:20",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_11",
+                  "title": "Buffer",
+                  "start": "17:20",
+                  "end": "17:25",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_deep_2",
+                  "title": "Deep work: analytics (part 2)",
+                  "start": "17:25",
+                  "end": "17:55",
+                  "priority": "High",
+                  "effort": "L",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_buf_12",
+                  "title": "Buffer",
+                  "start": "17:55",
+                  "end": "18:00",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned"
+                },
+                {
+                  "id": "b_inbox",
+                  "title": "Inbox triage",
+                  "start": "18:00",
+                  "end": "18:30",
+                  "priority": "Med",
+                  "effort": "S",
+                  "status": "Planned",
+                  "conflict": true
+                },
+                {
+                  "id": "b_buf_13",
+                  "title": "Buffer",
+                  "start": "18:30",
+                  "end": "18:35",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned",
+                  "conflict": true
+                },
+                {
+                  "id": "b_vendor",
+                  "title": "Follow up with vendor",
+                  "start": "18:35",
+                  "end": "18:55",
+                  "priority": "Low",
+                  "effort": "S",
+                  "status": "Planned",
+                  "conflict": true
+                }
+              ],
+              "goalProgress": {
+                "completed": 0,
+                "total": 10
+              },
+              "blockClickAction": {
+                "type": "edit_block"
+              },
+              "blockDragAction": {
+                "type": "move_block"
+              },
+              "blockResizeAction": {
+                "type": "resize_block"
+              },
+              "markCompleteAction": {
+                "type": "mark_complete"
+              },
+              "resolveConflictAction": {
+                "type": "resolve_conflict"
+              },
+              "showDetailsAction": {
+                "type": "show_block_details"
+              },
+              "timeStepMinutes": 5,
+              "showNowIndicator": true
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ConflictWarningBanner",
+            "props": {
+              "id": "conflicts-2025-11-19",
+              "title": "2 scheduling conflicts detected",
+              "conflicts": [
+                {
+                  "blockId": "b_inbox",
+                  "issue": "OutsideHours",
+                  "severity": "Warn",
+                  "suggestion": "Move",
+                  "blockTitle": "Inbox triage",
+                  "hint": "Outside working hours (18:00\u201318:30). Suggest moving into tomorrow\u2019s plan or earlier today."
+                },
+                {
+                  "blockId": "b_vendor",
+                  "issue": "OutsideHours",
+                  "severity": "Warn",
+                  "suggestion": "Move",
+                  "blockTitle": "Follow up with vendor",
+                  "hint": "Outside working hours (18:35\u201318:55). Suggest moving into tomorrow\u2019s plan or earlier slot."
+                }
+              ],
+              "applySuggestionAction": {
+                "type": "apply_conflict_suggestion",
+                "payload": {
+                  "blockId": "b_inbox",
+                  "suggestion": "Move"
+                }
+              },
+              "resolveAllAction": {
+                "type": "resolve_all_conflicts",
+                "payload": {
+                  "conflictIds": [
+                    "b_inbox",
+                    "b_vendor"
+                  ],
+                  "strategy": "apply_suggestions"
+                }
+              },
+              "openBlockEditorAction": {
+                "type": "open_block_editor",
+                "payload": {
+                  "blockId": "b_inbox"
+                }
+              },
+              "maxVisibleConflicts": 3,
+              "showSeverityLegend": true
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should present a TimeBlockGrid covering the user's day with correct date, time range, and a now indicator",
+          "Should include all relevant time blocks (calendar events and scheduled tasks) with titles, start/end times, priority and effort tags, and status fields",
+          "Should insert 5-minute buffer blocks between scheduled items where feasible",
+          "Should ensure Deep Work is scheduled for at least 90 minutes total during the day",
+          "Should push Inbox Triage to the end of the day's schedule",
+          "Should configure or clearly indicate 5-minute reminders before each block",
+          "Should mark any blocks outside working hours (or otherwise problematic) with conflict flags in the grid",
+          "Should display a ConflictWarningBanner that lists each conflict with block ID, issue type, severity, suggestion, and helpful hint",
+          "Should ensure conflicts listed in the ConflictWarningBanner correspond to blocks marked with conflicts in the TimeBlockGrid",
+          "Should provide appropriate actions in components (e.g., edit, move, resize, mark complete, resolve conflicts)",
+          "Should include a goal/progress indicator (e.g., completed vs total goals) consistent with the daily plan",
+          "Should use only the specified UI components to present the schedule and conflicts, matching the user's expectation for a visual grid with tags and warnings",
+          "Should avoid unnecessary tool calls; only call tools if external data or computation is required (not applicable here)",
+          "Should maintain internal consistency of times, durations, and sequencing across all blocks, buffers, and reminders"
+        ],
+        "expected_components": [
+          "TimeBlockGrid",
+          "ConflictWarningBanner"
+        ]
+      }
+    }
+  ]
+}

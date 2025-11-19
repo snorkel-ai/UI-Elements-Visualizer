@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "Help me plan gifts for birthdays and holidays this year with ideas, budgets, and purchase status."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great idea\u2014let\u2019s set up a simple gift planning board with recipients, budgets, and ideas you can track through purchase. I\u2019ve started a 2025 plan with a few example recipients and ideas. You can add more people or swap any details. Want me to tailor this with your actual recipients, occasions, and budgets?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "GiftPlanningBoard",
+              "props": {
+                "title": "2025 Gift Plan",
+                "totals": {
+                  "budgetTotal": 450,
+                  "plannedTotal": 455,
+                  "purchasedTotal": 90
+                },
+                "recipients": [
+                  {
+                    "id": "recp_mom",
+                    "name": "Mom",
+                    "occasion": "Birthday",
+                    "budget": 150,
+                    "plannedTotal": 140,
+                    "purchasedTotal": 60,
+                    "ideasCount": 3,
+                    "purchasedCount": 1,
+                    "avatarUrl": "https://cdn.example.com/avatars/mom.png",
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_mom"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_dad",
+                    "name": "Dad",
+                    "occasion": "Christmas",
+                    "budget": 200,
+                    "plannedTotal": 220,
+                    "purchasedTotal": 0,
+                    "ideasCount": 3,
+                    "purchasedCount": 0,
+                    "avatarUrl": "https://cdn.example.com/avatars/dad.png",
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_dad"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_sis",
+                    "name": "Sister",
+                    "occasion": "Birthday",
+                    "budget": 100,
+                    "plannedTotal": 95,
+                    "purchasedTotal": 30,
+                    "ideasCount": 3,
+                    "purchasedCount": 1,
+                    "avatarUrl": "https://cdn.example.com/avatars/sister.png",
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_sis"
+                      }
+                    }
+                  }
+                ],
+                "addRecipientAction": {
+                  "type": "add_recipient",
+                  "payload": {
+                    "suggestedOccasion": "Christmas",
+                    "year": 2025
+                  }
+                },
+                "currencyCode": "USD",
+                "year": 2025
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "IdeaList",
+              "props": {
+                "recipientId": "recp_mom",
+                "ideas": [
+                  {
+                    "id": "idea_mom_blanket",
+                    "title": "Cozy Throw Blanket",
+                    "price": 60,
+                    "purchased": true,
+                    "note": "Soft knit, neutral color",
+                    "imageUrl": "https://cdn.example.com/images/blanket.jpg",
+                    "sourceUrl": "https://www.example.com/product/cozy-throw"
+                  },
+                  {
+                    "id": "idea_mom_herbs",
+                    "title": "Countertop Herb Garden Kit",
+                    "price": 35,
+                    "purchased": false,
+                    "note": "Basil, mint, parsley; compact size",
+                    "imageUrl": "https://cdn.example.com/images/herb-kit.jpg",
+                    "sourceUrl": "https://www.example.com/product/herb-garden-kit"
+                  },
+                  {
+                    "id": "idea_mom_giftcard",
+                    "title": "Dinner at Favorite Bistro (Gift Card)",
+                    "price": 45,
+                    "purchased": false,
+                    "note": "Target two-person appetizer + mains",
+                    "imageUrl": "https://cdn.example.com/images/gift-card.jpg",
+                    "sourceUrl": "https://www.example.com/product/bistro-gift-card"
+                  }
+                ],
+                "budget": 150,
+                "spent": 60,
+                "addIdeaAction": {
+                  "type": "add_idea",
+                  "payload": {
+                    "recipientId": "recp_mom"
+                  }
+                },
+                "reorderIdeaAction": {
+                  "type": "reorder_idea",
+                  "payload": {
+                    "ideaId": "idea_mom_blanket",
+                    "toIndex": 0
+                  }
+                },
+                "clearPurchasedAction": {
+                  "type": "clear_purchased",
+                  "payload": {
+                    "recipientId": "recp_mom"
+                  }
+                },
+                "currencyCode": "USD"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly acknowledge the user's goal of planning gifts for birthdays and holidays with ideas, budgets, and purchase status",
+            "Should present a clear, customizable plan structure that invites the user to provide recipients, occasions, and budgets",
+            "Should include a summary view with total budget, total planned, and total purchased amounts for the year",
+            "Should display per-recipient cards showing name, occasion, individual budget, planned total, purchased total, and idea/purchased counts",
+            "Should provide per-recipient idea lists containing idea titles, prices, purchase status, optional notes, and optional source links/images",
+            "Should indicate purchase status clearly for each idea (e.g., purchased boolean or status chip) and aggregate purchased totals accordingly",
+            "Should include actionable UI affordances to add recipients and ideas, select a recipient, reorder ideas, and clear purchased items",
+            "Should specify currency code and the planning year consistently across components",
+            "Should keep data internally consistent and plausible (e.g., totals align with per-recipient and per-idea values, budgets vs planned/purchased amounts are coherent)",
+            "Should use UI components suitable for the task (board for recipients/summary and idea list for detailed items) matching the expected visual in the scenario",
+            "Should avoid unnecessary tool calls; no external data fetching or computation is required for this setup",
+            "Should be concise and user-friendly in text, focusing on next steps for customization without excessive formatting"
+          ],
+          "expected_components": [
+            "GiftPlanningBoard",
+            "IdeaList"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014here are my 2025 recipients, occasions, budgets, and ideas:\n- Alex (spouse) \u2013 Birthday Mar, $150: smartwatch $120, cookbook $30 (not purchased)\n- Mom \u2013 Mother\u2019s Day May, $100: spa gift card $80 (purchased), flowers $30\n- Dad \u2013 Birthday Jul, $75: grilling tools $50, craft beer sampler $25 (not purchased)\n- Maya (sister) \u2013 Christmas Dec, $120: cozy throw $60, earrings $50 (not purchased)\n- Leo (nephew) \u2013 Birthday Oct, $40: LEGO set $35 (purchased)\n- Friends \u2013 Secret Santa Dec, $25: mug + hot cocoa $20 (not purchased)\nPlease add a total budget vs. planned spend summary and purchase status chips."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Awesome\u2014I've set up your 2025 gift plan with budgets, ideas, and purchase status. Highlights: total budget $510, planned $500, purchased $115. Mom is currently $10 over budget; everything else is at or under. Want me to open a different recipient\u2019s idea list or add links/images for any items?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "GiftPlanningBoard",
+              "props": {
+                "title": "2025 Gift Plan",
+                "totals": {
+                  "budgetTotal": 510,
+                  "plannedTotal": 500,
+                  "purchasedTotal": 115
+                },
+                "recipients": [
+                  {
+                    "id": "recp_alex",
+                    "name": "Alex",
+                    "occasion": "Birthday",
+                    "budget": 150,
+                    "plannedTotal": 150,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_alex"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_mom",
+                    "name": "Mom",
+                    "occasion": "Mother's Day",
+                    "budget": 100,
+                    "plannedTotal": 110,
+                    "purchasedTotal": 80,
+                    "ideasCount": 2,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_mom"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_dad",
+                    "name": "Dad",
+                    "occasion": "Birthday",
+                    "budget": 75,
+                    "plannedTotal": 75,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_dad"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_maya",
+                    "name": "Maya",
+                    "occasion": "Christmas",
+                    "budget": 120,
+                    "plannedTotal": 110,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_maya"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_leo",
+                    "name": "Leo",
+                    "occasion": "Birthday",
+                    "budget": 40,
+                    "plannedTotal": 35,
+                    "purchasedTotal": 35,
+                    "ideasCount": 1,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_leo"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_friends",
+                    "name": "Friends",
+                    "occasion": "Secret Santa",
+                    "budget": 25,
+                    "plannedTotal": 20,
+                    "purchasedTotal": 0,
+                    "ideasCount": 1,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_friends"
+                      }
+                    }
+                  }
+                ],
+                "addRecipientAction": {
+                  "type": "add_recipient",
+                  "payload": {
+                    "suggestedOccasion": "Birthday",
+                    "year": 2025
+                  }
+                },
+                "currencyCode": "USD",
+                "year": 2025
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "IdeaList",
+              "props": {
+                "recipientId": "recp_alex",
+                "ideas": [
+                  {
+                    "id": "idea_alex_watch",
+                    "title": "Smartwatch",
+                    "price": 120,
+                    "purchased": false
+                  },
+                  {
+                    "id": "idea_alex_cookbook",
+                    "title": "Cookbook",
+                    "price": 30,
+                    "purchased": false
+                  }
+                ],
+                "budget": 150,
+                "spent": 0,
+                "addIdeaAction": {
+                  "type": "add_idea",
+                  "payload": {
+                    "recipientId": "recp_alex"
+                  }
+                },
+                "reorderIdeaAction": {
+                  "type": "reorder_idea",
+                  "payload": {
+                    "ideaId": "idea_alex_watch",
+                    "toIndex": 0
+                  }
+                },
+                "clearPurchasedAction": {
+                  "type": "clear_purchased",
+                  "payload": {
+                    "recipientId": "recp_alex"
+                  }
+                },
+                "currencyCode": "USD"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should parse the user's recipients, occasions, budgets, and ideas accurately and reflect them in the UI",
+            "Should compute and display correct totals: overall budget total, planned total, and purchased total",
+            "Should compute and display per-recipient planned and purchased totals and counts based on idea prices and purchase flags",
+            "Should include purchase status chips for each idea (purchased/not purchased) and indicate recipient-level status (e.g., at/under/over budget)",
+            "Should clearly flag any over-budget recipients (e.g., planned spend exceeding budget) in the board summary or recipient card",
+            "Should present a concise top-level summary comparing total budget vs. planned spend and highlighting purchase progress",
+            "Should use USD currency consistently in text and component props",
+            "Should use only the specified components with appropriate props to match the expected visual (recipient cards, idea lists, purchase chips, total summary)",
+            "Should maintain internal consistency between the textual summary and the component data (no mismatched numbers or statuses)",
+            "Should provide interactive actions consistent with the component APIs (e.g., select recipient, add idea, reorder ideas, clear purchased, add recipient)",
+            "Should avoid unnecessary tool calls; no external tools are required for this in-app data presentation",
+            "Should avoid fabricating links or images; if offering to add them, it should be framed as an option/request from the user",
+            "Should keep prop shapes valid and identifiers consistent across components (recipientId, ideaId, counts, totals, currencyCode)",
+            "Should include occasion labels per recipient and display month/occasion succinctly without introducing unsupported date logic"
+          ],
+          "expected_components": [
+            "GiftPlanningBoard",
+            "IdeaList"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Open Alex\u2019s idea list and add \u201cwine tasting for two\u201d $100; mark the smartwatch as purchased. For Mom, change the flowers from $30 to a $20 bouquet to get her under budget. Also, suggest 2 more Secret Santa ideas under $25."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set! I added \u201cwine tasting for two\u201d ($100) to Alex and marked the smartwatch as purchased. I also updated Mom\u2019s flowers to a $20 bouquet\u2014she\u2019s now on budget. Summary updates:\n- Totals: Budget $510, Planned $590, Purchased $235\n- Over budget: Alex is $100 over (planned $250 vs $150 budget)\n- Back on track: Mom is now at $100 planned vs $100 budget\nSecret Santa ideas under $25 (suggestions):\n- Scented candle + mini matches set ($18\u2013$22)\n- Gourmet popcorn trio sampler ($15\u2013$20)\nWant me to add either of those to the Friends list or keep them as ideas for later?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "GiftPlanningBoard",
+              "props": {
+                "title": "2025 Gift Plan",
+                "totals": {
+                  "budgetTotal": 510,
+                  "plannedTotal": 590,
+                  "purchasedTotal": 235
+                },
+                "recipients": [
+                  {
+                    "id": "recp_alex",
+                    "name": "Alex",
+                    "occasion": "Birthday",
+                    "budget": 150,
+                    "plannedTotal": 250,
+                    "purchasedTotal": 120,
+                    "ideasCount": 3,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_alex"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_mom",
+                    "name": "Mom",
+                    "occasion": "Mother\u2019s Day",
+                    "budget": 100,
+                    "plannedTotal": 100,
+                    "purchasedTotal": 80,
+                    "ideasCount": 2,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_mom"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_dad",
+                    "name": "Dad",
+                    "occasion": "Birthday",
+                    "budget": 75,
+                    "plannedTotal": 75,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_dad"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_maya",
+                    "name": "Maya",
+                    "occasion": "Christmas",
+                    "budget": 120,
+                    "plannedTotal": 110,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_maya"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_leo",
+                    "name": "Leo",
+                    "occasion": "Birthday",
+                    "budget": 40,
+                    "plannedTotal": 35,
+                    "purchasedTotal": 35,
+                    "ideasCount": 1,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_leo"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_friends",
+                    "name": "Friends",
+                    "occasion": "Secret Santa",
+                    "budget": 25,
+                    "plannedTotal": 20,
+                    "purchasedTotal": 0,
+                    "ideasCount": 1,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_friends"
+                      }
+                    }
+                  }
+                ],
+                "addRecipientAction": {
+                  "type": "add_recipient",
+                  "payload": {
+                    "suggestedOccasion": "Christmas",
+                    "year": 2025
+                  }
+                },
+                "currencyCode": "USD",
+                "year": 2025
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "IdeaList",
+              "props": {
+                "recipientId": "recp_alex",
+                "ideas": [
+                  {
+                    "id": "idea_alex_watch",
+                    "title": "Smartwatch",
+                    "price": 120,
+                    "purchased": true,
+                    "note": "Primary gift"
+                  },
+                  {
+                    "id": "idea_alex_cookbook",
+                    "title": "Cookbook",
+                    "price": 30,
+                    "purchased": false,
+                    "note": "Add a personal note"
+                  },
+                  {
+                    "id": "idea_alex_winetasting",
+                    "title": "Wine tasting for two",
+                    "price": 100,
+                    "purchased": false,
+                    "note": "Local winery weekend"
+                  }
+                ],
+                "budget": 150,
+                "spent": 120,
+                "addIdeaAction": {
+                  "type": "add_idea",
+                  "payload": {
+                    "recipientId": "recp_alex"
+                  }
+                },
+                "reorderIdeaAction": {
+                  "type": "reorder_idea",
+                  "payload": {
+                    "ideaId": "idea_alex_watch",
+                    "toIndex": 0
+                  }
+                },
+                "clearPurchasedAction": {
+                  "type": "clear_purchased",
+                  "payload": {
+                    "recipientId": "recp_alex"
+                  }
+                },
+                "currencyCode": "USD"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should open and display Alex\u2019s idea list with the smartwatch marked as purchased and the new idea 'Wine tasting for two' added at $100",
+            "Should update Alex\u2019s planned and purchased totals to reflect the added idea and purchased smartwatch, maintaining data consistency across the IdeaList and GiftPlanningBoard",
+            "Should modify Mom\u2019s flowers idea price from $30 to $20 and update her planned total so she is within her $100 budget",
+            "Should update the GiftPlanningBoard totals (budgetTotal, plannedTotal, purchasedTotal) to accurately reflect all changes made to Alex and Mom",
+            "Should clearly indicate which recipients are over or under budget based on the new totals (e.g., Alex over budget, Mom on budget) using summary text or UI indicators",
+            "Should provide exactly two additional Secret Santa gift suggestions under $25 each, without adding them to the list unless explicitly instructed by the user",
+            "Should preserve existing recipients and ideas without unintended additions or deletions, only making the requested changes",
+            "Should use USD as the currency and ensure all amounts and summed totals are mathematically accurate",
+            "Should present a concise textual summary of changes made and current budget status for transparency",
+            "Should use the GiftPlanningBoard and IdeaList UI components appropriately and pass correct, updated props to reflect the current state",
+            "Should avoid unnecessary tool calls since the request is state updates and UI rendering only",
+            "Should include appropriate component actions (e.g., select_recipient, add_idea) where relevant to support further user interaction"
+          ],
+          "expected_components": [
+            "GiftPlanningBoard",
+            "IdeaList"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Add the scented candle + mini matches ($20) to Friends and mark it not purchased. For Alex, move \u201cwine tasting for two\u201d to a new Anniversary in June with a $100 budget and remove the cookbook so his birthday only has the smartwatch. Please refresh the total budget/planned/purchased summary."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done! I added the scented candle + mini matches ($20) to Friends (not purchased), moved Alex\u2019s wine tasting to a new June Anniversary with a $100 budget, and removed the cookbook from his birthday. Updated summary:\n- Totals: Budget $610, Planned $580, Purchased $235\n- Over budget: Friends (Secret Santa) is $15 over ($40 planned vs $25 budget)\nEverything else is on or under budget. Want me to increase the Friends budget to $40, or replace one item to stay within $25?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "GiftPlanningBoard",
+              "props": {
+                "title": "2025 Gift Plan",
+                "totals": {
+                  "budgetTotal": 610,
+                  "plannedTotal": 580,
+                  "purchasedTotal": 235
+                },
+                "recipients": [
+                  {
+                    "id": "recp_alex_bday",
+                    "name": "Alex",
+                    "occasion": "Birthday",
+                    "budget": 150,
+                    "plannedTotal": 120,
+                    "purchasedTotal": 120,
+                    "ideasCount": 1,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_alex_bday"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_alex_anniv",
+                    "name": "Alex",
+                    "occasion": "Anniversary",
+                    "budget": 100,
+                    "plannedTotal": 100,
+                    "purchasedTotal": 0,
+                    "ideasCount": 1,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_alex_anniv"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_mom_may",
+                    "name": "Mom",
+                    "occasion": "Mother's Day",
+                    "budget": 100,
+                    "plannedTotal": 100,
+                    "purchasedTotal": 80,
+                    "ideasCount": 2,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_mom_may"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_dad_jul",
+                    "name": "Dad",
+                    "occasion": "Birthday",
+                    "budget": 75,
+                    "plannedTotal": 75,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_dad_jul"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_maya_dec",
+                    "name": "Maya",
+                    "occasion": "Christmas",
+                    "budget": 120,
+                    "plannedTotal": 110,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_maya_dec"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_leo_oct",
+                    "name": "Leo",
+                    "occasion": "Birthday",
+                    "budget": 40,
+                    "plannedTotal": 35,
+                    "purchasedTotal": 35,
+                    "ideasCount": 1,
+                    "purchasedCount": 1,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_leo_oct"
+                      }
+                    }
+                  },
+                  {
+                    "id": "recp_friends_ss",
+                    "name": "Friends",
+                    "occasion": "Secret Santa",
+                    "budget": 25,
+                    "plannedTotal": 40,
+                    "purchasedTotal": 0,
+                    "ideasCount": 2,
+                    "purchasedCount": 0,
+                    "selectAction": {
+                      "type": "select_recipient",
+                      "payload": {
+                        "id": "recp_friends_ss"
+                      }
+                    }
+                  }
+                ],
+                "addRecipientAction": {
+                  "type": "add_recipient",
+                  "payload": {
+                    "suggestedOccasion": "Birthday",
+                    "year": 2025
+                  }
+                },
+                "currencyCode": "USD",
+                "year": 2025
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "IdeaList",
+              "props": {
+                "recipientId": "recp_friends_ss",
+                "ideas": [
+                  {
+                    "id": "idea_mug_cocoa",
+                    "title": "Mug + hot cocoa",
+                    "price": 20,
+                    "purchased": false
+                  },
+                  {
+                    "id": "idea_candle_matches",
+                    "title": "Scented candle + mini matches",
+                    "price": 20,
+                    "purchased": false
+                  }
+                ],
+                "budget": 25,
+                "spent": 0,
+                "addIdeaAction": {
+                  "type": "add_idea",
+                  "payload": {
+                    "recipientId": "recp_friends_ss"
+                  }
+                },
+                "reorderIdeaAction": {
+                  "type": "reorder_idea",
+                  "payload": {
+                    "ideaId": "idea_mug_cocoa",
+                    "toIndex": 1
+                  }
+                },
+                "clearPurchasedAction": {
+                  "type": "clear_purchased",
+                  "payload": {
+                    "recipientId": "recp_friends_ss"
+                  }
+                },
+                "currencyCode": "USD"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly confirm each requested change: add 'scented candle + mini matches' ($20) to Friends marked not purchased; move 'wine tasting for two' from Alex's birthday to a new June Anniversary with a $100 budget; remove the cookbook from Alex's birthday so only the smartwatch remains",
+            "Should create a new Anniversary recipient entry for Alex in June with the correct budget ($100) and include the moved 'wine tasting for two' idea with accurate price and not purchased status unless otherwise specified",
+            "Should remove 'wine tasting for two' and the cookbook from Alex's birthday list, ensuring only the smartwatch remains and adjusting planned/purchased totals, idea counts, and purchased counts accordingly",
+            "Should recompute and present the refreshed overall totals (Budget, Planned, Purchased) accurately based on all recipients after the updates",
+            "Should update per-recipient budgets, planned totals, purchased totals, and counts to reflect all modifications accurately",
+            "Should flag any categories that are over or under budget based on updated data and clearly indicate the amount over/under",
+            "Should ensure consistency between any textual summary and the data shown in UI component props (totals, budgets, item lists, prices, counts, and purchase statuses)",
+            "Should use appropriate UI components to present the updated board and the relevant idea list(s), matching the expected visual structure (recipient cards, idea lists, purchase statuses, and totals summary)",
+            "Should include correct metadata in components such as currency code and year when applicable",
+            "Should avoid unnecessary tool calls; only call tools with correct arguments if external data fetching or computation is required (not necessary for local state updates in this scenario)"
+          ],
+          "expected_components": [
+            "GiftPlanningBoard",
+            "IdeaList"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const formatCurrency = (amount = 0, currency = "USD", locale = "en-US") => {
+      try {
+        return new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount ?? 0);
+      } catch (e) {
+        return `$${(amount ?? 0).toFixed(2)}`;
+      }
+    };
+    const classNames = (...args) => args.filter(Boolean).join(" ");
+
+    // Schema Components
+
+    // IdeaItem
+    const IdeaItem = (props) => {
+      const {
+        id,
+        title,
+        price,
+        currencyCode = "USD",
+        status = "planned",
+        priority,
+        url,
+        imageUrl,
+        onSelectAction = {}
+      } = props || {};
+
+      const getStatusStyles = (s) => {
+        if (s === "purchased") return "bg-green-100 text-green-700 border-green-200";
+        if (s === "in_cart") return "bg-blue-100 text-blue-700 border-blue-200";
+        return "bg-gray-100 text-gray-700 border-gray-200";
+      };
+
+      const handleSelect = () => {
+        if (typeof onSelectAction?.callback === "function") {
+          onSelectAction.callback({ id, action: onSelectAction });
+        } else {
+          console.log("IdeaItem onSelectAction", onSelectAction);
+        }
+      };
+
+      return (
+        <div className="flex items-start gap-4 p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+          {imageUrl ? (
+            <img src={imageUrl} alt={title || "Idea"} className="w-16 h-16 rounded-md object-cover border border-gray-200" />
+          ) : (
+            <div className="w-16 h-16 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400">📝</div>
+          )}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h4 className="font-semibold text-gray-900">{title || "Untitled idea"}</h4>
+              <span className={classNames("text-xs px-2 py-0.5 rounded-full border", getStatusStyles(status))}>
+                {status.replace("_", " ")}
+              </span>
+              {priority && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                  {priority} priority
+                </span>
+              )}
+            </div>
+            <div className="mt-1 text-sm text-gray-600">
+              {price != null ? formatCurrency(price, currencyCode) : "No price"}
+            </div>
+            {url && (
+              <a href={url} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm text-blue-600 hover:underline">
+                View source
+              </a>
+            )}
+          </div>
+          <button
+            onClick={handleSelect}
+            className="text-sm px-3 py-1.5 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700"
+          >
+            Select
+          </button>
+        </div>
+      );
+    };
+
+    // GiftPlanningBoard
+    const GiftPlanningBoard = (props) => {
+      const {
+        title = "Gift Plan",
+        totals = {},
+        recipients = [],
+        addRecipientAction = {},
+        currencyCode = "USD",
+        year
+      } = props || {};
+
+      const budgetTotal = totals?.budgetTotal ?? 0;
+      const plannedTotal = totals?.plannedTotal ?? 0;
+      const purchasedTotal = totals?.purchasedTotal ?? 0;
+      const remainingBudget = Math.max(0, budgetTotal - plannedTotal);
+      const plannedOver = Math.max(0, plannedTotal - budgetTotal);
+
+      const pct = (numerator, denominator) => {
+        if (!denominator) return 0;
+        return Math.min(100, Math.round((numerator / denominator) * 100));
+      };
+
+      const handleAddRecipient = () => {
+        if (typeof addRecipientAction?.callback === "function") {
+          addRecipientAction.callback(addRecipientAction?.payload);
+        } else {
+          console.log("addRecipientAction", addRecipientAction);
+        }
+      };
+
+      return (
+        <section className="w-full bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900">{title}{year ? ` • ${year}` : ""}</h2>
+              <p className="text-sm text-gray-600">Track budgets, ideas, and purchases across recipients.</p>
+            </div>
+            <button
+              onClick={handleAddRecipient}
+              className="text-sm px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            >
+              + Add recipient
+            </button>
+          </div>
+
+          <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+              <div className="text-xs text-gray-500">Total budget</div>
+              <div className="text-base font-semibold text-gray-900">{formatCurrency(budgetTotal, currencyCode)}</div>
+            </div>
+            <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+              <div className="text-xs text-gray-500">Planned</div>
+              <div className="text-base font-semibold text-gray-900">{formatCurrency(plannedTotal, currencyCode)}</div>
+              <div className={classNames("text-xs mt-1", plannedOver ? "text-red-600" : "text-gray-600")}>
+                {plannedOver
+                  ? `Over by ${formatCurrency(plannedOver, currencyCode)}`
+                  : `Remaining ${formatCurrency(remainingBudget, currencyCode)}`}
+              </div>
+            </div>
+            <div className="p-3 rounded-lg bg-gray-50 border border-gray-200">
+              <div className="text-xs text-gray-500">Purchased</div>
+              <div className="text-base font-semibold text-gray-900">{formatCurrency(purchasedTotal, currencyCode)}</div>
+              <div className="w-full h-2 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                <div className="h-2 bg-green-500" style={{ width: `${pct(purchasedTotal, plannedTotal || budgetTotal || 1)}%` }} />
+              </div>
+            </div>
+          </div>
+
+          <div className="px-5 pb-5">
+            {!Array.isArray(recipients) || recipients.length === 0 ? (
+              <div className="text-sm text-gray-600 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
+                No recipients yet. Add one to get started.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {recipients.map((r) => {
+                  const id = r?.id;
+                  const name = r?.name || "Recipient";
+                  const occasion = r?.occasion || "Occasion";
+                  const budget = r?.budget ?? 0;
+                  const planned = r?.plannedTotal ?? 0;
+                  const purchased = r?.purchasedTotal ?? 0;
+                  const ideasCount = r?.ideasCount ?? 0;
+                  const purchasedCount = r?.purchasedCount ?? 0;
+                  const over = Math.max(0, planned - budget);
+                  const under = Math.max(0, budget - planned);
+                  const badge = over > 0 ? { text: `Over by ${formatCurrency(over, currencyCode)}`, cls: "bg-red-50 text-red-700 border-red-200" }
+                    : under > 0 ? { text: `Under by ${formatCurrency(under, currencyCode)}`, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+                    : { text: "On budget", cls: "bg-blue-50 text-blue-700 border-blue-200" };
+
+                  const handleSelect = () => {
+                    if (typeof r?.selectAction?.callback === "function") {
+                      r.selectAction.callback(r?.selectAction?.payload);
+                    } else {
+                      console.log("selectAction", r?.selectAction);
+                    }
+                  };
+
+                  return (
+                    <div key={id} className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-semibold text-gray-900">{name}</div>
+                          <div className="text-xs text-gray-600">{occasion}</div>
+                        </div>
+                        <span className={classNames("text-xs px-2 py-0.5 rounded-full border", badge.cls)}>{badge.text}</span>
+                      </div>
+                      <div className="mt-3 grid grid-cols-3 gap-2 text-sm">
+                        <div className="p-2 bg-gray-50 rounded border border-gray-200">
+                          <div className="text-xs text-gray-500">Budget</div>
+                          <div className="font-medium text-gray-900">{formatCurrency(budget, currencyCode)}</div>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded border border-gray-200">
+                          <div className="text-xs text-gray-500">Planned</div>
+                          <div className="font-medium text-gray-900">{formatCurrency(planned, currencyCode)}</div>
+                        </div>
+                        <div className="p-2 bg-gray-50 rounded border border-gray-200">
+                          <div className="text-xs text-gray-500">Purchased</div>
+                          <div className="font-medium text-gray-900">{formatCurrency(purchased, currencyCode)}</div>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-sm text-gray-700">
+                        <div>Ideas: <span className="font-medium">{ideasCount}</span></div>
+                        <div>Purchased: <span className="font-medium">{purchasedCount}</span></div>
+                      </div>
+                      <button
+                        onClick={handleSelect}
+                        className="mt-3 w-full text-sm px-3 py-2 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100"
+                      >
+                        Open ideas
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    };
+
+    // RecipientCard
+    const RecipientCard = (props) => {
+      const {
+        id,
+        name,
+        occasion,
+        date,
+        budget = 0,
+        spent = 0,
+        statusChips = {},
+        action = {}
+      } = props || {};
+
+      const handleAction = () => {
+        if (typeof action?.callback === "function") {
+          action.callback({ id, action });
+        } else {
+          console.log("RecipientCard action", action);
+        }
+      };
+
+      const over = Math.max(0, spent - budget);
+      const under = Math.max(0, budget - spent);
+      const badge = over > 0 ? { text: `Over by ${formatCurrency(over)}`, cls: "bg-red-50 text-red-700 border-red-200" }
+        : under > 0 ? { text: `Under by ${formatCurrency(under)}`, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+        : { text: "On budget", cls: "bg-blue-50 text-blue-700 border-blue-200" };
+
+      return (
+        <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="font-semibold text-gray-900">{name || "Recipient"}</div>
+              <div className="text-xs text-gray-600">{occasion || "Occasion"}{date ? ` • ${date}` : ""}</div>
+            </div>
+            <span className={classNames("text-xs px-2 py-0.5 rounded-full border", badge.cls)}>{badge.text}</span>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+            <div className="p-2 bg-gray-50 rounded border border-gray-200">
+              <div className="text-xs text-gray-500">Budget</div>
+              <div className="font-medium text-gray-900">{formatCurrency(budget)}</div>
+            </div>
+            <div className="p-2 bg-gray-50 rounded border border-gray-200">
+              <div className="text-xs text-gray-500">Spent</div>
+              <div className="font-medium text-gray-900">{formatCurrency(spent)}</div>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-1">
+            {Object.entries(statusChips || {}).map(([k, v]) => (
+              <span key={k} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                {k}: {String(v)}
+              </span>
+            ))}
+          </div>
+          <button
+            onClick={handleAction}
+            className="mt-3 w-full text-sm px-3 py-2 rounded-md border border-gray-200 bg-gray-50 hover:bg-gray-100"
+          >
+            View details
+          </button>
+        </div>
+      );
+    };
+
+    // BudgetSummaryBar
+    const BudgetSummaryBar = (props) => {
+      const {
+        id,
+        title = "Budget Summary",
+        currency = "USD",
+        budgetTotal = 0,
+        estimatedTotal = 0,
+        purchasedTotal = 0,
+        iconUrl,
+        onViewReportAction = {},
+        warningThresholdPercent = 90,
+        showRemainingAs = "both"
+      } = props || {};
+
+      const percentUsed = budgetTotal ? Math.round((estimatedTotal / budgetTotal) * 100) : 0;
+      const remaining = Math.max(0, budgetTotal - estimatedTotal);
+      const showWarning = percentUsed >= warningThresholdPercent;
+
+      const handleView = () => {
+        if (typeof onViewReportAction?.callback === "function") {
+          onViewReportAction.callback({ id });
+        } else {
+          console.log("onViewReportAction", onViewReportAction);
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="flex items-center gap-3">
+            {iconUrl ? (
+              <img src={iconUrl} alt="" className="w-8 h-8 rounded" />
+            ) : (
+              <div className="w-8 h-8 rounded bg-gray-100 border border-gray-200 flex items-center justify-center">💰</div>
+            )}
+            <div className="flex-1">
+              <div className="font-semibold text-gray-900">{title}</div>
+              <div className="text-sm text-gray-600">
+                Budget {formatCurrency(budgetTotal, currency)} • Planned {formatCurrency(estimatedTotal, currency)} • Purchased {formatCurrency(purchasedTotal, currency)}
+              </div>
+            </div>
+            {showWarning && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                {percentUsed}% of budget used
+              </span>
+            )}
+          </div>
+          <div className="mt-3">
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div className="h-2 bg-blue-500" style={{ width: `${Math.min(100, percentUsed)}%` }} />
+            </div>
+            <div className="mt-2 text-xs text-gray-700">
+              {showRemainingAs === "amount" && <>Remaining {formatCurrency(remaining, currency)}</>}
+              {showRemainingAs === "percentage" && <>{budgetTotal ? Math.round((remaining / budgetTotal) * 100) : 0}% remaining</>}
+              {showRemainingAs === "both" && <>Remaining {formatCurrency(remaining, currency)} ({budgetTotal ? Math.round((remaining / budgetTotal) * 100) : 0}%)</>}
+            </div>
+          </div>
+          <button
+            onClick={handleView}
+            className="mt-3 text-sm px-3 py-1.5 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100"
+          >
+            View report
+          </button>
+        </div>
+      );
+    };
+
+    // FilterSortBar
+    const FilterSortBar = (props) => {
+      const {
+        id,
+        title = "Filters",
+        name,
+        scope = "recipients",
+        filters = {},
+        sort = {},
+        iconUrl,
+        onChangeAction = {},
+        quickPresets = {},
+        hintText
+      } = props || {};
+
+      const [localFilters, setLocalFilters] = useState(filters || {});
+      const [localSort, setLocalSort] = useState(sort || {});
+
+      const handleApply = () => {
+        if (typeof onChangeAction?.callback === "function") {
+          onChangeAction.callback({ id, filters: localFilters, sort: localSort, scope });
+        } else {
+          console.log("onChangeAction", { id, filters: localFilters, sort: localSort, scope });
+        }
+      };
+
+      return (
+        <div className="w-full bg-white border border-gray-200 rounded-lg shadow-sm p-4">
+          <div className="flex items-center gap-3">
+            {iconUrl ? (
+              <img src={iconUrl} alt="" className="w-6 h-6 rounded" />
+            ) : (
+              <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center">🔎</div>
+            )}
+            <div className="font-semibold text-gray-900">{title}</div>
+            <div className="ml-auto text-xs px-2 py-0.5 rounded-full bg-gray-50 border border-gray-200 text-gray-700">
+              Scope: {scope}
+            </div>
+          </div>
+          {hintText && <div className="mt-2 text-sm text-gray-600">{hintText}</div>}
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-gray-600">Filter keyword</label>
+              <input
+                type="text"
+                placeholder="e.g., over budget"
+                className="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                value={localFilters.keyword || ""}
+                onChange={(e) => setLocalFilters({ ...localFilters, keyword: e.target.value })}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-600">Sort by</label>
+              <select
+                className="mt-1 w-full text-sm px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                value={localSort.by || ""}
+                onChange={(e) => setLocalSort({ ...localSort, by: e.target.value })}
+              >
+                <option value="">None</option>
+                <option value="budget">Budget</option>
+                <option value="planned">Planned</option>
+                <option value="purchased">Purchased</option>
+                <option value="name">Name</option>
+              </select>
+            </div>
+          </div>
+          {quickPresets && Object.keys(quickPresets).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {Object.entries(quickPresets).map(([key, preset]) => (
+                <button
+                  key={key}
+                  onClick={() => setLocalFilters({ ...localFilters, ...preset })}
+                  className="text-xs px-2 py-1 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100"
+                >
+                  {key}
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              onClick={handleApply}
+              className="text-sm px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Apply
+            </button>
+            <button
+              onClick={() => { setLocalFilters({}); setLocalSort({}); }}
+              className="text-sm px-3 py-1.5 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      );
+    };
+
+    // IdeaList
+    const IdeaList = (props) => {
+      const {
+        recipientId,
+        ideas = [],
+        budget = 0,
+        spent = 0,
+        addIdeaAction = {},
+        reorderIdeaAction = {},
+        clearPurchasedAction = {},
+        currencyCode = "USD"
+      } = props || {};
+
+      const planned = useMemo(() => {
+        return (Array.isArray(ideas) ? ideas : []).reduce((sum, i) => sum + (i?.price ?? 0), 0);
+      }, [ideas]);
+
+      const purchasedTotal = useMemo(() => {
+        return (Array.isArray(ideas) ? ideas : []).reduce((sum, i) => sum + ((i?.purchased ? i?.price : 0) ?? 0), 0);
+      }, [ideas]);
+
+      const purchasedCount = useMemo(() => (Array.isArray(ideas) ? ideas.filter(i => i?.purchased).length : 0), [ideas]);
+      const over = Math.max(0, planned - budget);
+      const under = Math.max(0, budget - planned);
+      const badge = over > 0 ? { text: `Over by ${formatCurrency(over, currencyCode)}`, cls: "bg-red-50 text-red-700 border-red-200" }
+        : under > 0 ? { text: `Under by ${formatCurrency(under, currencyCode)}`, cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+        : { text: "On budget", cls: "bg-blue-50 text-blue-700 border-blue-200" };
+
+      const handleAdd = () => {
+        if (typeof addIdeaAction?.callback === "function") {
+          addIdeaAction.callback(addIdeaAction?.payload);
+        } else {
+          console.log("addIdeaAction", addIdeaAction);
+        }
+      };
+      const handleReorder = () => {
+        if (typeof reorderIdeaAction?.callback === "function") {
+          reorderIdeaAction.callback(reorderIdeaAction?.payload);
+        } else {
+          console.log("reorderIdeaAction", reorderIdeaAction);
+        }
+      };
+      const handleClear = () => {
+        if (typeof clearPurchasedAction?.callback === "function") {
+          clearPurchasedAction.callback(clearPurchasedAction?.payload);
+        } else {
+          console.log("clearPurchasedAction", clearPurchasedAction);
+        }
+      };
+
+      return (
+        <section className="w-full bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Ideas {recipientId ? `• ${recipientId}` : ""}</h3>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={classNames("text-xs px-2 py-0.5 rounded-full border", badge.cls)}>{badge.text}</span>
+                <span className="text-xs text-gray-600">Planned {formatCurrency(planned, currencyCode)} • Purchased {formatCurrency(purchasedTotal, currencyCode)} • Budget {formatCurrency(budget, currencyCode)}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={handleAdd} className="text-sm px-3 py-1.5 rounded-md bg-blue-600 text-white hover:bg-blue-700">+ Add idea</button>
+              <button onClick={handleReorder} className="text-sm px-3 py-1.5 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Reorder</button>
+              <button onClick={handleClear} className="text-sm px-3 py-1.5 rounded-md bg-gray-50 border border-gray-200 hover:bg-gray-100">Clear purchased</button>
+            </div>
+          </div>
+
+          <div className="p-5">
+            {!Array.isArray(ideas) || ideas.length === 0 ? (
+              <div className="text-sm text-gray-600 p-4 bg-gray-50 border border-dashed border-gray-300 rounded-lg">
+                No ideas yet. Add your first idea.
+              </div>
+            ) : (
+              <ul className="space-y-3">
+                {ideas.map((i) => (
+                  <li key={i?.id} className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="font-medium text-gray-900">{i?.title || "Untitled"}</div>
+                          <span className={classNames(
+                            "text-xs px-2 py-0.5 rounded-full border",
+                            i?.purchased ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-700 border-gray-200"
+                          )}>
+                            {i?.purchased ? "Purchased" : "Not purchased"}
+                          </span>
+                        </div>
+                        <div className="mt-1 text-sm text-gray-700">{formatCurrency(i?.price ?? 0, currencyCode)}</div>
+                        {i?.note && <div className="mt-1 text-sm text-gray-600">{i.note}</div>}
+                        {i?.sourceUrl && (
+                          <a href={i.sourceUrl} target="_blank" rel="noreferrer" className="mt-1 inline-block text-sm text-blue-600 hover:underline">
+                            View link
+                          </a>
+                        )}
+                      </div>
+                      {i?.imageUrl ? (
+                        <img src={i.imageUrl} alt="" className="w-16 h-16 rounded-md object-cover border border-gray-200" />
+                      ) : (
+                        <div className="w-16 h-16 rounded-md bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400">🎁</div>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-4 text-xs text-gray-600">
+              Purchased items: {purchasedCount} • Spent recorded: {formatCurrency(spent || purchasedTotal, currencyCode)}
+            </div>
+          </div>
+        </section>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      IdeaItem: IdeaItem,
+      GiftPlanningBoard: GiftPlanningBoard,
+      RecipientCard: RecipientCard,
+      BudgetSummaryBar: BudgetSummaryBar,
+      FilterSortBar: FilterSortBar,
+      IdeaList: IdeaList
+    };
+
+    // ComponentRenderer
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    // Message rendering
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === "string") {
+        return <p className="text-gray-800 whitespace-pre-wrap">{chunk}</p>;
+      }
+      if (chunk?.type === "text") {
+        return <p className="text-gray-800 whitespace-pre-wrap">{chunk.text}</p>;
+      }
+      if (chunk?.type === "component") {
+        const comp = chunk.component || {};
+        return (
+          <div className="mt-3">
+            <ComponentRenderer componentName={comp.name} props={comp.props} />
+          </div>
+        );
+      }
+      return (
+        <pre className="text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded-md p-2 overflow-auto">
+{JSON.stringify(chunk, null, 2)}
+        </pre>
+      );
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === "user";
+      const bubbleCls = isUser
+        ? "bg-blue-600 text-white"
+        : "bg-white text-gray-900 border border-gray-200";
+      const containerCls = isUser ? "items-end" : "items-start";
+      const dot = isUser ? "🧑" : "🤖";
+
+      const chunks = Array.isArray(content) ? content : [{ type: "text", text: String(content || "") }];
+
+      return (
+        <div className={classNames("w-full flex", containerCls)}>
+          <div className="flex items-start gap-3 max-w-4xl w-full">
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">{dot}</div>
+            <div className={classNames("rounded-2xl px-4 py-3 w-full", bubbleCls)}>
+              {chunks.map((chunk, idx) => (
+                <div key={idx} className={idx > 0 ? "mt-3" : ""}>
+                  <ContentChunkRenderer chunk={chunk} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="min-h-screen">
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200">
+            <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+              <h1 className="text-lg font-semibold text-gray-900">Conversation Viewer</h1>
+              <div className="text-sm text-gray-600">UI components: GiftPlanningBoard, IdeaList</div>
+            </div>
+          </header>
+
+          <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+            {Array.isArray(conversation) && conversation.length > 0 ? (
+              conversation.map((msg, idx) => (
+                <MessageBubble key={idx} role={msg.role} content={msg.content} />
+              ))
+            ) : (
+              <div className="text-sm text-gray-700">No conversation data.</div>
+            )}
+          </main>
+        </div>
+      );
+    };
+
+    // Render
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

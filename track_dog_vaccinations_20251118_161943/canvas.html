@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "I want to track my dog\u2019s vaccinations, medications, and vet visits in one place."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great idea\u2014let\u2019s keep everything in one place. Here\u2019s a starter dashboard for your dog with a timeline, a checklist for vaccines/meds, reminders, and a quick-glance health card. You can tap items to view details, mark things done, snooze reminders, or add new records. Want me to personalize this with your dog\u2019s name, age, vet, and actual dates?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PetHealthOverview",
+              "props": {
+                "pet": {
+                  "name": "Buddy",
+                  "id": "pet_buddy_001",
+                  "avatarUrl": "https://cdn.example.com/pets/buddy.jpg"
+                },
+                "summary": {
+                  "ageYears": 4.5,
+                  "weightKg": 23.2,
+                  "lastVisitDate": "2025-07-12",
+                  "nextVisitDate": "2025-12-05",
+                  "primaryVet": "Dr. Nguyen, Happy Paws Clinic"
+                },
+                "visits": [
+                  {
+                    "id": "vst_2025_07_12",
+                    "dateTime": "2025-07-12T15:00:00-04:00",
+                    "title": "Annual Wellness Exam",
+                    "type": "Visit",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_dhpp_2025_07_12",
+                    "dateTime": "2025-07-12T15:30:00-04:00",
+                    "title": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "med_flea_2025_10_22",
+                    "dateTime": "2025-10-22T09:00:00-04:00",
+                    "title": "Flea/Tick Prevention",
+                    "type": "Medication",
+                    "status": "Missed"
+                  },
+                  {
+                    "id": "med_heartworm_2025_11_21",
+                    "dateTime": "2025-11-21T09:00:00-05:00",
+                    "title": "Heartworm Preventative",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "vax_rabies_2025_12_01",
+                    "dateTime": "2025-12-01T09:00:00-05:00",
+                    "title": "Rabies Booster",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "visit_dental_2025_12_05",
+                    "dateTime": "2025-12-05T14:30:00-05:00",
+                    "title": "Dental Cleaning",
+                    "type": "Visit",
+                    "status": "Upcoming"
+                  }
+                ],
+                "checklistItems": [
+                  {
+                    "id": "chk_heartworm",
+                    "name": "Heartworm Preventative",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-11-21",
+                    "nextDoseAt": "2025-11-21T09:00:00-05:00"
+                  },
+                  {
+                    "id": "chk_flea_tick",
+                    "name": "Flea/Tick Prevention",
+                    "type": "Medication",
+                    "status": "Overdue",
+                    "dueDate": "2025-10-22",
+                    "nextDoseAt": "2025-11-22T09:00:00-05:00"
+                  },
+                  {
+                    "id": "chk_rabies",
+                    "name": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2025-12-01",
+                    "nextDoseAt": "2025-12-01T09:00:00-05:00"
+                  },
+                  {
+                    "id": "chk_dhpp",
+                    "name": "DHPP Vaccine",
+                    "type": "Vaccine",
+                    "status": "Completed",
+                    "dueDate": "2025-07-12"
+                  }
+                ],
+                "reminders": [
+                  {
+                    "id": "rem_heartworm_2025_11_21",
+                    "title": "Give Heartworm Tablet",
+                    "dueAt": "2025-11-21T09:00:00-05:00",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_flea_2025_11_22",
+                    "title": "Apply Flea/Tick Topical",
+                    "dueAt": "2025-11-22T09:00:00-05:00",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_rabies_2025_12_01",
+                    "title": "Rabies Booster Appointment",
+                    "dueAt": "2025-12-01T09:00:00-05:00",
+                    "relatedType": "Vaccine"
+                  },
+                  {
+                    "id": "rem_dental_2025_12_05",
+                    "title": "Dental Cleaning Appointment",
+                    "dueAt": "2025-12-05T14:30:00-05:00",
+                    "relatedType": "Visit"
+                  }
+                ],
+                "onAction": {
+                  "type": "pet_health_overview_action_channel"
+                },
+                "timezone": "America/New_York",
+                "initialView": "timeline"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SummaryHealthCard",
+              "props": {
+                "id": "pet_buddy_001",
+                "petName": "Buddy",
+                "avatarUrl": "https://cdn.example.com/pets/buddy.jpg",
+                "ageYears": 4.5,
+                "weightKg": 23.2,
+                "primaryVet": "Dr. Nguyen, Happy Paws Clinic",
+                "visits": {
+                  "last": "2025-07-12",
+                  "next": "2025-12-05T14:30:00-05:00"
+                },
+                "primaryAction": {
+                  "type": "open_full_profile",
+                  "payload": {
+                    "petId": "pet_buddy_001"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should acknowledge and restate the user's goal to track vaccinations, medications, and vet visits in one place",
+            "Should present a unified solution that consolidates vaccines, medications, visits, and reminders into a single view",
+            "Should offer a clear path to personalization (e.g., request the dog\u2019s name, age, vet, and actual dates) without assuming unavailable data",
+            "Should provide accurate, relevant, and non-diagnostic information focused on tracking and scheduling rather than medical advice",
+            "Should use appropriate UI components to display a timeline, checklist, reminders, and a summary card matching the scenario\u2019s expected visual",
+            "Should include actionable controls (e.g., view details, mark done, snooze, add new record) and expose an action channel for handling them",
+            "Should structure component props comprehensively: pet identity, summary (age, weight, last/next visit, primary vet), visits with type/status/dateTime, checklist items with due dates/status, reminders with dueAt, and configuration like timezone and initial view",
+            "Should ensure dates and times are in ISO-8601 format with explicit timezone offsets and are consistent with the provided timezone",
+            "Should maintain logical consistency between dates and statuses (e.g., Past vs Upcoming, Due vs Overdue)",
+            "Should avoid unnecessary tool calls; only call tools if real-time data fetching, computation, or external actions are required",
+            "Should avoid including personal or sensitive information not provided by the user; use safe placeholders where appropriate",
+            "Should use clear, concise language describing how to interact with the dashboard"
+          ],
+          "expected_components": [
+            "PetHealthOverview",
+            "SummaryHealthCard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014please personalize it. My dog is Luna, a 3\u2011year\u2011old Labrador; vet is Dr. Kim at Oak Grove Animal Clinic (555\u20110134). Last rabies 2023\u201108\u201115 (due 2026), DHPP booster due 2025\u201112\u201101, Bordetella every 6 months\u2014last 2025\u201107\u201110; meds: Heartgard and NexGard monthly on the 10th; upcoming annual exam 2025\u201112\u201105 at 9:30 AM\u2014set reminders 3 days before and day\u2011of."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set! I\u2019ve personalized Luna\u2019s health dashboard with her vaccines, meds, and vet visit details, plus the reminders you requested. You can tap any item to view or edit details, mark doses taken, snooze reminders, or add new records. If you\u2019d like, I can add a photo for Luna and fine-tune reminder times."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PetHealthOverview",
+              "props": {
+                "pet": {
+                  "name": "Luna",
+                  "id": "pet_luna"
+                },
+                "summary": {
+                  "ageYears": 3,
+                  "lastVisitDate": "2025-07-10",
+                  "nextVisitDate": "2025-12-05",
+                  "primaryVet": "Dr. Kim, Oak Grove Animal Clinic (555-0134)"
+                },
+                "visits": [
+                  {
+                    "id": "vax_rabies_2023_08_15",
+                    "dateTime": "2023-08-15T10:00:00-04:00",
+                    "title": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_bordetella_2025_07_10",
+                    "dateTime": "2025-07-10T10:00:00-04:00",
+                    "title": "Bordetella Vaccine",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_dhpp_due_2025_12_01",
+                    "dateTime": "2025-12-01T09:00:00-05:00",
+                    "title": "DHPP Booster Due",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "visit_annual_exam_2025_12_05",
+                    "dateTime": "2025-12-05T09:30:00-05:00",
+                    "title": "Annual Wellness Exam",
+                    "type": "Visit",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_heartgard_due_2025_12_10",
+                    "dateTime": "2025-12-10T09:00:00-05:00",
+                    "title": "Heartgard Monthly Dose",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_nexgard_due_2025_12_10",
+                    "dateTime": "2025-12-10T09:00:00-05:00",
+                    "title": "NexGard Monthly Dose",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  }
+                ],
+                "checklistItems": [
+                  {
+                    "id": "check_rabies",
+                    "name": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Completed",
+                    "dueDate": "2026-08-15"
+                  },
+                  {
+                    "id": "check_dhpp",
+                    "name": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2025-12-01",
+                    "nextDoseAt": "2025-12-01T09:00:00-05:00"
+                  },
+                  {
+                    "id": "check_bordetella",
+                    "name": "Bordetella",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2026-01-10",
+                    "nextDoseAt": "2026-01-10T09:00:00-05:00"
+                  },
+                  {
+                    "id": "check_heartgard",
+                    "name": "Heartgard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T09:00:00-05:00"
+                  },
+                  {
+                    "id": "check_nexgard",
+                    "name": "NexGard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T09:00:00-05:00"
+                  }
+                ],
+                "reminders": [
+                  {
+                    "id": "rem_exam_3d_before",
+                    "title": "Annual Exam in 3 days",
+                    "dueAt": "2025-12-02T09:30:00-05:00",
+                    "relatedType": "Visit"
+                  },
+                  {
+                    "id": "rem_exam_day_of",
+                    "title": "Annual Exam today (9:30 AM)",
+                    "dueAt": "2025-12-05T09:30:00-05:00",
+                    "relatedType": "Visit"
+                  },
+                  {
+                    "id": "rem_heartgard_dec",
+                    "title": "Give Heartgard",
+                    "dueAt": "2025-12-10T09:00:00-05:00",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_nexgard_dec",
+                    "title": "Give NexGard",
+                    "dueAt": "2025-12-10T09:00:00-05:00",
+                    "relatedType": "Medication"
+                  }
+                ],
+                "onAction": {
+                  "type": "pet_health_overview_action_channel"
+                },
+                "timezone": "America/New_York",
+                "initialView": "timeline"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SummaryHealthCard",
+              "props": {
+                "id": "pet_luna",
+                "petName": "Luna",
+                "ageYears": 3,
+                "primaryVet": "Dr. Kim, Oak Grove Animal Clinic (555-0134)",
+                "visits": {
+                  "last": "2025-07-10",
+                  "next": "2025-12-05T09:30:00-05:00"
+                },
+                "primaryAction": {
+                  "type": "open_full_profile",
+                  "payload": {
+                    "petId": "pet_luna"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should personalize the dashboard with the user's provided details: pet name (Luna), age (3 years), breed (Labrador), primary vet (Dr. Kim, Oak Grove Animal Clinic, phone 555-0134)",
+            "Should construct a timeline including past and upcoming items matching the user's data: past Rabies on 2023-08-15, past Bordetella on 2025-07-10, upcoming DHPP due 2025-12-01 (include time if set), upcoming annual exam on 2025-12-05 at 09:30, and monthly medications (Heartgard and NexGard) due on the 10th (e.g., 2025-12-10)",
+            "Should generate a vaccine/medication checklist with correct statuses and due dates: Rabies marked completed with next due 2026-08-15; DHPP marked due 2025-12-01; Bordetella due 6 months after 2025-07-10 (2026-01-10); Heartgard and NexGard due on the next 10th (2025-12-10)",
+            "Should create reminders as requested: two reminders for the annual exam (3 days before and day-of) with correct timestamps, and reminders for the monthly medications on their due date",
+            "Should use consistent, ISO 8601 timestamps with the appropriate timezone offset and include the user's timezone (e.g., America/New_York) for all date-time fields",
+            "Should mark item statuses accurately as Past or Upcoming based on current dates and provided schedule",
+            "Should ensure data consistency across sections (timeline, checklist, reminders, summary card), including matching dates, titles, and IDs where applicable",
+            "Should include interactive affordances or action handlers (e.g., onAction channel) enabling viewing/editing details, marking doses taken, snoozing reminders, and adding new records",
+            "Should set the initial view to the timeline to match the expected visual",
+            "Should present a concise confirmation text that explains how to interact with the dashboard without introducing new, unrequested data",
+            "Should not call external tools unnecessarily; only call tools if data fetching or external actions are required (not the case for static user-provided data)",
+            "Should avoid hallucinating medical schedules beyond the user's provided information and standard calculations (e.g., 6-month interval for Bordetella as stated by the user)"
+          ],
+          "expected_components": [
+            "PetHealthOverview",
+            "SummaryHealthCard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Yes\u2014add this photo for Luna and set all reminders to 8:00 AM. Please mark Heartgard and NexGard as taken on 2025-11-10 and schedule the next doses for 2025-12-10. Also add an allergy note: \u201cChicken.\u201d"
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Done! I added Luna\u2019s photo, set all reminders to 8:00 AM, marked Heartgard and NexGard as taken on 2025-11-10, and scheduled the next doses for 2025-12-10. I also noted her allergy: \u201cChicken.\u201d Would you like me to use a specific timezone for 8:00 AM (currently set to UTC)? If you share your city/timezone, I\u2019ll adjust everything to match. Anything else to add (weight, microchip, insurance)?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PetHealthOverview",
+              "props": {
+                "pet": {
+                  "name": "Luna",
+                  "id": "pet_luna",
+                  "avatarUrl": "https://cdn.app/pets/luna.jpg"
+                },
+                "summary": {
+                  "ageYears": 3,
+                  "nextVisitDate": "2025-12-05T09:30:00Z",
+                  "primaryVet": "Dr. Kim, Oak Grove Animal Clinic (555-0134)"
+                },
+                "visits": [
+                  {
+                    "id": "visit_rabies_2023_08_15",
+                    "dateTime": "2023-08-15T08:00:00Z",
+                    "title": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_bordetella_2025_07_10",
+                    "dateTime": "2025-07-10T08:00:00Z",
+                    "title": "Bordetella Vaccine",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "med_heartgard_2025_11_10",
+                    "dateTime": "2025-11-10T08:00:00Z",
+                    "title": "Heartgard (monthly)",
+                    "type": "Medication",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "med_nexgard_2025_11_10",
+                    "dateTime": "2025-11-10T08:00:00Z",
+                    "title": "NexGard (monthly)",
+                    "type": "Medication",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_dhpp_2025_12_01",
+                    "dateTime": "2025-12-01T08:00:00Z",
+                    "title": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "visit_annual_exam_2025_12_05",
+                    "dateTime": "2025-12-05T09:30:00Z",
+                    "title": "Annual Wellness Exam",
+                    "type": "Visit",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_heartgard_2025_12_10",
+                    "dateTime": "2025-12-10T08:00:00Z",
+                    "title": "Heartgard (monthly)",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_nexgard_2025_12_10",
+                    "dateTime": "2025-12-10T08:00:00Z",
+                    "title": "NexGard (monthly)",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "vax_bordetella_2026_01_10",
+                    "dateTime": "2026-01-10T08:00:00Z",
+                    "title": "Bordetella Booster (6 mo)",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "vax_rabies_2026_08_15",
+                    "dateTime": "2026-08-15T08:00:00Z",
+                    "title": "Rabies Booster (3 yr)",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  }
+                ],
+                "checklistItems": [
+                  {
+                    "id": "chk_dhpp",
+                    "name": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2025-12-01",
+                    "nextDoseAt": "2025-12-01T08:00:00Z"
+                  },
+                  {
+                    "id": "chk_bordetella",
+                    "name": "Bordetella Vaccine",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2026-01-10",
+                    "nextDoseAt": "2026-01-10T08:00:00Z"
+                  },
+                  {
+                    "id": "chk_rabies",
+                    "name": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Completed",
+                    "dueDate": "2026-08-15",
+                    "nextDoseAt": "2026-08-15T08:00:00Z"
+                  },
+                  {
+                    "id": "chk_heartgard",
+                    "name": "Heartgard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T08:00:00Z"
+                  },
+                  {
+                    "id": "chk_nexgard",
+                    "name": "NexGard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T08:00:00Z"
+                  }
+                ],
+                "reminders": [
+                  {
+                    "id": "rem_dhpp_2025_12_01_0800",
+                    "title": "DHPP Booster",
+                    "dueAt": "2025-12-01T08:00:00Z",
+                    "relatedType": "Vaccine"
+                  },
+                  {
+                    "id": "rem_exam_3days_2025_12_02_0800",
+                    "title": "Annual Exam \u2014 in 3 days",
+                    "dueAt": "2025-12-02T08:00:00Z",
+                    "relatedType": "Visit"
+                  },
+                  {
+                    "id": "rem_exam_dayof_2025_12_05_0800",
+                    "title": "Annual Exam \u2014 today",
+                    "dueAt": "2025-12-05T08:00:00Z",
+                    "relatedType": "Visit"
+                  },
+                  {
+                    "id": "rem_heartgard_2025_12_10_0800",
+                    "title": "Give Heartgard",
+                    "dueAt": "2025-12-10T08:00:00Z",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_nexgard_2025_12_10_0800",
+                    "title": "Give NexGard",
+                    "dueAt": "2025-12-10T08:00:00Z",
+                    "relatedType": "Medication"
+                  }
+                ],
+                "onAction": {
+                  "type": "pet_health_overview_action_channel"
+                },
+                "timezone": "UTC",
+                "initialView": "timeline"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SummaryHealthCard",
+              "props": {
+                "id": "pet_luna",
+                "petName": "Luna",
+                "avatarUrl": "https://cdn.app/pets/luna.jpg",
+                "ageYears": 3,
+                "primaryVet": "Dr. Kim, Oak Grove Animal Clinic (555-0134)",
+                "visits": {
+                  "next": "2025-12-05T09:30:00Z"
+                },
+                "primaryAction": {
+                  "type": "open_full_profile",
+                  "payload": {
+                    "petId": "pet_luna"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should acknowledge and confirm each part of the user's request in a concise text summary",
+            "Should add the provided photo to Luna's profile and reflect it consistently in all displayed components",
+            "Should set all reminders to 8:00 AM and clarify/apply the timezone (ask for user's timezone if unknown; default to a stated timezone until provided)",
+            "Should mark Heartgard and NexGard as taken on 2025-11-10 and update their timeline entries to Past with correct timestamps",
+            "Should schedule the next Heartgard and NexGard doses for 2025-12-10 at 08:00 with correct status (Upcoming) and create corresponding reminders",
+            "Should add an allergy note: \"Chicken\" to Luna's health record",
+            "Should present a timeline of past and upcoming items with accurate titles, types (Vaccine, Medication, Visit), ISO datetime values, and correct Past/Upcoming statuses",
+            "Should update checklist items to reflect current due/completed statuses and next dose dates that align with the timeline and reminders",
+            "Should include reminders for upcoming items at 08:00, using consistent ISO timestamps and the stated timezone",
+            "Should provide a summary card with Luna's name, age, avatar, primary vet info, and next visit date, linked to open the full profile",
+            "Should ensure all data shown is accurate, non-contradictory, and consistent across components (names, IDs, dates, times, timezone, statuses)",
+            "Should avoid introducing unsupported or speculative data; only include details provided by the user or reliably established in the scenario context",
+            "Should use the PetHealthOverview component to display the timeline, checklist, reminders, and vet/visit summary in a way that matches user expectations for tracking",
+            "Should use the SummaryHealthCard component for a concise overview and provide a sensible primary action",
+            "Should use appropriate component props and structures (IDs, dateTime/dueAt fields, status values) and ensure they conform to expected formats",
+            "Should, if the platform requires persistence or external updates, call appropriate tools/APIs with correct arguments; otherwise, reflect state changes within the UI components",
+            "Should offer a clear follow-up for timezone confirmation and optional additional details (e.g., weight, microchip, insurance) without blocking the requested updates"
+          ],
+          "expected_components": [
+            "PetHealthOverview",
+            "SummaryHealthCard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Use US/Pacific (Seattle). Please add weight 65 lb (updated 2025-11-05), microchip #985112003456789, and insurance: Healthy Paws policy HP-123456\u2014and export a PDF of Luna\u2019s Summary Health Card."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Great\u2014I've switched everything to US/Pacific, added Luna\u2019s latest weight (65 lb \u2248 29.5 kg, updated 2025-11-05), microchip #985112003456789, insurance (Healthy Paws HP-123456), and saved the allergy note: \u201cChicken.\u201d I also set all reminders to 8:00 AM and confirmed Heartgard/NexGard were taken on 2025-11-10 with next doses on 2025-12-10 at 8:00 AM. I\u2019ve prepared a PDF of Luna\u2019s Summary Health Card\u2014would you like me to provide a download link here or email it to you? Anything else to add or adjust?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PetHealthOverview",
+              "props": {
+                "pet": {
+                  "name": "Luna",
+                  "id": "pet_luna",
+                  "avatarUrl": "https://cdn.app/pets/luna.jpg"
+                },
+                "summary": {
+                  "ageYears": 3,
+                  "weightKg": 29.5,
+                  "lastVisitDate": "2025-07-10",
+                  "nextVisitDate": "2025-12-05",
+                  "primaryVet": "Dr. Kim, Oak Grove Animal Clinic (555-0134)"
+                },
+                "visits": [
+                  {
+                    "id": "vax_rabies_2023_08_15",
+                    "dateTime": "2023-08-15T08:00:00-07:00",
+                    "title": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_bordetella_2025_07_10",
+                    "dateTime": "2025-07-10T08:00:00-07:00",
+                    "title": "Bordetella Vaccine",
+                    "type": "Vaccine",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "visit_annual_exam_2025_12_05",
+                    "dateTime": "2025-12-05T09:30:00-08:00",
+                    "title": "Annual Wellness Exam",
+                    "type": "Visit",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "vax_dhpp_due_2025_12_01",
+                    "dateTime": "2025-12-01T08:00:00-08:00",
+                    "title": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_heartgard_taken_2025_11_10",
+                    "dateTime": "2025-11-10T08:00:00-08:00",
+                    "title": "Heartgard (taken)",
+                    "type": "Medication",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "med_nexgard_taken_2025_11_10",
+                    "dateTime": "2025-11-10T08:00:00-08:00",
+                    "title": "NexGard (taken)",
+                    "type": "Medication",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "med_heartgard_next_2025_12_10",
+                    "dateTime": "2025-12-10T08:00:00-08:00",
+                    "title": "Heartgard",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_nexgard_next_2025_12_10",
+                    "dateTime": "2025-12-10T08:00:00-08:00",
+                    "title": "NexGard",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "vax_bordetella_next_2026_01_10",
+                    "dateTime": "2026-01-10T08:00:00-08:00",
+                    "title": "Bordetella Vaccine",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  }
+                ],
+                "checklistItems": [
+                  {
+                    "id": "cl_rabies",
+                    "name": "Rabies Vaccine",
+                    "type": "Vaccine",
+                    "status": "Completed",
+                    "dueDate": "2026-08-15",
+                    "nextDoseAt": "2026-08-15T08:00:00-07:00"
+                  },
+                  {
+                    "id": "cl_dhpp",
+                    "name": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2025-12-01",
+                    "nextDoseAt": "2025-12-01T08:00:00-08:00"
+                  },
+                  {
+                    "id": "cl_bordetella",
+                    "name": "Bordetella",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2026-01-10",
+                    "nextDoseAt": "2026-01-10T08:00:00-08:00"
+                  },
+                  {
+                    "id": "cl_heartgard",
+                    "name": "Heartgard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T08:00:00-08:00"
+                  },
+                  {
+                    "id": "cl_nexgard",
+                    "name": "NexGard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T08:00:00-08:00"
+                  }
+                ],
+                "reminders": [
+                  {
+                    "id": "rem_dhpp_2025_12_01",
+                    "title": "DHPP Booster",
+                    "dueAt": "2025-12-01T08:00:00-08:00",
+                    "relatedType": "Vaccine"
+                  },
+                  {
+                    "id": "rem_exam_3day_2025_12_02",
+                    "title": "Annual Exam (3-day reminder)",
+                    "dueAt": "2025-12-02T08:00:00-08:00",
+                    "relatedType": "Visit"
+                  },
+                  {
+                    "id": "rem_exam_dayof_2025_12_05",
+                    "title": "Annual Exam (today)",
+                    "dueAt": "2025-12-05T08:00:00-08:00",
+                    "relatedType": "Visit"
+                  },
+                  {
+                    "id": "rem_heartgard_2025_12_10",
+                    "title": "Give Heartgard",
+                    "dueAt": "2025-12-10T08:00:00-08:00",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_nexgard_2025_12_10",
+                    "title": "Give NexGard",
+                    "dueAt": "2025-12-10T08:00:00-08:00",
+                    "relatedType": "Medication"
+                  }
+                ],
+                "onAction": {
+                  "type": "pet_health_overview_action_channel"
+                },
+                "timezone": "America/Los_Angeles",
+                "initialView": "timeline"
+              }
+            }
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "SummaryHealthCard",
+              "props": {
+                "id": "pet_luna",
+                "petName": "Luna",
+                "avatarUrl": "https://cdn.app/pets/luna.jpg",
+                "ageYears": 3,
+                "weightKg": 29.5,
+                "primaryVet": "Dr. Kim, Oak Grove Animal Clinic",
+                "visits": {
+                  "last": "2025-07-10",
+                  "next": "2025-12-05T09:30:00-08:00"
+                },
+                "primaryAction": {
+                  "type": "open_full_profile",
+                  "payload": {
+                    "petId": "pet_luna"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should set the application timezone explicitly to US/Pacific (Seattle) and reflect this in all displayed dateTime fields and reminder times (including correct -08:00/-07:00 offsets as applicable)",
+            "Should add and persist Luna\u2019s weight as 65 lb with an updated date of 2025-11-05, and may include the equivalent in kg if accurate and clearly labeled",
+            "Should add and persist the microchip number exactly as provided (#985112003456789) without truncation or formatting changes that alter the value",
+            "Should add and persist the insurance provider and policy number exactly as provided (Healthy Paws policy HP-123456)",
+            "Should generate and make available a PDF export of Luna\u2019s Summary Health Card and provide a clear action to access it (e.g., download link or delivery method options)",
+            "Should confirm or request the user\u2019s preference for PDF delivery if multiple delivery methods are possible",
+            "Should present a timeline of past and upcoming vet visits, vaccines, and medications aligned to the US/Pacific timezone",
+            "Should present a vaccine and medication checklist with correct due/completed statuses and due dates aligned to the timezone",
+            "Should present reminders for upcoming doses/appointments at times consistent with the user\u2019s timezone; new reminders should only be created or modified if the user requested it",
+            "Should avoid introducing or altering data (e.g., marking medications as taken, changing reminder times) unless explicitly instructed by the user",
+            "Should ensure all displayed dates, times, and statuses are internally consistent across the timeline, checklist, and reminders",
+            "Should use UI components appropriate to the scenario to display the consolidated health overview and the summary card",
+            "Should avoid hallucinating providers, visit types, or medication events not supplied by the user or existing records",
+            "Should keep data formatting clear and consistent (e.g., units for weight, ISO 8601 timestamps with timezone offsets, clear labeling of past vs upcoming events)",
+            "Should offer a concise follow-up prompt for any missing preferences relevant to export or further adjustments"
+          ],
+          "expected_components": [
+            "PetHealthOverview",
+            "SummaryHealthCard"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Share the download link here, please. Also add reminders for Luna\u2019s DHPP booster on 2025-12-01 at 8:00 AM with 3-day and day-of alerts, and Bordetella due 2026-01-10 at 8:00 AM."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here\u2019s your download link for Luna\u2019s Summary Health Card PDF: https://files.petapp.example.com/exports/luna-summary-health-card-2025-11-19.pdf\n\nI\u2019ve added the DHPP booster reminder for 2025-12-01 at 8:00 AM with both a 3-day advance alert and a day-of alert, plus the Bordetella reminder for 2026-01-10 at 8:00 AM. All reminders use US/Pacific (Seattle).\n\nAnything else you\u2019d like to add or adjust?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "PetHealthOverview",
+              "props": {
+                "pet": {
+                  "name": "Luna",
+                  "id": "pet_luna_001",
+                  "avatarUrl": "https://cdn.example.com/pets/luna.jpg"
+                },
+                "summary": {
+                  "weightKg": 29.5,
+                  "lastVisitDate": "2025-11-10",
+                  "nextVisitDate": "2025-12-01T08:00:00-08:00",
+                  "primaryVet": "Dr. Nguyen, Happy Paws Clinic"
+                },
+                "visits": [
+                  {
+                    "id": "med_heartgard_2025_11_10",
+                    "dateTime": "2025-11-10T08:00:00-08:00",
+                    "title": "Heartgard - Monthly Dose",
+                    "type": "Medication",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "med_nexgard_2025_11_10",
+                    "dateTime": "2025-11-10T08:00:00-08:00",
+                    "title": "NexGard - Monthly Dose",
+                    "type": "Medication",
+                    "status": "Past"
+                  },
+                  {
+                    "id": "vax_dhpp_2025_12_01",
+                    "dateTime": "2025-12-01T08:00:00-08:00",
+                    "title": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_heartgard_2025_12_10",
+                    "dateTime": "2025-12-10T08:00:00-08:00",
+                    "title": "Heartgard - Monthly Dose",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "med_nexgard_2025_12_10",
+                    "dateTime": "2025-12-10T08:00:00-08:00",
+                    "title": "NexGard - Monthly Dose",
+                    "type": "Medication",
+                    "status": "Upcoming"
+                  },
+                  {
+                    "id": "vax_bordetella_2026_01_10",
+                    "dateTime": "2026-01-10T08:00:00-08:00",
+                    "title": "Bordetella Vaccine",
+                    "type": "Vaccine",
+                    "status": "Upcoming"
+                  }
+                ],
+                "checklistItems": [
+                  {
+                    "id": "chk_heartgard",
+                    "name": "Heartgard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T08:00:00-08:00"
+                  },
+                  {
+                    "id": "chk_nexgard",
+                    "name": "NexGard",
+                    "type": "Medication",
+                    "status": "Due",
+                    "dueDate": "2025-12-10",
+                    "nextDoseAt": "2025-12-10T08:00:00-08:00"
+                  },
+                  {
+                    "id": "chk_dhpp",
+                    "name": "DHPP Booster",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2025-12-01",
+                    "nextDoseAt": "2025-12-01T08:00:00-08:00"
+                  },
+                  {
+                    "id": "chk_bordetella",
+                    "name": "Bordetella",
+                    "type": "Vaccine",
+                    "status": "Due",
+                    "dueDate": "2026-01-10",
+                    "nextDoseAt": "2026-01-10T08:00:00-08:00"
+                  }
+                ],
+                "reminders": [
+                  {
+                    "id": "rem_dhpp_3d_2025_11_28",
+                    "title": "DHPP Booster (3-day reminder)",
+                    "dueAt": "2025-11-28T08:00:00-08:00",
+                    "relatedType": "Vaccine"
+                  },
+                  {
+                    "id": "rem_dhpp_dayof_2025_12_01",
+                    "title": "DHPP Booster (today)",
+                    "dueAt": "2025-12-01T08:00:00-08:00",
+                    "relatedType": "Vaccine"
+                  },
+                  {
+                    "id": "rem_heartgard_2025_12_10",
+                    "title": "Heartgard - Monthly Dose",
+                    "dueAt": "2025-12-10T08:00:00-08:00",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_nexgard_2025_12_10",
+                    "title": "NexGard - Monthly Dose",
+                    "dueAt": "2025-12-10T08:00:00-08:00",
+                    "relatedType": "Medication"
+                  },
+                  {
+                    "id": "rem_bordetella_dayof_2026_01_10",
+                    "title": "Bordetella Vaccine (today)",
+                    "dueAt": "2026-01-10T08:00:00-08:00",
+                    "relatedType": "Vaccine"
+                  }
+                ],
+                "onAction": {
+                  "type": "pet_health_overview_action_channel"
+                },
+                "timezone": "America/Los_Angeles",
+                "initialView": "timeline"
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should explicitly share a direct download link to Luna\u2019s Summary Health Card PDF in plain text",
+            "Should add reminders for DHPP booster on 2025-12-01 at 08:00 AM with both a 3-day advance alert and a day-of alert, and for Bordetella on 2026-01-10 at 08:00 AM",
+            "Should use the America/Los_Angeles timezone (US/Pacific) consistently for all timestamps displayed and described",
+            "Should present a timeline of past and upcoming items, a checklist of due items, reminders list, and a summary health section consistent with the scenario",
+            "Should ensure data consistency across all sections (timeline, checklist, reminders, summary) with matching dates, times, titles, and statuses",
+            "Should correctly label item types (e.g., Vaccine, Medication) and statuses (e.g., Past, Upcoming, Due) aligned with the provided dates relative to now",
+            "Should avoid fabricating external actions; when creating reminders or generating files requires external operations, should call appropriate tools or clearly reflect state via UI components",
+            "Should ensure reminder lead times and titles accurately reflect the user\u2019s requested alerts (3-day and day-of for DHPP; day-of for Bordetella unless otherwise specified)",
+            "Should provide accurate, unambiguous ISO 8601 timestamps including timezone offsets for scheduled items",
+            "Should include a concise confirmation that the reminders were added and an invitation for further adjustments",
+            "Should ensure the component data is minimal yet sufficient and does not include contradictory or extraneous information unrelated to the user\u2019s request",
+            "Should avoid safety and privacy issues, sharing only necessary pet-related information"
+          ],
+          "expected_components": [
+            "PetHealthOverview"
+          ]
+        }
+      }
+    ];
+
+    // Utilities
+    const classNames = (...arr) => arr.filter(Boolean).join(' ');
+    const currency = (n) => new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(n ?? 0);
+
+    const formatDate = (dateStr) => {
+      if (!dateStr) return '—';
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      } catch {
+        return dateStr;
+      }
+    };
+
+    const formatDateTime = (dateStr, timeZone) => {
+      if (!dateStr) return '—';
+      try {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return dateStr;
+        const opts = { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: timeZone || undefined };
+        return new Intl.DateTimeFormat(undefined, opts).format(d);
+      } catch {
+        return dateStr;
+      }
+    };
+
+    const asArray = (val) => {
+      if (Array.isArray(val)) return val;
+      if (val && typeof val === 'object') {
+        if (Array.isArray(val.items)) return val.items;
+        return Object.values(val);
+      }
+      return [];
+    };
+
+    const typeColor = (type) => {
+      switch (type) {
+        case 'Vaccine': return 'bg-blue-100 text-blue-800';
+        case 'Medication': return 'bg-emerald-100 text-emerald-800';
+        case 'Visit': return 'bg-purple-100 text-purple-800';
+        default: return 'bg-slate-100 text-slate-800';
+      }
+    };
+
+    const statusColor = (status) => {
+      switch (status) {
+        case 'Past': return 'text-slate-500';
+        case 'Upcoming': return 'text-emerald-600';
+        case 'Missed': return 'text-red-600';
+        case 'Due': return 'text-amber-600';
+        case 'Overdue': return 'text-red-600';
+        case 'Completed': return 'text-slate-700';
+        default: return 'text-slate-600';
+      }
+    };
+
+    // Components
+    const SummaryHealthCard = (props) => {
+      const {
+        id,
+        petName,
+        avatarUrl,
+        ageYears,
+        weightKg,
+        primaryVet,
+        visits = {},
+        primaryAction
+      } = props;
+
+      const ageLabel = typeof ageYears === 'number' ? `${ageYears} yr${ageYears === 1 ? '' : 's'}` : '—';
+      const weightLabel = typeof weightKg === 'number' ? `${weightKg.toFixed(1)} kg` : undefined;
+
+      const handlePrimary = () => {
+        console.log('SummaryHealthCard primaryAction', primaryAction || { type: 'noop' });
+        alert(`Open profile for ${petName || id || 'pet'}`);
+      };
+
+      return (
+        <div className="w-full max-w-2xl mx-auto bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-slate-100">
+          <div className="flex items-center gap-4">
+            <img
+              src={avatarUrl || 'https://placekitten.com/120/120'}
+              alt={petName || 'Pet'}
+              className="w-16 h-16 rounded-full object-cover ring-2 ring-white shadow"
+            />
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-slate-900">{petName || 'Unnamed Pet'}</h3>
+              <div className="text-sm text-slate-600 flex flex-wrap gap-x-3 gap-y-1">
+                {ageYears !== undefined && <span>Age: {ageLabel}</span>}
+                {weightLabel && <span>Weight: {weightLabel}</span>}
+                {primaryVet && <span>Vet: {primaryVet}</span>}
+              </div>
+            </div>
+            <button
+              onClick={handlePrimary}
+              className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              Open full profile
+            </button>
+          </div>
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="rounded-md bg-slate-50 p-3">
+              <div className="text-xs text-slate-500">Last visit</div>
+              <div className="text-sm font-medium text-slate-800">{formatDate(visits?.last)}</div>
+            </div>
+            <div className="rounded-md bg-slate-50 p-3">
+              <div className="text-xs text-slate-500">Next visit</div>
+              <div className="text-sm font-medium text-slate-800">{formatDateTime(visits?.next)}</div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const VetVisitTimeline = (props) => {
+      const {
+        items = [],
+        initialFilters = {},
+        timezone,
+        groupBy = 'none',
+        showMissedHighlight = true,
+        emptyState = { title: 'No records yet' },
+        onSelectAction,
+        onFilterChangeAction,
+        onAddNewAction,
+        onMarkDoseAction
+      } = props;
+
+      const [query, setQuery] = useState(initialFilters.query || '');
+      const [typeFilter, setTypeFilter] = useState(initialFilters.type || 'All');
+
+      const filtered = useMemo(() => {
+        return items
+          .filter((it) => {
+            if (typeFilter !== 'All' && it?.type !== typeFilter) return false;
+            if (query && !(it?.title || '').toLowerCase().includes(query.toLowerCase())) return false;
+            return true;
+          })
+          .sort((a, b) => (new Date(a?.dateTime).getTime() || 0) - (new Date(b?.dateTime).getTime() || 0));
+      }, [items, query, typeFilter]);
+
+      const handleSelect = (item) => {
+        console.log('VetVisitTimeline select', item);
+        if (onSelectAction?.callback) onSelectAction.callback(item);
+      };
+
+      const handleAddNew = () => {
+        console.log('VetVisitTimeline add new');
+        if (onAddNewAction?.callback) onAddNewAction.callback();
+      };
+
+      const handleMark = (item) => {
+        console.log('VetVisitTimeline mark dose', item);
+        if (onMarkDoseAction?.callback) onMarkDoseAction.callback(item);
+      };
+
+      const types = ['All', 'Visit', 'Vaccine', 'Medication'];
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100">
+          <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="flex-1 flex gap-2">
+              <input
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  onFilterChangeAction?.callback && onFilterChangeAction.callback({ query: e.target.value, type: typeFilter });
+                }}
+                placeholder="Search timeline..."
+                className="w-full sm:w-64 px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+              <select
+                value={typeFilter}
+                onChange={(e) => {
+                  setTypeFilter(e.target.value);
+                  onFilterChangeAction?.callback && onFilterChangeAction.callback({ query, type: e.target.value });
+                }}
+                className="px-3 py-2 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              >
+                {types.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+            <button
+              onClick={handleAddNew}
+              className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700"
+            >
+              + Add record
+            </button>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {filtered.length === 0 && (
+              <li className="p-6 text-center text-slate-500">{emptyState?.title || 'No items'}</li>
+            )}
+            {filtered.map((it) => (
+              <li key={it?.id || Math.random()} className="p-4 hover:bg-slate-50">
+                <div className="flex items-start gap-3">
+                  <span className={classNames('px-2 py-0.5 text-xs rounded-full', typeColor(it?.type))}>{it?.type || 'Item'}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <button onClick={() => handleSelect(it)} className="text-slate-900 font-medium hover:underline text-left">
+                        {it?.title || 'Untitled'}
+                      </button>
+                      <div className={classNames('text-xs font-medium', statusColor(it?.status))}>{it?.status || ''}</div>
+                    </div>
+                    <div className="text-sm text-slate-600 mt-1">{formatDateTime(it?.dateTime, timezone)}</div>
+                    {showMissedHighlight && it?.status === 'Missed' && (
+                      <div className="mt-2 text-xs text-red-600">Missed event</div>
+                    )}
+                    {it?.type === 'Medication' && (
+                      <div className="mt-2">
+                        <button onClick={() => handleMark(it)} className="px-2 py-1 text-xs rounded-md border border-slate-200 hover:bg-slate-100">
+                          Mark as taken
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    };
+
+    const MedVaxChecklist = (props) => {
+      const {
+        petId,
+        title = 'Vaccines & Medications',
+        petAvatarUrl,
+        items = [],
+        onItemAction,
+        showOverdueFirst = true,
+        timezone
+      } = props;
+
+      const sorted = useMemo(() => {
+        const arr = Array.isArray(items) ? [...items] : asArray(items);
+        return arr.sort((a, b) => {
+          const priority = (s) => ({ Overdue: 0, Due: 1, Missed: 2, Upcoming: 3, Completed: 4 }[s] ?? 5);
+          if (showOverdueFirst) {
+            const pa = priority(a?.status);
+            const pb = priority(b?.status);
+            if (pa !== pb) return pa - pb;
+          }
+          return (new Date(a?.dueDate).getTime() || 0) - (new Date(b?.dueDate).getTime() || 0);
+        });
+      }, [items, showOverdueFirst]);
+
+      const handleAction = (item, actionType) => {
+        console.log('Checklist action', actionType, item);
+        onItemAction?.callback && onItemAction.callback({ actionType, item });
+      };
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100">
+          <div className="p-4 border-b border-slate-100 flex items-center gap-3">
+            {petAvatarUrl && <img src={petAvatarUrl} alt="pet" className="w-8 h-8 rounded-full object-cover" />}
+            <h3 className="font-semibold text-slate-900">{title}</h3>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {sorted.length === 0 && <li className="p-6 text-center text-slate-500">No checklist items</li>}
+            {sorted.map((it) => (
+              <li key={it?.id || Math.random()} className="p-4">
+                <div className="flex items-start gap-3">
+                  <span className={classNames('px-2 py-0.5 text-xs rounded-full', typeColor(it?.type))}>{it?.type || 'Item'}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="text-slate-900 font-medium">{it?.name || 'Unnamed'}</div>
+                      <div className={classNames('text-xs font-medium', statusColor(it?.status))}>{it?.status || ''}</div>
+                    </div>
+                    <div className="text-sm text-slate-600 mt-1">
+                      Due: {formatDate(it?.dueDate)} {it?.nextDoseAt ? `• Next: ${formatDateTime(it?.nextDoseAt, timezone)}` : ''}
+                    </div>
+                    <div className="mt-2 flex gap-2">
+                      <button onClick={() => handleAction(it, 'view')}
+                        className="px-2 py-1 text-xs rounded-md border border-slate-200 hover:bg-slate-100">View</button>
+                      <button onClick={() => handleAction(it, 'mark_done')}
+                        className="px-2 py-1 text-xs rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50">Mark done</button>
+                      <button onClick={() => handleAction(it, 'schedule')}
+                        className="px-2 py-1 text-xs rounded-md border border-indigo-200 text-indigo-700 hover:bg-indigo-50">Schedule</button>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    };
+
+    const ReminderList = (props) => {
+      const {
+        reminders = [],
+        nowTimestamp = Date.now(),
+        onItemAction,
+        snoozePresetsMinutes = [30, 60, 180, 1440],
+        showOverdueFirst = true,
+        relatedTypeIcons = { Vaccine: '💉', Medication: '💊', Visit: '🏥' }
+      } = props;
+
+      const now = typeof nowTimestamp === 'number' ? new Date(nowTimestamp) : new Date();
+
+      const sorted = useMemo(() => {
+        const arr = Array.isArray(reminders) ? [...reminders] : asArray(reminders);
+        return arr.sort((a, b) => {
+          const da = new Date(a?.dueAt).getTime() || 0;
+          const db = new Date(b?.dueAt).getTime() || 0;
+          return da - db;
+        });
+      }, [reminders]);
+
+      const isOverdue = (dueAt) => {
+        const t = new Date(dueAt).getTime();
+        return t < now.getTime();
+        };
+
+      const handleDone = (item) => {
+        console.log('Reminder done', item);
+        onItemAction?.callback && onItemAction.callback({ actionType: 'done', item });
+      };
+
+      const handleSnooze = (item, minutes) => {
+        console.log('Reminder snooze', item, minutes);
+        onItemAction?.callback && onItemAction.callback({ actionType: 'snooze', item, minutes });
+      };
+
+      const ordered = useMemo(() => {
+        if (!showOverdueFirst) return sorted;
+        const over = sorted.filter((r) => isOverdue(r?.dueAt));
+        const upcoming = sorted.filter((r) => !isOverdue(r?.dueAt));
+        return [...over, ...upcoming];
+      }, [sorted, showOverdueFirst]);
+
+      return (
+        <div className="w-full bg-white rounded-xl shadow-sm border border-slate-100">
+          <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+            <h3 className="font-semibold text-slate-900">Reminders</h3>
+            <div className="text-xs text-slate-500">Now: {formatDateTime(now.toISOString())}</div>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {ordered.length === 0 && <li className="p-6 text-center text-slate-500">No reminders</li>}
+            {ordered.map((r) => {
+              const overdue = isOverdue(r?.dueAt);
+              return (
+                <li key={r?.id || Math.random()} className="p-4 flex items-start gap-3">
+                  <div className="text-xl leading-none">{relatedTypeIcons?.[r?.relatedType] || '🔔'}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="font-medium text-slate-900">{r?.title || 'Reminder'}</div>
+                      <div className={classNames('text-xs', overdue ? 'text-red-600' : 'text-slate-500')}>
+                        {overdue ? 'Overdue' : 'Scheduled'}
+                      </div>
+                    </div>
+                    <div className="text-sm text-slate-600 mt-1">Due: {formatDateTime(r?.dueAt)}</div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button onClick={() => handleDone(r)} className="px-2 py-1 text-xs rounded-md border border-emerald-200 text-emerald-700 hover:bg-emerald-50">Mark done</button>
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs text-slate-500">Snooze:</span>
+                        {snoozePresetsMinutes.map((m) => (
+                          <button key={m} onClick={() => handleSnooze(r, m)} className="px-2 py-1 text-xs rounded-md border border-slate-200 hover:bg-slate-100">
+                            {m >= 60 ? `${Math.round(m/60)}h` : `${m}m`}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    };
+
+    const HealthRecordForm = (props) => {
+      const {
+        mode = 'create',
+        recordType = 'Visit',
+        initialData = {},
+        onAction,
+        iconUrl,
+        timezone
+      } = props;
+
+      const [title, setTitle] = useState(initialData.title || '');
+      const [type, setType] = useState(recordType || 'Visit');
+      const [date, setDate] = useState(initialData.date || (initialData.dateTime ? initialData.dateTime.slice(0,10) : ''));
+      const [time, setTime] = useState(initialData.time || (initialData.dateTime ? initialData.dateTime.slice(11,16) : ''));
+      const [status, setStatus] = useState(initialData.status || 'Upcoming');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        const dateTime = date && time ? new Date(`${date}T${time}:00`).toISOString() : initialData.dateTime;
+        const payload = { id: initialData.id || `rec_${Date.now()}`, title, type, dateTime, status, timezone };
+        console.log('HealthRecordForm submit', payload);
+        if (onAction?.callback) onAction.callback({ type: mode === 'create' ? 'create_record' : 'update_record', payload });
+        alert(`${mode === 'create' ? 'Created' : 'Updated'} record`);
+      };
+
+      return (
+        <form onSubmit={handleSubmit} className="w-full bg-white rounded-xl shadow-sm border border-slate-100 p-4">
+          <div className="flex items-center gap-3 mb-4">
+            {iconUrl && <img src={iconUrl} alt="icon" className="w-6 h-6" />}
+            <h3 className="font-semibold text-slate-900">{mode === 'create' ? 'New Health Record' : 'Edit Health Record'}</h3>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Title</label>
+              <input value={title} onChange={(e) => setTitle(e.target.value)} className="w-full px-3 py-2 rounded-md border border-slate-200 focus:ring-2 focus:ring-indigo-500" required />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Type</label>
+              <select value={type} onChange={(e) => setType(e.target.value)} className="w-full px-3 py-2 rounded-md border border-slate-200 focus:ring-2 focus:ring-indigo-500">
+                <option>Visit</option>
+                <option>Vaccine</option>
+                <option>Medication</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Date</label>
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full px-3 py-2 rounded-md border border-slate-200 focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Time</label>
+              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className="w-full px-3 py-2 rounded-md border border-slate-200 focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label className="block text-xs text-slate-600 mb-1">Status</label>
+              <select value={status} onChange={(e) => setStatus(e.target.value)} className="w-full px-3 py-2 rounded-md border border-slate-200 focus:ring-2 focus:ring-indigo-500">
+                <option>Upcoming</option>
+                <option>Past</option>
+                <option>Missed</option>
+                <option>Due</option>
+                <option>Overdue</option>
+                <option>Completed</option>
+              </select>
+            </div>
+          </div>
+          <div className="mt-4 flex justify-end">
+            <button type="submit" className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">Save</button>
+          </div>
+        </form>
+      );
+    };
+
+    const PetHealthOverview = (props) => {
+      const {
+        pet = {},
+        summary = {},
+        visits = [],
+        checklistItems = [],
+        reminders = [],
+        onAction = {},
+        timezone,
+        initialView = 'timeline'
+      } = props;
+
+      const [view, setView] = useState(initialView);
+      const [nowTs] = useState(Date.now());
+
+      const visitItems = useMemo(() => asArray(visits), [visits]);
+      const checklistArr = useMemo(() => asArray(checklistItems), [checklistItems]);
+      const remindersArr = useMemo(() => asArray(reminders), [reminders]);
+
+      const emit = (payload) => {
+        console.log('PetHealthOverview action', payload);
+        if (onAction?.callback) onAction.callback(payload);
+      };
+
+      const tabs = [
+        { id: 'timeline', label: 'Timeline' },
+        { id: 'checklist', label: 'Checklist' },
+        { id: 'reminders', label: 'Reminders' },
+        { id: 'summary', label: 'Summary' }
+      ];
+
+      return (
+        <div className="w-full max-w-4xl mx-auto bg-white rounded-2xl shadow border border-slate-100 overflow-hidden">
+          <div className="p-4 sm:p-6 border-b border-slate-100 flex items-start sm:items-center gap-4">
+            <img src={pet?.avatarUrl || 'https://placekitten.com/96/96'} alt={pet?.name || 'Pet'} className="w-12 h-12 rounded-full object-cover ring-2 ring-white shadow" />
+            <div className="flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <h2 className="text-lg font-semibold text-slate-900">{pet?.name || 'Your Pet'}</h2>
+                {summary?.ageYears !== undefined && (
+                  <span className="text-sm text-slate-600">Age: {summary.ageYears} yrs</span>
+                )}
+                {summary?.weightKg !== undefined && (
+                  <span className="text-sm text-slate-600">Weight: {summary.weightKg.toFixed ? summary.weightKg.toFixed(1) : summary.weightKg} kg</span>
+                )}
+              </div>
+              <div className="text-xs text-slate-600">
+                {summary?.primaryVet && <span>Vet: {summary.primaryVet}</span>}
+                {timezone && <span className="ml-2">• TZ: {timezone}</span>}
+              </div>
+            </div>
+            <button onClick={() => emit({ type: 'add_record_click' })} className="px-3 py-2 text-sm rounded-md bg-indigo-600 text-white hover:bg-indigo-700">
+              + Add record
+            </button>
+          </div>
+
+          <div className="px-4 sm:px-6 pt-3">
+            <div className="flex flex-wrap gap-2">
+              {tabs.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => setView(t.id)}
+                  className={classNames(
+                    'px-3 py-1.5 text-sm rounded-full border',
+                    view === t.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                  )}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-6">
+            {view === 'timeline' && (
+              <VetVisitTimeline
+                items={visitItems}
+                timezone={timezone}
+                onSelectAction={{ callback: (item) => emit({ type: 'timeline_select', item }) }}
+                onAddNewAction={{ callback: () => emit({ type: 'timeline_add_new' }) }}
+                onMarkDoseAction={{ callback: (item) => emit({ type: 'timeline_mark_dose', item }) }}
+              />
+            )}
+            {view === 'checklist' && (
+              <MedVaxChecklist
+                petId={pet?.id}
+                petAvatarUrl={pet?.avatarUrl}
+                items={checklistArr}
+                timezone={timezone}
+                onItemAction={{ callback: (data) => emit({ type: 'checklist_action', ...data }) }}
+              />
+            )}
+            {view === 'reminders' && (
+              <ReminderList
+                reminders={remindersArr}
+                nowTimestamp={nowTs}
+                onItemAction={{ callback: (data) => emit({ type: 'reminder_action', ...data }) }}
+              />
+            )}
+            {view === 'summary' && (
+              <div className="grid grid-cols-1 gap-4">
+                <SummaryHealthCard
+                  id={pet?.id}
+                  petName={pet?.name}
+                  avatarUrl={pet?.avatarUrl}
+                  ageYears={summary?.ageYears}
+                  weightKg={summary?.weightKg}
+                  primaryVet={summary?.primaryVet}
+                  visits={{ last: summary?.lastVisitDate, next: summary?.nextVisitDate }}
+                  primaryAction={{ type: 'open_full_profile', payload: { petId: pet?.id } }}
+                />
+                <div className="rounded-xl border border-slate-100 p-4">
+                  <h4 className="font-semibold text-slate-900 mb-2">At-a-glance</h4>
+                  <div className="text-sm text-slate-700 grid grid-cols-1 sm:grid-cols-2 gap-y-1">
+                    <div>Last visit: {formatDate(summary?.lastVisitDate)}</div>
+                    <div>Next visit: {formatDateTime(summary?.nextVisitDate, timezone)}</div>
+                    {summary?.notes && <div className="sm:col-span-2">Notes: {summary?.notes}</div>}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    // Registry
+    const ComponentRegistry = {
+      PetHealthOverview,
+      SummaryHealthCard,
+      VetVisitTimeline,
+      MedVaxChecklist,
+      ReminderList,
+      HealthRecordForm
+    };
+
+    // Renderer
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+      return <Component {...props} />;
+    };
+
+    // Message and content renderers
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-slate-800">{chunk}</p>;
+      }
+      if (chunk.type === 'text') {
+        const text = chunk.text || '';
+        // Detect plain URL lines to make them clickable
+        const lines = String(text).split('\n');
+        return (
+          <div className="space-y-2">
+            {lines.map((line, idx) => {
+              const urlMatch = line.match(/https?:\/\/\S+/g);
+              if (urlMatch) {
+                return (
+                  <p key={idx} className="text-slate-800">
+                    {line.split(/(https?:\/\/\S+)/g).map((part, i) => {
+                      if (part.startsWith?.('http')) {
+                        return <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">{part}</a>;
+                      }
+                      return <span key={i}>{part}</span>;
+                    })}
+                  </p>
+                );
+              }
+              return <p key={idx} className="text-slate-800">{line}</p>;
+            })}
+          </div>
+        );
+      }
+      if (chunk.type === 'component') {
+        const { component } = chunk;
+        if (!component) return null;
+        const name = component.name;
+        const props = component.props || {};
+        return <ComponentRenderer componentName={name} props={props} />;
+      }
+      return null;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const isArray = Array.isArray(content);
+      return (
+        <div className={classNames('w-full flex', isUser ? 'justify-end' : 'justify-start')}>
+          <div className={classNames(
+            'max-w-3xl w-full rounded-2xl p-4 sm:p-5 shadow-sm border',
+            isUser ? 'bg-indigo-50 border-indigo-100' : 'bg-white border-slate-100'
+          )}>
+            <div className="mb-2 text-xs uppercase tracking-wide font-semibold text-slate-500">
+              {isUser ? 'User' : 'Assistant'}
+            </div>
+            <div className="space-y-4">
+              {!isArray && <ContentChunkRenderer chunk={content} />}
+              {isArray && content.map((chunk, idx) => (
+                <ContentChunkRenderer key={idx} chunk={chunk} />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation }) => {
+      return (
+        <div className="min-h-screen">
+          <header className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-slate-200">
+            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+              <h1 className="text-base sm:text-lg font-semibold text-slate-900">Conversation Viewer</h1>
+              <div className="text-xs text-slate-500">React + Tailwind</div>
+            </div>
+          </header>
+          <main className="max-w-5xl mx-auto px-4 py-6 space-y-4">
+            {Array.isArray(conversation) && conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            ))}
+          </main>
+          <footer className="max-w-5xl mx-auto px-4 pb-8">
+            <div className="text-xs text-slate-500">All components are interactive demos; actions are logged to console.</div>
+          </footer>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

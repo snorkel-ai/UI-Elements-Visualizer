@@ -1,0 +1,762 @@
+{
+  "componentsSchema": {
+    "$defs": {
+      "SimilarPhotoClustersPanel": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "SimilarPhotoClustersPanel"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "clusters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "summary": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "selectionMode": {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "duplicates_only"
+                ]
+              },
+              "defaultBulkAction": {
+                "type": "string",
+                "enum": [
+                  "archive",
+                  "delete",
+                  "review"
+                ]
+              },
+              "onApplyAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "showSavingsSummary": {
+                "type": "boolean"
+              },
+              "thumbnailSize": {
+                "type": "string",
+                "enum": [
+                  "s",
+                  "m",
+                  "l"
+                ]
+              }
+            },
+            "required": [
+              "clusters",
+              "onApplyAction",
+              "summary"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "PhotoClusterCard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "PhotoClusterCard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "clusterId": {
+                "type": "string"
+              },
+              "clusterType": {
+                "type": "string",
+                "enum": [
+                  "duplicate",
+                  "nearDuplicate",
+                  "series"
+                ]
+              },
+              "suggestedKeepPhotoId": {
+                "type": "string"
+              },
+              "items": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "onBulkSelectAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "summarySavingsBytes": {
+                "type": "number"
+              },
+              "maxVisible": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "clusterId",
+              "clusterType",
+              "items",
+              "onBulkSelectAction",
+              "suggestedKeepPhotoId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "StorageSavingsSummaryCard": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "StorageSavingsSummaryCard"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "bytesRecoverable": {
+                "type": "number"
+              },
+              "selectedBytes": {
+                "type": "number"
+              },
+              "counts": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "ctaLabel": {
+                "type": "string"
+              },
+              "imageUrl": {
+                "type": "string"
+              },
+              "actions": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            },
+            "required": [
+              "actions",
+              "bytesRecoverable",
+              "counts",
+              "ctaLabel",
+              "id",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "ReviewToolbar": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ReviewToolbar"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "selectedCount": {
+                "type": "number"
+              },
+              "selectedBytes": {
+                "type": "number"
+              },
+              "filter": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "sort": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "sortOrder": {
+                "type": "string",
+                "enum": [
+                  "asc",
+                  "desc"
+                ]
+              },
+              "actions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "iconUrl": {
+                "type": "string"
+              },
+              "potentialSavingsBytes": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "actions",
+              "filter",
+              "id",
+              "selectedBytes",
+              "selectedCount",
+              "sort",
+              "title"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "CompareAndResolveModal": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "CompareAndResolveModal"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "clusterId": {
+                "type": "string"
+              },
+              "photos": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              },
+              "suggestedKeepId": {
+                "type": "string"
+              },
+              "currentKeepId": {
+                "type": "string"
+              },
+              "storageSavingsBytes": {
+                "type": "number"
+              },
+              "resolveAction": {
+                "type": "object",
+                "additionalProperties": true
+              },
+              "defaultZoom": {
+                "type": "number"
+              },
+              "showMetadataOverlayByDefault": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "clusterId",
+              "photos",
+              "resolveAction"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "ScanProgressBanner": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "const": "ScanProgressBanner"
+          },
+          "props": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "idle",
+                  "scanning",
+                  "analyzing",
+                  "complete",
+                  "error"
+                ]
+              },
+              "progressPercent": {
+                "type": "number"
+              },
+              "scannedCount": {
+                "type": "number"
+              },
+              "totalCount": {
+                "type": "number"
+              },
+              "primaryAction": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  {
+                    "type": "object",
+                    "additionalProperties": true
+                  }
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "props"
+        ],
+        "additionalProperties": false
+      },
+      "components": {
+        "anyOf": [
+          {
+            "$ref": "#/$defs/SimilarPhotoClustersPanel"
+          },
+          {
+            "$ref": "#/$defs/PhotoClusterCard"
+          },
+          {
+            "$ref": "#/$defs/StorageSavingsSummaryCard"
+          },
+          {
+            "$ref": "#/$defs/ReviewToolbar"
+          },
+          {
+            "$ref": "#/$defs/CompareAndResolveModal"
+          },
+          {
+            "$ref": "#/$defs/ScanProgressBanner"
+          }
+        ]
+      }
+    },
+    "$ref": "#/$defs/components"
+  },
+  "conversation": [
+    {
+      "role": "user",
+      "content": "I have thousands of photos. Help me find duplicates, near-duplicates, and photos to archive."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Great \u2014 I can help you scan your library, group similar shots, and quickly clear space by removing duplicates and archiving low\u2011value photos. Here\u2019s a starter view with example clusters and a savings preview. If you\u2019d like, I can begin a full scan next and populate this with your actual photos.\n\nRecommended next steps:\n- Start scan: I\u2019ll analyze your library for exact duplicates, near-duplicates, series/bursts, and likely archive candidates (screenshots, receipts, blurry shots).\n- Review duplicates first: Use \u201cSelect all but best\u201d per cluster to keep the sharpest/highest-res version.\n- Then near-duplicates/series: Bulk-select similar shots and keep just the best.\n- Archive low-value items: We\u2019ll move screenshots, documents, and blurry photos to your archive to reclaim space safely.\n\nQuick preferences (optional):\n- When choosing the best photo, should I prioritize newest, highest resolution, or highest sharpness?\n- Do you want duplicates permanently deleted or moved to archive first?\n\nSay \u201cStart the scan\u201d and I\u2019ll begin building your real clusters."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "SimilarPhotoClustersPanel",
+            "props": {
+              "clusters": [
+                {
+                  "id": "c_001",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/dup_001.jpg",
+                  "photoIds": [
+                    "p_101",
+                    "p_102"
+                  ],
+                  "type": "duplicate",
+                  "selected": true,
+                  "totalBytes": 10485760
+                },
+                {
+                  "id": "c_002",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/near_002.jpg",
+                  "photoIds": [
+                    "p_201",
+                    "p_202",
+                    "p_203"
+                  ],
+                  "type": "nearDuplicate",
+                  "selected": true,
+                  "totalBytes": 15728640
+                },
+                {
+                  "id": "c_003",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/series_003.jpg",
+                  "photoIds": [
+                    "p_301",
+                    "p_302",
+                    "p_303",
+                    "p_304"
+                  ],
+                  "type": "series",
+                  "selected": false,
+                  "totalBytes": 20971520
+                }
+              ],
+              "summary": {
+                "totalBytes": 47185920,
+                "potentialSavingsBytes": 23592960,
+                "counts": {
+                  "duplicate": 1,
+                  "nearDuplicate": 1,
+                  "series": 1
+                }
+              },
+              "selectionMode": "all",
+              "defaultBulkAction": "review",
+              "onApplyAction": {
+                "type": "apply_photo_cleanup",
+                "payload": {
+                  "selectedClusterIds": [
+                    "c_001",
+                    "c_002"
+                  ],
+                  "bulkAction": "review",
+                  "selectionMode": "all"
+                }
+              },
+              "showSavingsSummary": true,
+              "thumbnailSize": "m"
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "StorageSavingsSummaryCard",
+            "props": {
+              "id": "savings-summary-1",
+              "title": "Potential Savings",
+              "bytesRecoverable": 23592960,
+              "selectedBytes": 13107200,
+              "counts": {
+                "duplicate": 1,
+                "nearDuplicate": 1,
+                "archiveCandidates": 0
+              },
+              "ctaLabel": "Apply Cleanup",
+              "imageUrl": "https://cdn.example.com/icons/storage-savings.png",
+              "actions": {
+                "applyCleanup": {
+                  "type": "apply_selected_cleanup",
+                  "payload": {
+                    "cardId": "savings-summary-1"
+                  }
+                },
+                "viewBreakdown": {
+                  "type": "view_savings_breakdown",
+                  "payload": {
+                    "cardId": "savings-summary-1"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should clearly acknowledge the user's goal to find duplicates, near-duplicates, and archive candidates, and outline an approach to achieve it",
+          "Should request explicit user consent before scanning or modifying the user's photo library",
+          "Should explain the categories used (duplicates, near-duplicates, series/bursts, archive candidates) and how they will be handled",
+          "Should provide actionable next steps (e.g., start scan, review duplicates first, apply cleanup) with clear calls to action",
+          "Should present a preview or starter view using placeholder/example data when no scan has been run, without implying access to the user's actual photos",
+          "Should use appropriate UI components to display clusters of similar photos and a storage savings summary, matching the scenario",
+          "Should include bulk-selection and review workflows (e.g., select all but best, review before deleting) to handle thousands of photos efficiently",
+          "Should offer user-settable preferences for selection criteria (e.g., newest, highest resolution, sharpness) and deletion vs archiving behavior",
+          "Should avoid destructive actions by default and require confirmation for permanent deletions",
+          "Should ensure component properties are well-formed and consistent (valid IDs, URLs, integer byte sizes, correct cluster counts, coherent savings totals)",
+          "Should align the narrative text with the data shown in components (cluster counts, selected states, savings figures) to avoid inconsistencies",
+          "Should not hallucinate specific user content and should clearly label example data as sample or starter view",
+          "Should call appropriate tools with correct arguments if and only if a real scan or cleanup operation is initiated or requested by the user",
+          "Should provide an option to view a breakdown of savings and to apply selected cleanup actions through component actions",
+          "Should communicate safety and reversibility (e.g., moving to archive first) and provide an option to undo or review before applying changes"
+        ],
+        "expected_components": [
+          "SimilarPhotoClustersPanel",
+          "StorageSavingsSummaryCard"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Start the scan. Prioritize highest sharpness, then resolution, and if tied pick the newest. Move duplicates to the archive first, and include screenshots/receipts in archive candidates."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Got it \u2014 I\u2019ll start the scan now with your preferences: keep the sharpest photo first, then highest resolution, then newest if tied. I\u2019ll move confirmed duplicates to the archive (not delete), and I\u2019ll include screenshots and receipts as archive candidates. As the scan progresses, I\u2019ll group duplicates, near-duplicates, and series into reviewable clusters and surface a savings summary. You can pause or cancel anytime. I\u2019ll notify you as soon as the first clusters are ready for review."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ScanProgressBanner",
+            "props": {
+              "status": "scanning",
+              "progressPercent": 3,
+              "scannedCount": 0,
+              "primaryAction": {
+                "type": "pause_scan"
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly acknowledge and restate the user's scan preferences: prioritize highest sharpness, then resolution, then newest when tied",
+          "Should confirm initiation of the scan immediately upon request",
+          "Should state non-destructive handling: move duplicates to archive first (not delete)",
+          "Should state inclusion of screenshots and receipts in archive candidate detection",
+          "Should describe that results will be organized into clusters for duplicates, near-duplicates, and series for review",
+          "Should indicate that a storage savings summary will be surfaced during or after scanning",
+          "Should present clear user controls to pause or cancel the scan",
+          "Should provide a progress indication that is plausible and appropriately bounded (0\u2013100%) and includes a scanned item count when available",
+          "Should use UI components appropriate to the task to display scan status and controls",
+          "Should use the ScanProgressBanner component to convey scanning status, progress, and actions with correct props (e.g., status='scanning', progressPercent as a number 0\u2013100, scannedCount as a non-negative integer, and primaryAction for pausing or canceling)",
+          "Should avoid implying deletion or irreversible actions without explicit user confirmation",
+          "Should communicate that the user will be notified when the first clusters are ready for review",
+          "Should avoid unnecessary technical detail and keep tone concise, clear, and action-oriented",
+          "Should call appropriate tools or background processes to perform the scan if tool invocation is required by the system, passing the user's prioritization and archival preferences as parameters",
+          "Should not fabricate unavailable UI elements or data; any referenced visuals should align with the expected clusters, duplicate badges, bulk-select tools, and savings summary"
+        ],
+        "expected_components": [
+          "ScanProgressBanner"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Ping me when the first clusters are ready. Use a strict similarity threshold for near-duplicates, auto-select \u201ckeep best\u201d for exact duplicates, and don\u2019t archive anything in Favorites or shared albums."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Perfect. I\u2019ve updated the scan settings as follows: strict similarity threshold for near-duplicates, auto-select \u201ckeep best\u201d for exact duplicates based on sharpness > resolution > newest, and exclude anything in Favorites or shared albums from archiving. I\u2019ll ping you the moment the first clusters are ready to review. The scan is underway\u2014you can pause or cancel anytime."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ScanProgressBanner",
+            "props": {
+              "status": "scanning",
+              "progressPercent": 11,
+              "scannedCount": 1320,
+              "totalCount": 12000,
+              "primaryAction": {
+                "type": "pause_scan"
+              }
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly confirm applying the user's requested settings: strict similarity threshold for near-duplicates, auto-select 'keep best' for exact duplicates, and exclusion of Favorites and shared albums from archiving",
+          "Should state how 'keep best' is determined for exact duplicates (e.g., sharpness, resolution, recency) or ask for user preferences if criteria are undefined",
+          "Should initiate the scan process and communicate that the assistant will notify the user when the first clusters are ready",
+          "Should use clear, actionable language and avoid vague promises about notifications; specify the notification/ping mechanism if relevant in this context",
+          "Should provide real-time progress feedback using an appropriate UI component, including status, percent complete (0\u2013100), scanned count, total count, and available actions (pause/cancel)",
+          "Should avoid claiming changes or progress that require tool access unless such tools are correctly invoked; if tools are required to update settings or start scans, they should be called with correct arguments",
+          "Should not archive, delete, or move any items without explicit user confirmation; limit actions to scanning, clustering, and pre-selection",
+          "Should confirm that Favorites and shared albums are excluded from any archiving or bulk actions and reflect this constraint in subsequent actions and displays",
+          "Should indicate the next step when clusters are ready, including presenting clusters of similar photos with duplicate detection badges, bulk-select tools, and storage savings summaries",
+          "Should ensure all presented numbers are internally consistent (e.g., scannedCount \u2264 totalCount; progressPercent corresponds roughly to scannedCount/totalCount)",
+          "Should keep the response concise and relevant to the user's request without unnecessary details or unrelated features"
+        ],
+        "expected_components": [
+          "ScanProgressBanner"
+        ]
+      }
+    },
+    {
+      "role": "user",
+      "content": "Quick check\u2014any clusters ready yet? Also, please exclude RAW originals from archiving and prefer keeping edited versions over originals when de-duping."
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "type": "text",
+          "text": "Quick update: yes\u2014your first clusters are ready to review. I\u2019ve also applied your new preferences: RAW originals are excluded from archiving, and when de\u2011duping I\u2019ll prefer edited versions over originals (still using sharpness > resolution > newest for tie\u2011breaks). Favorites and shared albums remain excluded from archiving. Auto \u201ckeep best\u201d is applied for exact duplicates, with the rest pre\u2011selected for archiving.\n\nYou can start reviewing now or let the scan continue and I\u2019ll keep surfacing new clusters as they\u2019re ready."
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "ScanProgressBanner",
+            "props": {
+              "status": "analyzing",
+              "progressPercent": 42,
+              "scannedCount": 3800,
+              "totalCount": 12000,
+              "primaryAction": {
+                "type": "pause_scan"
+              }
+            }
+          }
+        },
+        {
+          "type": "component",
+          "component": {
+            "name": "SimilarPhotoClustersPanel",
+            "props": {
+              "clusters": [
+                {
+                  "id": "c_dup_001",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/dup_001.jpg",
+                  "photoIds": [
+                    "p101",
+                    "p102"
+                  ],
+                  "type": "duplicate",
+                  "selected": true,
+                  "totalBytes": 9200000
+                },
+                {
+                  "id": "c_dup_002",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/dup_002.jpg",
+                  "photoIds": [
+                    "p201",
+                    "p202",
+                    "p203"
+                  ],
+                  "type": "duplicate",
+                  "selected": true,
+                  "totalBytes": 15500000
+                },
+                {
+                  "id": "c_near_001",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/near_001.jpg",
+                  "photoIds": [
+                    "p301",
+                    "p302"
+                  ],
+                  "type": "nearDuplicate",
+                  "selected": false,
+                  "totalBytes": 8400000
+                },
+                {
+                  "id": "c_series_001",
+                  "representativeThumbnailUrl": "https://cdn.example.com/t/series_001.jpg",
+                  "photoIds": [
+                    "p401",
+                    "p402",
+                    "p403",
+                    "p404"
+                  ],
+                  "type": "series",
+                  "selected": false,
+                  "totalBytes": 24800000
+                }
+              ],
+              "summary": {
+                "totalBytes": 57900000,
+                "potentialSavingsBytes": 18700000,
+                "counts": {
+                  "duplicate": 2,
+                  "nearDuplicate": 1,
+                  "series": 1
+                }
+              },
+              "selectionMode": "duplicates_only",
+              "defaultBulkAction": "archive",
+              "onApplyAction": {
+                "type": "apply_photo_cleanup",
+                "payload": {
+                  "selectedClusterIds": [
+                    "c_dup_001",
+                    "c_dup_002"
+                  ],
+                  "bulkAction": "archive",
+                  "selectionMode": "duplicates_only"
+                }
+              },
+              "showSavingsSummary": true,
+              "thumbnailSize": "m"
+            }
+          }
+        }
+      ],
+      "grading_guidance": {
+        "quality_criteria": [
+          "Should explicitly confirm whether clusters are ready and present a clear status update",
+          "Should acknowledge and apply the user's preferences: exclude RAW originals from archiving and prefer keeping edited versions over originals during de-duplication",
+          "Should state or reflect the de-duplication tie-breaker logic (e.g., sharpness > resolution > recency) when relevant",
+          "Should provide actionable next steps, allowing the user to begin review immediately or continue scanning",
+          "Should present a progress indicator with status, percentage, scanned count, and total count",
+          "Should display clusters of similar photos with types (duplicate, near-duplicate, series), representative thumbnails, photo IDs, and byte sizes where available",
+          "Should preselect exact duplicate clusters for archiving if 'keep best' logic is applied, while leaving near-duplicates and series unselected by default unless otherwise requested",
+          "Should show a storage savings summary, including total bytes represented and potential savings from selected items",
+          "Should provide bulk action capability (e.g., archive) with a clear default aligned to the current selection mode",
+          "Should include a safe and reversible apply action, not performing destructive operations without explicit user confirmation",
+          "Should allow control of the scan (e.g., pause) without disrupting the current review context",
+          "Should ensure all displayed numbers (counts, totals, savings) are internally consistent with the listed clusters and selections",
+          "Should avoid calling external tools unless data fetching or computation beyond the presented UI state is required; if needed, should call tools with correct arguments",
+          "Should use concise, clear language and avoid unrelated information",
+          "Should not reveal or process RAW originals for archiving and should reflect that policy in selection and action configuration",
+          "Should ensure the on-apply action payload matches the current selection, action, and selection mode shown in the UI"
+        ],
+        "expected_components": [
+          "ScanProgressBanner",
+          "SimilarPhotoClustersPanel"
+        ]
+      }
+    }
+  ]
+}

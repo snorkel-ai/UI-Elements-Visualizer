@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversation Viewer</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    #root { min-height: 100vh; }
+    * { box-sizing: border-box; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
+    const { createRoot } = ReactDOM;
+
+    const conversationData = [
+      {
+        "role": "user",
+        "content": "Plan my next 6 weeks of newsletter issues with topics, CTAs, and draft status."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "I drafted a 6-week plan with one Friday send per week, each pre-set to Draft. You can drag to reschedule, update statuses, or pull from the backlog any time."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "NewsletterPlanningBoardProps",
+              "props": {
+                "startDate": "2025-11-17",
+                "weekCount": 6,
+                "scheduledIssues": [
+                  {
+                    "id": "iss_2025_11_21",
+                    "date": "2025-11-21",
+                    "topic": "Year-End Email Strategy: Quick Wins for Q4",
+                    "cta": "Download the Q4 checklist",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2025_11_28",
+                    "date": "2025-11-28",
+                    "topic": "Subject Line A/B Tests That Boost Opens",
+                    "cta": "Get the test matrix",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2025_12_05",
+                    "date": "2025-12-05",
+                    "topic": "Content Repurposing: Turn 1 Post into 5 Emails",
+                    "cta": "See the repurpose playbook",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2025_12_12",
+                    "date": "2025-12-12",
+                    "topic": "Personalization at Scale Without Code",
+                    "cta": "Copy the merge-tag snippets",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2025_12_19",
+                    "date": "2025-12-19",
+                    "topic": "2025 Planning: Newsletter KPI Benchmarks",
+                    "cta": "Grab the KPI template",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2025_12_26",
+                    "date": "2025-12-26",
+                    "topic": "Best of 2025: Top Reads + Tools",
+                    "cta": "Explore the roundup",
+                    "status": "draft"
+                  }
+                ],
+                "backlogIdeas": [
+                  {
+                    "id": "idea_001",
+                    "topic": "Onboarding Sequence Tune-Up (Welcome Series)",
+                    "cta": "Steal the 5-email flow",
+                    "notes": "Audit current welcome series; add value-first email 1 and social proof in email 3.",
+                    "priority": 3,
+                    "createdAt": "2025-11-15T10:00:00Z"
+                  },
+                  {
+                    "id": "idea_002",
+                    "topic": "UTM Tracking + Analytics Basics",
+                    "cta": "Download the tracking sheet",
+                    "notes": "Link governance and UTM builder for consistent reporting.",
+                    "priority": 2,
+                    "createdAt": "2025-11-16T14:30:00Z"
+                  },
+                  {
+                    "id": "idea_003",
+                    "topic": "Deliverability Fixes: Warming + Authentication",
+                    "cta": "Run the DKIM/SPF checklist",
+                    "notes": "Include DMARC policy starter and warm-up schedule.",
+                    "priority": 3,
+                    "createdAt": "2025-11-12T09:20:00Z"
+                  },
+                  {
+                    "id": "idea_004",
+                    "topic": "Design System for Newsletters",
+                    "cta": "Duplicate the Figma file",
+                    "notes": "Reusable modules: hero, two-column, promo card, footer.",
+                    "priority": 1,
+                    "createdAt": "2025-11-10T12:00:00Z"
+                  },
+                  {
+                    "id": "idea_005",
+                    "topic": "Monetization: Sponsorship Outreach Playbook",
+                    "cta": "Use the outreach email",
+                    "notes": "ICP list + 3-step outreach with follow-up timing.",
+                    "priority": 2,
+                    "createdAt": "2025-11-18T08:45:00Z"
+                  },
+                  {
+                    "id": "idea_006",
+                    "topic": "Automation Spotlight: Win-Back Flows",
+                    "cta": "Grab the flow map",
+                    "notes": "3-email sequence with offer testing and sunset criteria.",
+                    "priority": 2,
+                    "createdAt": "2025-11-13T16:10:00Z"
+                  }
+                ],
+                "statusOptions": [
+                  {
+                    "value": "draft",
+                    "label": "Draft",
+                    "colorHex": "#3B82F6"
+                  },
+                  {
+                    "value": "in_review",
+                    "label": "In Review",
+                    "colorHex": "#F59E0B"
+                  },
+                  {
+                    "value": "scheduled",
+                    "label": "Scheduled",
+                    "colorHex": "#10B981"
+                  },
+                  {
+                    "value": "sent",
+                    "label": "Sent",
+                    "colorHex": "#6B7280"
+                  }
+                ],
+                "onUserAction": {
+                  "type": "newsletter_board_action"
+                },
+                "timezone": "America/New_York",
+                "allowDragDrop": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should create a 6-week plan aligned to the user's timeframe, with one issue per week and clear weekly cadence",
+            "Should include for each scheduled issue a date, topic, CTA, and a draft status as requested",
+            "Should ensure dates are valid, in ISO-8601 format, and correspond to the intended weekly cadence (e.g., Fridays if specified by the plan)",
+            "Should provide a backlog list of unscheduled ideas with clear fields (id, topic, CTA, notes, priority, createdAt) to match the expected visual",
+            "Should present statuses as structured values with human-readable labels and consistent allowed options",
+            "Should use a single, appropriate UI component that represents a calendar/board view with scheduled issues and backlog items, matching the expected visual",
+            "Should supply component props in strictly valid, machine-readable JSON with correct types for each field (strings, numbers, booleans, arrays, objects)",
+            "Should ensure unique, stable IDs for scheduled issues and backlog items",
+            "Should align status values on issues with the provided status options (e.g., 'draft', 'in_review', 'scheduled', 'sent')",
+            "Should include logical defaults and configuration options relevant to planning (e.g., startDate, weekCount, timezone, allowDragDrop) without requiring external data",
+            "Should not call external tools, APIs, or perform data fetching since the request is self-contained and does not require external computation or actions",
+            "Should keep explanatory text concise and focused on how to interact with the plan (e.g., rescheduling, updating statuses, pulling from backlog)",
+            "Should ensure the plan covers the next six weeks from the specified start date or implied current period and avoids missing or duplicate weeks"
+          ],
+          "expected_components": [
+            "NewsletterPlanningBoardProps"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Great—can you show the calendar with cards per Friday? Set Week 1 to In Progress, Weeks 2–3 to Outline, Weeks 4–6 to Draft, and add these backlog ideas: churn-reduction case study, CFO interview on budgeting, and a tool roundup; also align Week 4’s topic to our product launch CTA."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Here’s your 6-week calendar with Friday sends. Week 1 is set to In Progress, Weeks 2–3 to Outline, and Weeks 4–6 to Draft. I also added the backlog ideas you requested and aligned Week 4 to use the product launch CTA. You can drag cards to reschedule, update statuses, or pull ideas from the backlog anytime."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "NewsletterPlanningBoardProps",
+              "props": {
+                "startDate": "2025-11-24",
+                "weekCount": 6,
+                "scheduledIssues": [
+                  {
+                    "id": "iss_2025_11_28",
+                    "date": "2025-11-28",
+                    "topic": "Year-End Retention Tactics That Compound",
+                    "cta": "Read the playbook",
+                    "status": "in_progress"
+                  },
+                  {
+                    "id": "iss_2025_12_05",
+                    "date": "2025-12-05",
+                    "topic": "Subject Line A/B Tests for Holiday Peak",
+                    "cta": "Download the checklist",
+                    "status": "outline"
+                  },
+                  {
+                    "id": "iss_2025_12_12",
+                    "date": "2025-12-12",
+                    "topic": "2026 Planning: Metrics That Matter",
+                    "cta": "Get the planning template",
+                    "status": "outline"
+                  },
+                  {
+                    "id": "iss_2025_12_19",
+                    "date": "2025-12-19",
+                    "topic": "Product Launch: How to Get Value in Week One",
+                    "cta": "Explore the new product",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2025_12_26",
+                    "date": "2025-12-26",
+                    "topic": "Customer Stories: Playbooks Behind 20% MRR Lift",
+                    "cta": "Start free trial",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_2026_01_02",
+                    "date": "2026-01-02",
+                    "topic": "Forecasting and Budget Guardrails for Q1",
+                    "cta": "Read the case study",
+                    "status": "draft"
+                  }
+                ],
+                "backlogIdeas": [
+                  {
+                    "id": "idea_churn_case",
+                    "topic": "Churn-Reduction Case Study",
+                    "cta": "Read case study",
+                    "notes": "Deep dive into tactics that cut churn by 18%."
+                  },
+                  {
+                    "id": "idea_cfo_interview",
+                    "topic": "CFO Interview on Budgeting",
+                    "cta": "Get the budgeting framework",
+                    "notes": "Q&A on headcount vs. tooling trade-offs for 2026."
+                  },
+                  {
+                    "id": "idea_tool_roundup",
+                    "topic": "Tool Roundup: 7 Picks for Lean Teams",
+                    "cta": "See our top picks",
+                    "notes": "Focus on value-for-money and quick time-to-value."
+                  }
+                ],
+                "statusOptions": [
+                  {
+                    "value": "in_progress",
+                    "label": "In Progress",
+                    "colorHex": "#3B82F6"
+                  },
+                  {
+                    "value": "outline",
+                    "label": "Outline",
+                    "colorHex": "#10B981"
+                  },
+                  {
+                    "value": "draft",
+                    "label": "Draft",
+                    "colorHex": "#F59E0B"
+                  },
+                  {
+                    "value": "scheduled",
+                    "label": "Scheduled",
+                    "colorHex": "#6366F1"
+                  },
+                  {
+                    "value": "sent",
+                    "label": "Sent",
+                    "colorHex": "#6B7280"
+                  }
+                ],
+                "onUserAction": {
+                  "type": "newsletter_board_action"
+                },
+                "timezone": "America/New_York",
+                "allowDragDrop": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should present a 6-week calendar specifically showing one scheduled issue per Friday for each of the 6 consecutive weeks",
+            "Should include for each scheduled issue a card with topic, CTA, and a status chip",
+            "Should set statuses exactly as requested: Week 1 = In Progress, Weeks 2–3 = Outline, Weeks 4–6 = Draft",
+            "Should add the backlog ideas exactly as requested: churn-reduction case study, CFO interview on budgeting, and a tool roundup, each with clear topic and CTA fields",
+            "Should align Week 4’s topic to a product launch theme and ensure its CTA matches a product launch intent",
+            "Should use appropriate ISO date formats (YYYY-MM-DD) and ensure the 6 dates fall on consecutive Fridays",
+            "Should include a coherent startDate for the calendar range and set weekCount to 6",
+            "Should ensure status values on scheduled issues match the provided status options",
+            "Should provide a concise textual summary of what was created and how the user can interact (e.g., drag-and-drop, update statuses, pull from backlog)",
+            "Should not call external tools, as the request is a planning and UI composition task without data fetching or computation needs",
+            "Should use the specified UI component for planning (NewsletterPlanningBoardProps) and populate its props with correctly named fields: startDate, weekCount, scheduledIssues, backlogIdeas, statusOptions, timezone, allowDragDrop, and onUserAction",
+            "Should ensure IDs, topics, CTAs, and any optional notes are relevant, non-misleading, and consistent with the scenario context"
+          ],
+          "expected_components": [
+            "NewsletterPlanningBoardProps"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Looks good—please assign topics and CTAs per week: \nW1 onboarding quick wins (CTA: book a demo), W2 CFO interview (CTA: download budgeting template), W3 churn-reduction case study (CTA: read full case), W4 product launch deep dive (CTA: try the new feature), W5 tool roundup (CTA: compare tools), W6 2025 planning checklist (CTA: get the checklist). Also add recurring internal deadlines each week: outline due Tue, draft due Wed, review Thu."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "All set! I scheduled each Friday issue with your specified topic and CTA, applied the requested statuses, and added recurring internal deadlines every Tue/Wed/Thu for all six weeks. You can drag to reschedule, change statuses, or move items to/from the backlog anytime."
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "NewsletterPlanningBoardProps",
+              "props": {
+                "startDate": "2025-11-17",
+                "weekCount": 6,
+                "scheduledIssues": [
+                  {
+                    "id": "iss_w1_main_2025-11-21",
+                    "date": "2025-11-21",
+                    "topic": "Onboarding Quick Wins",
+                    "cta": "Book a demo",
+                    "status": "in_progress"
+                  },
+                  {
+                    "id": "iss_w1_outline_2025-11-18",
+                    "date": "2025-11-18",
+                    "topic": "Internal: Outline due (W1)",
+                    "cta": "Submit outline",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w1_draft_2025-11-19",
+                    "date": "2025-11-19",
+                    "topic": "Internal: Draft due (W1)",
+                    "cta": "Draft complete",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w1_review_2025-11-20",
+                    "date": "2025-11-20",
+                    "topic": "Internal: Review (W1)",
+                    "cta": "Send for review",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w2_main_2025-11-28",
+                    "date": "2025-11-28",
+                    "topic": "CFO Interview on Budgeting",
+                    "cta": "Download budgeting template",
+                    "status": "outline"
+                  },
+                  {
+                    "id": "iss_w2_outline_2025-11-25",
+                    "date": "2025-11-25",
+                    "topic": "Internal: Outline due (W2)",
+                    "cta": "Submit outline",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w2_draft_2025-11-26",
+                    "date": "2025-11-26",
+                    "topic": "Internal: Draft due (W2)",
+                    "cta": "Draft complete",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w2_review_2025-11-27",
+                    "date": "2025-11-27",
+                    "topic": "Internal: Review (W2)",
+                    "cta": "Send for review",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w3_main_2025-12-05",
+                    "date": "2025-12-05",
+                    "topic": "Churn-Reduction Case Study",
+                    "cta": "Read full case",
+                    "status": "outline"
+                  },
+                  {
+                    "id": "iss_w3_outline_2025-12-02",
+                    "date": "2025-12-02",
+                    "topic": "Internal: Outline due (W3)",
+                    "cta": "Submit outline",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w3_draft_2025-12-03",
+                    "date": "2025-12-03",
+                    "topic": "Internal: Draft due (W3)",
+                    "cta": "Draft complete",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w3_review_2025-12-04",
+                    "date": "2025-12-04",
+                    "topic": "Internal: Review (W3)",
+                    "cta": "Send for review",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w4_main_2025-12-12",
+                    "date": "2025-12-12",
+                    "topic": "Product Launch Deep Dive",
+                    "cta": "Try the new feature",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_w4_outline_2025-12-09",
+                    "date": "2025-12-09",
+                    "topic": "Internal: Outline due (W4)",
+                    "cta": "Submit outline",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w4_draft_2025-12-10",
+                    "date": "2025-12-10",
+                    "topic": "Internal: Draft due (W4)",
+                    "cta": "Draft complete",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w4_review_2025-12-11",
+                    "date": "2025-12-11",
+                    "topic": "Internal: Review (W4)",
+                    "cta": "Send for review",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w5_main_2025-12-19",
+                    "date": "2025-12-19",
+                    "topic": "Tool Roundup",
+                    "cta": "Compare tools",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_w5_outline_2025-12-16",
+                    "date": "2025-12-16",
+                    "topic": "Internal: Outline due (W5)",
+                    "cta": "Submit outline",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w5_draft_2025-12-17",
+                    "date": "2025-12-17",
+                    "topic": "Internal: Draft due (W5)",
+                    "cta": "Draft complete",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w5_review_2025-12-18",
+                    "date": "2025-12-18",
+                    "topic": "Internal: Review (W5)",
+                    "cta": "Send for review",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w6_main_2025-12-26",
+                    "date": "2025-12-26",
+                    "topic": "2025 Planning Checklist",
+                    "cta": "Get the checklist",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_w6_outline_2025-12-23",
+                    "date": "2025-12-23",
+                    "topic": "Internal: Outline due (W6)",
+                    "cta": "Submit outline",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w6_draft_2025-12-24",
+                    "date": "2025-12-24",
+                    "topic": "Internal: Draft due (W6)",
+                    "cta": "Draft complete",
+                    "status": "scheduled"
+                  },
+                  {
+                    "id": "iss_w6_review_2025-12-25",
+                    "date": "2025-12-25",
+                    "topic": "Internal: Review (W6)",
+                    "cta": "Send for review",
+                    "status": "scheduled"
+                  }
+                ],
+                "backlogIdeas": [
+                  {
+                    "id": "idea_backlog_churn_case",
+                    "topic": "Churn-reduction case study",
+                    "cta": "Read full case",
+                    "notes": "Alt angle: retention playbook follow-up"
+                  },
+                  {
+                    "id": "idea_backlog_cfo_budget",
+                    "topic": "CFO interview on budgeting",
+                    "cta": "Download budgeting template",
+                    "notes": "Consider Q&A format with pull quotes"
+                  },
+                  {
+                    "id": "idea_backlog_tool_roundup",
+                    "topic": "Tool roundup",
+                    "cta": "Compare tools",
+                    "notes": "Stack comparison: pros/cons and pricing"
+                  }
+                ],
+                "statusOptions": [
+                  {
+                    "value": "outline",
+                    "label": "Outline",
+                    "colorHex": "#0EA5E9"
+                  },
+                  {
+                    "value": "in_progress",
+                    "label": "In Progress",
+                    "colorHex": "#F59E0B"
+                  },
+                  {
+                    "value": "draft",
+                    "label": "Draft",
+                    "colorHex": "#6366F1"
+                  },
+                  {
+                    "value": "scheduled",
+                    "label": "Scheduled",
+                    "colorHex": "#10B981"
+                  },
+                  {
+                    "value": "sent",
+                    "label": "Sent",
+                    "colorHex": "#6B7280"
+                  }
+                ],
+                "onUserAction": {
+                  "type": "newsletter_board_action"
+                },
+                "timezone": "America/New_York",
+                "allowDragDrop": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should comprehensively plan six consecutive weekly newsletter issues starting from the specified start date and spanning the requested week count",
+            "Should assign the exact topics and CTAs per week as specified by the user (W1 through W6) to the main Friday issues",
+            "Should schedule internal recurring deadlines each week with separate items for Outline (Tuesday), Draft (Wednesday), and Review (Thursday), clearly labeled and associated with the correct week",
+            "Should place the main issue for each week on Friday within the specified timezone, using ISO date strings and consistent week alignment",
+            "Should include a status for every scheduled item and provide a clear set of status options (e.g., Outline, In Progress, Draft, Scheduled, Sent) with consistent values and labels",
+            "Should reflect the user's request for draft status by setting appropriate initial statuses for the main issues and internal tasks",
+            "Should present a calendar-style structure with per-issue cards that display topic, CTA, and status chips, aligning with the expected visual",
+            "Should include a backlog list for ideas not yet scheduled, distinct from scheduled issues",
+            "Should use the appropriate UI component and populate all required props with correct types and valid values (startDate, weekCount, scheduledIssues array with id/date/topic/cta/status, statusOptions, timezone, allowDragDrop, onUserAction)",
+            "Should ensure IDs are unique and dates are valid ISO-format strings within the planned six-week window",
+            "Should avoid calling external tools, APIs, or performing data fetching since the task is self-contained planning",
+            "Should provide a brief confirmation text that summarizes what was scheduled without contradicting or adding unsupported claims",
+            "Should avoid extraneous or unrelated information and adhere to the provided schema and component expectations"
+          ],
+          "expected_components": [
+            "NewsletterPlanningBoardProps"
+          ]
+        }
+      },
+      {
+        "role": "user",
+        "content": "Great—please generate brief outlines for W1–W3, add subject lines and preview text for all six issues, and set Slack reminders for the Tue/Wed/Thu deadlines at 10am. Also, if Week 5’s Friday is a holiday, shift that send to Thursday and adjust internal deadlines accordingly."
+      },
+      {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "Absolutely—here are the outlines, subject lines, preview text, and the calendar updates. I also prepared Slack reminder commands you can paste to set 10am reminders for each weekly deadline.\n\nBrief outlines (W1–W3)\n- W1: Onboarding quick wins (CTA: book a demo)\n  - Hook: Why the first 14 days decide retention\n  - 3–5 quick wins: welcome email, checklist, first value path, milestone nudge, in-app tips\n  - Mini case: lift from a recent cohort\n  - Add: “demo to tailor onboarding” CTA\n- W2: CFO interview (CTA: download budgeting template)\n  - Intro: 2025 budgeting pressures (efficiency, ROI)\n  - Q&A themes: must-have metrics, payback windows, cost controls, tooling consolidation\n  - Framework: how to pitch spend internally\n  - Resource: budgeting template CTA\n- W3: Churn-reduction case study (CTA: read full case)\n  - Baseline: churn problem and segments\n  - Interventions: onboarding tweaks, lifecycle messaging, feature adoption cues\n  - Results: churn delta, ARR saved\n  - How-to: steps to replicate; deeper case CTA\n\nSubject lines and preview text (all 6 weeks)\n- W1: Subject: 5 onboarding quick wins that move your retention now | Preview: A 14‑day plan with templates—plus a demo to tailor it to your funnel.\n- W2: Subject: CFO POV: How to budget for 2025 growth | Preview: A candid interview + a plug‑and‑play budgeting template.\n- W3: Subject: Case study: How we cut churn by 18% in one quarter | Preview: Tactics, metrics, and the playbook—read the full breakdown.\n- W4: Subject: Deep dive: Launching our new feature (with setup guide) | Preview: Why we built it, best practices, and how to try it today.\n- W5: Subject: The 2025 tool roundup: what to keep, cut, or replace | Preview: Side‑by‑side comparisons to help you choose with confidence.\n- W6: Subject: Your 2025 planning checklist (ready to copy) | Preview: Goals, metrics, ops, and headcount—all in one checklist.\n\nSlack reminders (10:00am local) for weekly deadlines\nPaste these into your Slack (adjust channel if needed). Which channel should I use by default?\n- Week 1\n  - /remind #content “Outline due today for W1” at 10am on 2025-11-18\n  - /remind #content “Draft due today for W1” at 10am on 2025-11-19\n  - /remind #content “Review today for W1” at 10am on 2025-11-20\n- Week 2\n  - /remind #content “Outline due today for W2” at 10am on 2025-11-25\n  - /remind #content “Draft due today for W2” at 10am on 2025-11-26\n  - /remind #content “Review today for W2” at 10am on 2025-11-27\n- Week 3\n  - /remind #content “Outline due today for W3” at 10am on 2025-12-02\n  - /remind #content “Draft due today for W3” at 10am on 2025-12-03\n  - /remind #content “Review today for W3” at 10am on 2025-12-04\n- Week 4\n  - /remind #content “Outline due today for W4” at 10am on 2025-12-09\n  - /remind #content “Draft due today for W4” at 10am on 2025-12-10\n  - /remind #content “Review today for W4” at 10am on 2025-12-11\n- Week 5\n  - /remind #content “Outline due today for W5” at 10am on 2025-12-16\n  - /remind #content “Draft due today for W5” at 10am on 2025-12-17\n  - /remind #content “Review today for W5” at 10am on 2025-12-18\n- Week 6\n  - /remind #content “Outline due today for W6” at 10am on 2025-12-23\n  - /remind #content “Draft due today for W6” at 10am on 2025-12-24\n  - /remind #content “Review today for W6” at 10am on 2025-12-25\n\nHoliday check for Week 5\n- Week 5’s Friday (2025-12-19) is not a typical holiday in most regions, so I’ve kept the send on Friday. If your team observes a different calendar, tell me the region/company holidays and I’ll auto‑shift and update internal deadlines.\n\nAnything you want tweaked (e.g., different send time, alternate CTAs, or moving any outline/draft/review to earlier in the week)?"
+          },
+          {
+            "type": "component",
+            "component": {
+              "name": "NewsletterPlanningBoardProps",
+              "props": {
+                "startDate": "2025-11-17",
+                "weekCount": 6,
+                "scheduledIssues": [
+                  {
+                    "id": "iss_2025_11_21",
+                    "date": "2025-11-21",
+                    "topic": "Onboarding quick wins",
+                    "cta": "Book a demo",
+                    "status": "in_progress"
+                  },
+                  {
+                    "id": "iss_deadline_w1_outline",
+                    "date": "2025-11-18",
+                    "topic": "Internal deadline: Outline due (W1)",
+                    "cta": "Post outline in doc",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w1_draft",
+                    "date": "2025-11-19",
+                    "topic": "Internal deadline: Draft due (W1)",
+                    "cta": "Share draft for review",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w1_review",
+                    "date": "2025-11-20",
+                    "topic": "Internal deadline: Review (W1)",
+                    "cta": "Complete edits by EOD",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_2025_11_28",
+                    "date": "2025-11-28",
+                    "topic": "CFO interview on budgeting",
+                    "cta": "Download budgeting template",
+                    "status": "outline"
+                  },
+                  {
+                    "id": "iss_deadline_w2_outline",
+                    "date": "2025-11-25",
+                    "topic": "Internal deadline: Outline due (W2)",
+                    "cta": "Post outline in doc",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w2_draft",
+                    "date": "2025-11-26",
+                    "topic": "Internal deadline: Draft due (W2)",
+                    "cta": "Share draft for review",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w2_review",
+                    "date": "2025-11-27",
+                    "topic": "Internal deadline: Review (W2)",
+                    "cta": "Complete edits by EOD",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_2025_12_05",
+                    "date": "2025-12-05",
+                    "topic": "Churn-reduction case study",
+                    "cta": "Read full case",
+                    "status": "outline"
+                  },
+                  {
+                    "id": "iss_deadline_w3_outline",
+                    "date": "2025-12-02",
+                    "topic": "Internal deadline: Outline due (W3)",
+                    "cta": "Post outline in doc",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w3_draft",
+                    "date": "2025-12-03",
+                    "topic": "Internal deadline: Draft due (W3)",
+                    "cta": "Share draft for review",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w3_review",
+                    "date": "2025-12-04",
+                    "topic": "Internal deadline: Review (W3)",
+                    "cta": "Complete edits by EOD",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_2025_12_12",
+                    "date": "2025-12-12",
+                    "topic": "Product launch deep dive",
+                    "cta": "Try the new feature",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_deadline_w4_outline",
+                    "date": "2025-12-09",
+                    "topic": "Internal deadline: Outline due (W4)",
+                    "cta": "Post outline in doc",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w4_draft",
+                    "date": "2025-12-10",
+                    "topic": "Internal deadline: Draft due (W4)",
+                    "cta": "Share draft for review",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w4_review",
+                    "date": "2025-12-11",
+                    "topic": "Internal deadline: Review (W4)",
+                    "cta": "Complete edits by EOD",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_2025_12_19",
+                    "date": "2025-12-19",
+                    "topic": "Tool roundup",
+                    "cta": "Compare tools",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_deadline_w5_outline",
+                    "date": "2025-12-16",
+                    "topic": "Internal deadline: Outline due (W5)",
+                    "cta": "Post outline in doc",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w5_draft",
+                    "date": "2025-12-17",
+                    "topic": "Internal deadline: Draft due (W5)",
+                    "cta": "Share draft for review",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w5_review",
+                    "date": "2025-12-18",
+                    "topic": "Internal deadline: Review (W5)",
+                    "cta": "Complete edits by EOD",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_2025_12_26",
+                    "date": "2025-12-26",
+                    "topic": "2025 planning checklist",
+                    "cta": "Get the checklist",
+                    "status": "draft"
+                  },
+                  {
+                    "id": "iss_deadline_w6_outline",
+                    "date": "2025-12-23",
+                    "topic": "Internal deadline: Outline due (W6)",
+                    "cta": "Post outline in doc",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w6_draft",
+                    "date": "2025-12-24",
+                    "topic": "Internal deadline: Draft due (W6)",
+                    "cta": "Share draft for review",
+                    "status": "deadline"
+                  },
+                  {
+                    "id": "iss_deadline_w6_review",
+                    "date": "2025-12-25",
+                    "topic": "Internal deadline: Review (W6)",
+                    "cta": "Complete edits by EOD",
+                    "status": "deadline"
+                  }
+                ],
+                "backlogIdeas": [],
+                "statusOptions": [
+                  {
+                    "value": "in_progress",
+                    "label": "In Progress",
+                    "colorHex": "#1D4ED8"
+                  },
+                  {
+                    "value": "outline",
+                    "label": "Outline",
+                    "colorHex": "#10B981"
+                  },
+                  {
+                    "value": "draft",
+                    "label": "Draft",
+                    "colorHex": "#F59E0B"
+                  },
+                  {
+                    "value": "scheduled",
+                    "label": "Scheduled",
+                    "colorHex": "#6366F1"
+                  },
+                  {
+                    "value": "sent",
+                    "label": "Sent",
+                    "colorHex": "#6B7280"
+                  },
+                  {
+                    "value": "deadline",
+                    "label": "Internal Deadline",
+                    "colorHex": "#EF4444"
+                  }
+                ],
+                "onUserAction": {
+                  "type": "newsletter_board_action"
+                },
+                "timezone": "America/New_York",
+                "allowDragDrop": true
+              }
+            }
+          }
+        ],
+        "grading_guidance": {
+          "quality_criteria": [
+            "Should include concise, actionable brief outlines for W1–W3 that align with the specified topics and CTAs",
+            "Should provide subject lines and preview text for all six issues (W1–W6), each pair being clear, relevant, and matched to the corresponding topic and CTA",
+            "Should generate Slack reminders for each week’s internal deadlines on Tuesday, Wednesday, and Thursday at 10:00am local time, using correct Slack /remind syntax and consistent channels",
+            "Should perform the Week 5 holiday check explicitly; if Friday is a holiday or if holiday status is unknown, should either shift the send to Thursday and move internal deadlines earlier accordingly or request the user’s holiday calendar/region to confirm the shift",
+            "Should ensure all internal deadlines (outline/draft/review) precede the scheduled send date for each week and are set to Tue/Wed/Thu respectively, with adjusted dates if a send is moved",
+            "Should keep dates, week numbering, topics, CTAs, and statuses consistent between the narrative text and the component data",
+            "Should use the NewsletterPlanningBoardProps component to present a 6-week calendar with scheduled issues and internal deadline cards, matching the startDate, weekCount, timezone, and status options",
+            "Should populate scheduledIssues with exactly six scheduled send cards (one per week) and corresponding internal deadline cards (outline, draft, review) for each week, reflecting any holiday adjustments",
+            "Should set or confirm the timezone for reminders and component scheduling (e.g., America/New_York) and ensure reminders are at 10:00am in that timezone",
+            "Should avoid assuming a default Slack channel without user confirmation; if a default is used, should clearly prompt the user to confirm or provide a channel",
+            "Should avoid unnecessary formatting and present text in a clear, scannable structure compatible with the UI",
+            "Should not invent external data (e.g., company-specific holidays) and should state assumptions when exact holiday calendars are not provided"
+          ],
+          "expected_components": [
+            "NewsletterPlanningBoardProps"
+          ]
+        }
+      }
+    ];
+
+    // Helpers
+    const parseISO = (iso) => {
+      if (!iso) return null;
+      // Force treat as local midnight to avoid TZ shifts when showing date-only
+      const [y,m,d] = iso.split('-').map(Number);
+      return new Date(y, (m || 1) - 1, d || 1);
+    };
+    const toISO = (date) => {
+      if (!date) return '';
+      const y = date.getFullYear();
+      const m = String(date.getMonth()+1).padStart(2,'0');
+      const d = String(date.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    };
+    const addDaysISO = (iso, n) => {
+      const d = parseISO(iso);
+      d.setDate(d.getDate() + n);
+      return toISO(d);
+    };
+    const weekdayShort = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const monthShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+    const statusColorMap = (statusOptions = []) => {
+      const map = {};
+      (statusOptions || []).forEach(s => { map[s.value] = s.colorHex || '#6B7280'; });
+      return map;
+    };
+
+    // Components
+
+    const IssueCard = (props) => {
+      const {
+        id,
+        topic,
+        primaryCtaLabel,
+        cta,
+        status,
+        dueDateISO,
+        date,
+        draggable = false,
+        iconUrl,
+        statusColor = '#6B7280',
+        onIssueAction = {},
+        onClick,
+      } = props;
+
+      const ctaLabel = primaryCtaLabel ?? cta ?? '';
+      const due = dueDateISO ?? date ?? '';
+
+      const handleDragStart = (e) => {
+        e.dataTransfer.setData('text/plain', id);
+        e.dataTransfer.effectAllowed = 'move';
+      };
+
+      const borderColor = statusColor || '#6B7280';
+
+      return (
+        <div
+          className="rounded-md border bg-white shadow-sm p-2 mb-2 hover:shadow transition cursor-pointer"
+          style={{ borderColor }}
+          draggable={draggable}
+          onDragStart={draggable ? handleDragStart : undefined}
+          onClick={onClick}
+          title={topic}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium text-gray-800 line-clamp-2">{topic}</span>
+            {iconUrl ? <img src={iconUrl} alt="" className="w-4 h-4 ml-2" /> : null}
+          </div>
+          <div className="mt-1 flex items-center justify-between">
+            <span className="text-xs text-gray-500">{ctaLabel}</span>
+            <span
+              className="ml-2 text-[10px] px-2 py-0.5 rounded-full"
+              style={{ backgroundColor: `${borderColor}1A`, color: borderColor }}
+            >
+              {status}
+            </span>
+          </div>
+          {due ? (
+            <div className="mt-1 text-[10px] text-gray-400">
+              Due: {due}
+            </div>
+          ) : null}
+        </div>
+      );
+    };
+
+    const BacklogList = (props) => {
+      const {
+        ideas = [],
+        sortBy = 'priority',
+        filters = {},
+        actionSink = {},
+        allowDragToCalendar = true,
+        scheduleConstraints = {},
+        onPick,
+      } = props;
+
+      const sortedIdeas = useMemo(() => {
+        let arr = Array.isArray(ideas) ? [...ideas] : [];
+        if (sortBy === 'recency') {
+          arr.sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        } else {
+          arr.sort((a,b) => (b.priority ?? 0) - (a.priority ?? 0));
+        }
+        return arr;
+      }, [ideas, sortBy]);
+
+      const handleDragStart = (e, ideaId) => {
+        e.dataTransfer.setData('text/plain', `idea:${ideaId}`);
+        e.dataTransfer.effectAllowed = 'copyMove';
+      };
+
+      return (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-800">Backlog</h3>
+            <div className="text-xs text-gray-500">{sortedIdeas.length} ideas</div>
+          </div>
+          <div className="space-y-2">
+            {sortedIdeas.length === 0 ? (
+              <div className="text-sm text-gray-500">No backlog ideas.</div>
+            ) : sortedIdeas.map(idea => (
+              <div
+                key={idea.id}
+                className="rounded-md border border-gray-200 p-3 bg-gray-50 hover:bg-gray-100 transition"
+                draggable={allowDragToCalendar}
+                onDragStart={allowDragToCalendar ? (e)=>handleDragStart(e, idea.id) : undefined}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-gray-800">{idea.topic}</div>
+                  {idea.priority != null ? (
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                      P{idea.priority}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="text-xs text-gray-600 mt-1">{idea.cta}</div>
+                {idea.notes ? <div className="text-xs text-gray-500 mt-1 line-clamp-2">{idea.notes}</div> : null}
+                <div className="mt-2 flex gap-2">
+                  <button
+                    className="text-xs px-2 py-1 rounded border border-gray-300 hover:bg-white"
+                    onClick={() => onPick?.(idea)}
+                  >
+                    Plan this
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const IssueEditorModal = (props) => {
+      const {
+        mode = 'edit',
+        initialValue = {},
+        statusOptions = [],
+        ctaOptions = [],
+        validation = {},
+        scheduling = {},
+        onSaveAction = {},
+        onCloseAction = {},
+        onDeleteAction = {},
+        onValidateAction = {},
+        onClose,
+        onSave,
+        onDelete,
+      } = props;
+
+      const [form, setForm] = useState({
+        id: initialValue.id || '',
+        topic: initialValue.topic || '',
+        cta: initialValue.cta || '',
+        status: initialValue.status || '',
+        date: initialValue.date || '',
+      });
+
+      const colorMap = statusColorMap(statusOptions);
+
+      const handleChange = (e) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+      };
+
+      const handleSave = () => {
+        const payload = { ...initialValue, ...form };
+        if (typeof onSave === 'function') onSave(payload);
+        else if (typeof onSaveAction?.callback === 'function') onSaveAction.callback(payload);
+      };
+
+      const handleClose = () => {
+        if (typeof onClose === 'function') onClose();
+        else if (typeof onCloseAction?.callback === 'function') onCloseAction.callback();
+      };
+
+      const handleDelete = () => {
+        if (typeof onDelete === 'function') onDelete(initialValue);
+        else if (typeof onDeleteAction?.callback === 'function') onDeleteAction.callback(initialValue);
+      };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/30" onClick={handleClose}></div>
+          <div className="relative bg-white w-full max-w-lg rounded-lg shadow-lg border p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-base font-semibold text-gray-800">{mode === 'create' ? 'Create Issue' : 'Edit Issue'}</h3>
+              <button onClick={handleClose} className="text-gray-500 hover:text-gray-700">✕</button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">Topic</label>
+                <input name="topic" value={form.topic} onChange={handleChange}
+                  className="w-full border rounded px-3 py-2 text-sm" placeholder="Topic" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-600 mb-1">CTA</label>
+                <input name="cta" value={form.cta} onChange={handleChange}
+                  className="w-full border rounded px-3 py-2 text-sm" placeholder="CTA" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Status</label>
+                  <select name="status" value={form.status} onChange={handleChange}
+                    className="w-full border rounded px-3 py-2 text-sm">
+                    <option value="">Select status</option>
+                    {(statusOptions || []).map(opt => (
+                      <option value={opt.value} key={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-600 mb-1">Date</label>
+                  <input type="date" name="date" value={form.date} onChange={handleChange}
+                    className="w-full border rounded px-3 py-2 text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <button className="text-sm text-red-600 hover:text-red-700" onClick={handleDelete}>Delete</button>
+              <div className="space-x-2">
+                <button className="text-sm px-3 py-1.5 rounded border hover:bg-gray-50" onClick={handleClose}>Cancel</button>
+                <button className="text-sm px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700" onClick={handleSave}>Save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const CalendarGrid = (props) => {
+      const {
+        startDate,
+        weekCount,
+        days = [],
+        issuesByDate = {},
+        backlog = [],
+        dragAndDropEnabled = false,
+        title = 'Schedule',
+        showWeekNumbers = true,
+        dayClickAction = {},
+        issueSelectAction = {},
+        scheduleDropAction = {},
+        navigateAction = {},
+        statusOptions = [],
+        onIssueClick,
+        onDropOnDay,
+      } = props;
+
+      const colorMap = statusColorMap(statusOptions);
+
+      const handleDayDrop = (e, dayISO) => {
+        const data = e.dataTransfer.getData('text/plain');
+        if (typeof onDropOnDay === 'function') {
+          onDropOnDay({ data, dayISO });
+        } else if (typeof scheduleDropAction?.callback === 'function') {
+          scheduleDropAction.callback({ data, dayISO });
+        }
+      };
+
+      const weekLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+      // Organize days into weeks
+      const weeks = [];
+      for (let i=0; i<days.length; i+=7) weeks.push(days.slice(i, i+7));
+
+      return (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-semibold text-gray-800">{title}</h3>
+          </div>
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {weekLabels.map(w => (
+              <div key={w} className="text-xs font-medium text-gray-500 text-center py-1">{w}</div>
+            ))}
+          </div>
+          <div className="space-y-1">
+            {weeks.map((week, wi) => (
+              <div key={wi} className="grid grid-cols-7 gap-1">
+                {week.map((day) => {
+                  const iso = day.iso;
+                  const d = parseISO(iso);
+                  const issues = issuesByDate[iso] || [];
+                  const isToday = toISO(new Date()) === iso;
+                  const isFriday = d.getDay() === 5;
+                  return (
+                    <div
+                      key={iso}
+                      className={`min-h-[110px] rounded-md border p-2 flex flex-col ${isFriday ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'}`}
+                      onDragOver={dragAndDropEnabled ? (e)=>e.preventDefault() : undefined}
+                      onDrop={dragAndDropEnabled ? (e)=>handleDayDrop(e, iso) : undefined}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-gray-600">
+                          {monthShort[d.getMonth()]} {d.getDate()}
+                        </div>
+                        {isToday ? <span className="text-[10px] text-blue-600 font-medium">Today</span> : null}
+                      </div>
+                      <div className="mt-1 flex-1 overflow-auto">
+                        {issues.length === 0 ? (
+                          <div className="text-[11px] text-gray-400 italic">No items</div>
+                        ) : issues.map(issue => (
+                          <IssueCard
+                            key={issue.id}
+                            id={issue.id}
+                            topic={issue.topic}
+                            primaryCtaLabel={issue.cta}
+                            status={issue.status}
+                            dueDateISO={issue.date}
+                            draggable={dragAndDropEnabled}
+                            statusColor={colorMap[issue.status]}
+                            onClick={() => onIssueClick?.(issue)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const NewsletterPlanningBoard = (props) => {
+      const {
+        startDate,
+        weekCount,
+        scheduledIssues = [],
+        backlogIdeas = [],
+        statusOptions = [],
+        onUserAction = {},
+        timezone = Intl.DateTimeFormat().resolvedOptions().timeZone,
+        allowDragDrop = false,
+      } = props;
+
+      const [currentStart, setCurrentStart] = useState(startDate);
+      const [weeks, setWeeks] = useState(weekCount || 6);
+      const [items, setItems] = useState(Array.isArray(scheduledIssues) ? scheduledIssues : []);
+      const [backlog, setBacklog] = useState(Array.isArray(backlogIdeas) ? backlogIdeas : []);
+      const [query, setQuery] = useState('');
+      const [selected, setSelected] = useState(null);
+      const [sortBacklog, setSortBacklog] = useState('priority');
+
+      useEffect(() => { setCurrentStart(startDate); }, [startDate]);
+      useEffect(() => { setWeeks(weekCount || 6); }, [weekCount]);
+      useEffect(() => { setItems(Array.isArray(scheduledIssues) ? scheduledIssues : []); }, [scheduledIssues]);
+      useEffect(() => { setBacklog(Array.isArray(backlogIdeas) ? backlogIdeas : []); }, [backlogIdeas]);
+
+      const colorMap = useMemo(() => statusColorMap(statusOptions), [statusOptions]);
+
+      const days = useMemo(() => {
+        const out = [];
+        let iso = currentStart || startDate;
+        if (!iso) return out;
+        for (let i=0; i<(weeks*7); i++) {
+          const cur = addDaysISO(iso, i);
+          out.push({ iso: cur });
+        }
+        return out;
+      }, [currentStart, weeks, startDate]);
+
+      const issuesByDate = useMemo(() => {
+        const map = {};
+        const q = query.trim().toLowerCase();
+        items.forEach(it => {
+          const date = it.date;
+          if (!date) return;
+          if (q) {
+            const text = `${it.topic||''} ${it.cta||''} ${it.status||''}`.toLowerCase();
+            if (!text.includes(q)) return;
+          }
+          if (!map[date]) map[date] = [];
+          map[date].push(it);
+        });
+        return map;
+      }, [items, query]);
+
+      const onDropOnDay = ({ data, dayISO }) => {
+        if (!data) return;
+        if (data.startsWith('idea:')) {
+          const ideaId = data.split(':')[1];
+          const idea = backlog.find(b => b.id === ideaId);
+          if (!idea) return;
+          const newId = `sched_${ideaId}_${dayISO}`;
+          const newItem = {
+            id: newId,
+            date: dayISO,
+            topic: idea.topic,
+            cta: idea.cta,
+            status: 'draft',
+          };
+          setItems(prev => [...prev, newItem]);
+          setBacklog(prev => prev.filter(b => b.id !== ideaId));
+          if (typeof onUserAction?.callback === 'function') {
+            onUserAction.callback({ type: 'schedule_from_backlog', payload: { ideaId, dayISO, newItem }});
+          }
+        } else {
+          const issueId = data;
+          setItems(prev => prev.map(it => it.id === issueId ? { ...it, date: dayISO } : it));
+          if (typeof onUserAction?.callback === 'function') {
+            onUserAction.callback({ type: 'reschedule_issue', payload: { issueId, dayISO }});
+          }
+        }
+      };
+
+      const handleIssueClick = (issue) => setSelected(issue);
+
+      const handleSaveIssue = (payload) => {
+        setItems(prev => prev.map(it => it.id === payload.id ? { ...it, ...payload } : it));
+        setSelected(null);
+        if (typeof onUserAction?.callback === 'function') {
+          onUserAction.callback({ type: 'update_issue', payload });
+        }
+      };
+
+      const handleDeleteIssue = (issue) => {
+        setItems(prev => prev.filter(it => it.id !== issue.id));
+        setSelected(null);
+        if (typeof onUserAction?.callback === 'function') {
+          onUserAction.callback({ type: 'delete_issue', payload: { id: issue.id }});
+        }
+      };
+
+      const startD = parseISO(currentStart || startDate);
+      const endD = parseISO(addDaysISO(currentStart || startDate, weeks*7 - 1));
+
+      return (
+        <div className="w-full">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="bg-white rounded-lg shadow-sm border p-4 mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-800">Newsletter Planning Board</h2>
+                    <div className="text-xs text-gray-500">
+                      {monthShort[startD.getMonth()]} {startD.getDate()}, {startD.getFullYear()} — {monthShort[endD.getMonth()]} {endD.getDate()}, {endD.getFullYear()} • TZ: {timezone}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={query}
+                      onChange={(e)=>setQuery(e.target.value)}
+                      placeholder="Search topic, CTA, status..."
+                      className="text-sm border rounded px-3 py-1.5 w-56"
+                    />
+                    <div className="hidden sm:flex items-center gap-2">
+                      <button
+                        className="text-sm px-2 py-1 rounded border hover:bg-gray-50"
+                        onClick={()=> {
+                          const newStart = addDaysISO(currentStart || startDate, -7);
+                          setCurrentStart(newStart);
+                        }}
+                      >
+                        ◀ Prev
+                      </button>
+                      <button
+                        className="text-sm px-2 py-1 rounded border hover:bg-gray-50"
+                        onClick={()=> {
+                          const newStart = addDaysISO(currentStart || startDate, 7);
+                          setCurrentStart(newStart);
+                        }}
+                      >
+                        Next ▶
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(statusOptions || []).map(s => (
+                    <span key={s.value}
+                      className="text-[11px] px-2 py-0.5 rounded-full border"
+                      style={{ backgroundColor: `${(s.colorHex||'#e5e7eb')}1A`, color: s.colorHex || '#374151', borderColor: s.colorHex || '#e5e7eb' }}
+                    >
+                      {s.label} ({s.value})
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <CalendarGrid
+                startDate={currentStart || startDate}
+                weekCount={weeks}
+                days={days}
+                issuesByDate={issuesByDate}
+                dragAndDropEnabled={allowDragDrop}
+                title="Calendar (Fridays highlighted)"
+                showWeekNumbers={true}
+                statusOptions={statusOptions}
+                onIssueClick={handleIssueClick}
+                onDropOnDay={onDropOnDay}
+              />
+            </div>
+
+            <div className="w-full lg:w-80">
+              <BacklogList
+                ideas={backlog}
+                sortBy={sortBacklog}
+                allowDragToCalendar={allowDragDrop}
+                actionSink={{}}
+                onPick={(idea) => {
+                  // plan onto next available Friday in range
+                  const nextFriday = days.find(d => {
+                    const dd = parseISO(d.iso);
+                    return dd.getDay() === 5 && !(items || []).some(it => it.date === d.iso && it.topic && !it.topic.startsWith('Internal'));
+                  });
+                  const dayISO = nextFriday?.iso || (days[0]?.iso);
+                  const newId = `sched_${idea.id}_${dayISO}`;
+                  const newItem = {
+                    id: newId,
+                    date: dayISO,
+                    topic: idea.topic,
+                    cta: idea.cta,
+                    status: 'draft',
+                  };
+                  setItems(prev => [...prev, newItem]);
+                  setBacklog(prev => prev.filter(b => b.id !== idea.id));
+                }}
+              />
+              <div className="mt-4 bg-white rounded-lg border p-4">
+                <h4 className="text-sm font-semibold text-gray-800 mb-2">Tips</h4>
+                <ul className="text-xs text-gray-600 list-disc pl-4 space-y-1">
+                  <li>Drag issue cards to new dates to reschedule.</li>
+                  <li>Drag backlog ideas onto a day to schedule.</li>
+                  <li>Click a card to edit topic, CTA, status, or date.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {selected ? (
+            <IssueEditorModal
+              mode="edit"
+              initialValue={selected}
+              statusOptions={statusOptions}
+              onSave={handleSaveIssue}
+              onClose={()=>setSelected(null)}
+              onDelete={handleDeleteIssue}
+            />
+          ) : null}
+        </div>
+      );
+    };
+
+    // Component Registry
+    const ComponentRegistry = {
+      NewsletterPlanningBoard: NewsletterPlanningBoard,
+      // Alias to support conversation component name
+      NewsletterPlanningBoardProps: NewsletterPlanningBoard,
+      CalendarGrid: CalendarGrid,
+      IssueCard: IssueCard,
+      BacklogList: BacklogList,
+      IssueEditorModal: IssueEditorModal,
+    };
+
+    const ComponentRenderer = ({ componentName, props }) => {
+      const Component = ComponentRegistry[componentName];
+
+      if (!Component) {
+        return (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">Component "{componentName}" not found</p>
+          </div>
+        );
+      }
+
+      return <Component {...props} />;
+    };
+
+    const ContentChunkRenderer = ({ chunk }) => {
+      if (!chunk) return null;
+      if (typeof chunk === 'string') {
+        return <p className="whitespace-pre-wrap text-sm text-gray-800">{chunk}</p>;
+      }
+      if (chunk.type === 'text') {
+        return <p className="whitespace-pre-wrap text-sm text-gray-800">{chunk.text}</p>;
+      }
+      if (chunk.type === 'component') {
+        const comp = chunk.component || {};
+        return (
+          <div className="mt-3">
+            <ComponentRenderer componentName={comp.name} props={comp.props || {}} />
+          </div>
+        );
+      }
+      return null;
+    };
+
+    const MessageBubble = ({ role, content }) => {
+      const isUser = role === 'user';
+      const icon = isUser ? '👤' : '🤖';
+      const bg = isUser ? 'bg-white' : 'bg-indigo-50';
+      const border = isUser ? 'border-gray-200' : 'border-indigo-200';
+
+      const contentArray = Array.isArray(content) ? content : [{ type: 'text', text: content }];
+
+      return (
+        <div className={`w-full`}>
+          <div className={`flex items-start gap-3 ${isUser ? '' : ''}`}>
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm">{icon}</div>
+            <div className={`flex-1 rounded-lg border ${border} ${bg} p-3`}>
+              {contentArray.map((chunk, idx) => (
+                <ContentChunkRenderer key={idx} chunk={chunk} />
+              ))}
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const ConversationView = ({ conversation = [] }) => {
+      return (
+        <div className="max-w-6xl mx-auto py-6 px-4">
+          <header className="mb-6">
+            <h1 className="text-xl font-semibold text-gray-900">Conversation Viewer</h1>
+            <p className="text-sm text-gray-600">Interactive UI components are rendered inline below messages.</p>
+          </header>
+          <div className="space-y-4">
+            {conversation.map((msg, idx) => (
+              <MessageBubble key={idx} role={msg.role} content={msg.content} />
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    const rootEl = document.getElementById("root");
+    if (rootEl) {
+      const root = createRoot(rootEl);
+      root.render(<ConversationView conversation={conversationData} />);
+    }
+  </script>
+</body>
+</html>

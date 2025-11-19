@@ -1,0 +1,254 @@
+{
+  "generatedAt": "2025-11-19T02:32:08.252Z",
+  "highConfidence": [
+    {
+      "folderName": "analyze_last_months_20251118_161628",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "attending_day_conference_20251118_162630",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "audit_subscriptions_these_20251118_160955",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "balanced_weekly_meal_20251118_161332",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "buy_new_mid_20251118_160932",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "compare_last_months_20251118_161005",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "compare_prices_grocery_20251118_162627",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "evaluate_home_office_20251118_163310",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "generate_hour_emergency_20251118_161401",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "gym_lot_classes_20251118_162841",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "here_job_description_20251118_160934",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "learning_spanish_create_20251118_162757",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "our_household_fairly_20251118_162733",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "plan_gifts_birthdays_20251118_162633",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "plants_different_watering_20251118_161102",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "practice_piano_daily_20251118_163433",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "pull_analytics_last_20251118_160839",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "renovating_kitchen_track_20251118_162648",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "running_workshops_next_20251118_161006",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "shortlist_photographers_nyc_20251118_160931",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "taking_multiple_online_20251118_162153",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "thousands_photos_duplicates_20251118_162710",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_car_past_20251118_162520",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_college_applications_20251118_161539",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_dog_vaccinations_20251118_161943",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "track_last_weeks_20251118_160646",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "turn_list_job_20251118_161107",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    },
+    {
+      "folderName": "uploaded_csv_books_20251118_161053",
+      "confidence": 5,
+      "tier": 1,
+      "reason": "All validation checks passed",
+      "notes": "All validation checks passed and all required files exist"
+    }
+  ],
+  "mediumConfidence": [],
+  "excluded": [
+    {
+      "folderName": "compare_living_capitol_20251118_162141",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "documented_items_home_20251118_161231",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "multiple_freelance_clients_20251118_160817",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "plan_next_weeks_20251118_162430",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "planning_day_trip_20251118_161344",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "run_small_online_20251118_162614",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "save_000_emergency_20251118_163506",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "track_grades_across_20251118_162726",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    },
+    {
+      "folderName": "turn_list_into_20251118_161221",
+      "reason": "Critical validation failures",
+      "notes": "Critical issues that may disqualify"
+    }
+  ],
+  "summary": {
+    "total": 37,
+    "included": 28,
+    "excluded": 9
+  }
+}
