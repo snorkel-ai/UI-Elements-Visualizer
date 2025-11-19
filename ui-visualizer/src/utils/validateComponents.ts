@@ -249,10 +249,10 @@ function checkPropsMatchSchema(conversation: ConversationData | undefined): Vali
   const schemaDefs = conversation.componentsSchema.$defs;
   const violations: string[] = [];
 
-  conversation.conversation.forEach((message, msgIdx) => {
-    if (!Array.isArray(message.content)) return;
+      conversation.conversation.forEach((message, msgIdx) => {
+        if (!Array.isArray(message.content)) return;
 
-    message.content.forEach((item: any, itemIdx: number) => {
+        message.content.forEach((item: any) => {
       if (item.type === 'component' && item.component) {
         const componentName = item.component.name;
         const props = item.component.props || {};
