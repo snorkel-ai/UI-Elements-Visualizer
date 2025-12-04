@@ -13,6 +13,7 @@ function App() {
     basePath = basePath.slice(0, -1);
   }
   console.log('Base path:', basePath);
+  console.log('Window location:', window.location.href);
   return (
     <DataProvider>
       <BrowserRouter basename={basePath}>
