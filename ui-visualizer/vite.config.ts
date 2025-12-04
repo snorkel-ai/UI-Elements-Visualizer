@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   publicDir: 'public',
-  base: process.env.NODE_ENV === 'production' ? '/UI-Elements-Visualizer/' : '/',
+  // Use BASE_URL env var if set, otherwise default based on NODE_ENV
+  base: process.env.BASE_URL || (process.env.NODE_ENV === 'production' ? '/UI-Elements-Visualizer/' : '/'),
   server: {
     port: 3006,
     strictPort: false, // Automatically use next available port if 3006 is taken
