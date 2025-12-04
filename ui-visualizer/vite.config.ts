@@ -7,7 +7,7 @@ export default defineConfig({
   publicDir: 'public',
   base: process.env.NODE_ENV === 'production' ? '/UI-Elements-Visualizer/' : '/',
   server: {
-    port: 5174,
-    strictPort: false, // Automatically use next available port if 5174 is taken
+    port: 3006,
+    strictPort: false, // Automatically use next available port if 3006 is taken
   },
 })

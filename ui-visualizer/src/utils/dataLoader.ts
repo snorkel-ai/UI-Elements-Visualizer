@@ -6,7 +6,10 @@ export async function loadDataPoints(): Promise<any[]> {
   // Use relative path to work with GitHub Pages base path
   try {
     const basePath = import.meta.env.BASE_URL || '/';
-    const indexPath = `${basePath}data-index.json`.replace(/\/+/g, '/');
+    // Ensure basePath ends with / and remove double slashes
+    const normalizedBase = basePath.endsWith('/') ? basePath : `${basePath}/`;
+    const indexPath = `${normalizedBase}data-index.json`.replace(/\/+/g, '/');
+    console.log('Loading data from:', indexPath);
     const response = await fetch(indexPath);
     if (response.ok) {
       const data = await response.json();
@@ -14,6 +17,7 @@ export async function loadDataPoints(): Promise<any[]> {
       return data;
     } else {
       console.error(`Failed to load data-index.json: ${response.status} ${response.statusText}`);
+      console.error('Attempted URL:', indexPath);
     }
   } catch (e) {
     console.error('Error loading data-index.json:', e);

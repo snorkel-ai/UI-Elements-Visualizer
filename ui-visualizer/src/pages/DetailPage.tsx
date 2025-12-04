@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { DataPoint } from '../types';
-import { loadDataPoints } from '../utils/dataLoader';
+import { useDataContext } from '../contexts/DataContext';
 import { extractComponentNames } from '../utils/dataLoader';
 import { formatFolderName, extractDateFromFolderName, formatDate } from '../utils/formatFolderName';
 import { CollapsibleSection } from '../components/CollapsibleSection';
@@ -13,6 +13,7 @@ import { ValidationReportComponent } from '../components/ValidationReport';
 export function DetailPage() {
   const { folderName } = useParams<{ folderName: string }>();
   const navigate = useNavigate();
+  const { dataPoints: contextDataPoints, hasCustomData } = useDataContext();
   const [dataPoint, setDataPoint] = useState<DataPoint | null>(null);
   const [loading, setLoading] = useState(true);
   const [componentsContent, setComponentsContent] = useState<string>('');
@@ -24,29 +25,45 @@ export function DetailPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const points = await loadDataPoints();
-        const point = points.find(p => p.folderName === decodeURIComponent(folderName || ''));
+        // Only use context data - no default loading
+        if (contextDataPoints.length === 0 || !hasCustomData) {
+          setLoading(false);
+          return;
+        }
+        
+        const point = contextDataPoints.find(p => p.folderName === decodeURIComponent(folderName || ''));
         setDataPoint(point || null);
         
         if (point?.componentsPath) {
           try {
-            // Handle base path for GitHub Pages
-            const basePath = import.meta.env.BASE_URL || '/';
-            const componentsPath = point.componentsPath.startsWith('/') 
-              ? `${basePath}${point.componentsPath.slice(1)}`.replace(/\/+/g, '/')
-              : `${basePath}${point.componentsPath}`.replace(/\/+/g, '/');
-            const response = await fetch(componentsPath);
-            if (response.ok) {
-              const text = await response.text();
-              setComponentsContent(text);
-              const parsed = parseComponents(text);
-              setParsedComponents(parsed);
-              
-              // Run validation
-              if (point) {
-                const report = validateComponents(point, parsed, text);
-                setValidationReport(report);
+            let text: string;
+            
+            // Check if it's an object URL (from uploaded files) or a regular path
+            if (point.componentsPath.startsWith('blob:')) {
+              // It's an object URL from uploaded file
+              const response = await fetch(point.componentsPath);
+              text = await response.text();
+            } else {
+              // It's a regular path (from default data)
+              const basePath = import.meta.env.BASE_URL || '/';
+              const componentsPath = point.componentsPath.startsWith('/') 
+                ? `${basePath}${point.componentsPath.slice(1)}`.replace(/\/+/g, '/')
+                : `${basePath}${point.componentsPath}`.replace(/\/+/g, '/');
+              const response = await fetch(componentsPath);
+              if (!response.ok) {
+                throw new Error(`Failed to load components: ${response.status}`);
               }
+              text = await response.text();
+            }
+            
+            setComponentsContent(text);
+            const parsed = parseComponents(text);
+            setParsedComponents(parsed);
+            
+            // Run validation
+            if (point) {
+              const report = validateComponents(point, parsed, text);
+              setValidationReport(report);
             }
           } catch (e) {
             console.error('Error loading components.ts:', e);
@@ -63,7 +80,19 @@ export function DetailPage() {
       }
     }
     fetchData();
-  }, [folderName]);
+  }, [folderName, contextDataPoints, hasCustomData]);
+
+  // Show message if no data is loaded
+  if (!hasCustomData || contextDataPoints.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">No data loaded</p>
+          <p className="text-sm text-gray-500">Please upload a folder list from the dashboard.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Inject highlighting script into iframe and send highlight messages
   useEffect(() => {
@@ -317,11 +346,17 @@ export function DetailPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Fixed Canvas on Left */}
             {dataPoint.canvasHtml && (() => {
-              // Handle base path for GitHub Pages
-              const basePath = import.meta.env.BASE_URL || '/';
-              const canvasPath = dataPoint.canvasHtml.startsWith('/')
-                ? `${basePath}${dataPoint.canvasHtml.slice(1)}`.replace(/\/+/g, '/')
-                : `${basePath}${dataPoint.canvasHtml}`.replace(/\/+/g, '/');
+              // Check if it's a blob URL (from uploaded files) or a regular path
+              let canvasPath: string;
+              if (dataPoint.canvasHtml.startsWith('blob:')) {
+                canvasPath = dataPoint.canvasHtml;
+              } else {
+                // Handle base path for GitHub Pages
+                const basePath = import.meta.env.BASE_URL || '/';
+                canvasPath = dataPoint.canvasHtml.startsWith('/')
+                  ? `${basePath}${dataPoint.canvasHtml.slice(1)}`.replace(/\/+/g, '/')
+                  : `${basePath}${dataPoint.canvasHtml}`.replace(/\/+/g, '/');
+              }
               return (
               <div className="w-1/2 border-r border-gray-300 flex flex-col bg-white">
                 <div className="px-4 py-2 border-b border-gray-200 bg-gray-50">
