@@ -34,6 +34,9 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
               Components
             </th>
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Complexity
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Validation
             </th>
           </tr>
@@ -95,32 +98,50 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  {validation ? (
-                    <div className="flex items-center gap-2">
-                      {validation.allPassed ? (
-                        <div className="flex items-center gap-1">
-                          <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                          <span className="text-xs text-green-700 font-medium">All Pass</span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                            <span className="text-xs text-red-700 font-medium">
-                              {validation.results.filter(r => !r.passed).length} Failed
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            {validation.results
-                              .filter(r => !r.passed)
-                              .map(r => r.check)
-                              .join(', ')}
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {point.complexity ? (
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded ${
+                        point.complexity === 'simple'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-orange-100 text-orange-800'
+                      }`}
+                      title={point.complexityReason}
+                    >
+                      {point.complexity === 'simple' ? 'Simple' : 'Complex'}
+                    </span>
                   ) : (
+                    <span className="text-xs text-gray-400">-</span>
+                  )}
+                </td>
+                <td className="px-6 py-4">
+                  {validation ? (() => {
+                    // Only show "Props match schema" check
+                    const propsMatchCheck = validation.results.find(r => r.check === 'Props match schema');
+                    if (!propsMatchCheck) {
+                      return <span className="text-xs text-gray-400">-</span>;
+                    }
+                    return (
+                      <div className="flex items-center gap-2">
+                        {propsMatchCheck.passed ? (
+                          <div className="flex items-center gap-1">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span className="text-xs text-green-700 font-medium">Pass</span>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1">
+                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                              <span className="text-xs text-red-700 font-medium">Failed</span>
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {propsMatchCheck.check}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })() : (
                     <span className="text-xs text-gray-400">-</span>
                   )}
                 </td>

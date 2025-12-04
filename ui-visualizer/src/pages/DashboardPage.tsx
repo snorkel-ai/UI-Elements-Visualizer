@@ -6,6 +6,7 @@ import { extractComponentUsage, extractComponentNames } from '../utils/dataLoade
 import { formatFolderName } from '../utils/formatFolderName';
 import { DataPoint } from '../types';
 import { validateDataPoint, ValidationReport } from '../utils/validateComponents';
+import { calculateComplexity } from '../utils/calculateComplexity';
 
 export function DashboardPage() {
   const { dataPoints: contextDataPoints, setDataPoints: setContextDataPoints, hasCustomData, setHasCustomData } = useDataContext();
@@ -14,12 +15,30 @@ export function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [componentFilter, setComponentFilter] = useState<string>('');
+  const [complexityFilter, setComplexityFilter] = useState<string>('');
   const [validationResults, setValidationResults] = useState<Map<string, ValidationReport>>(new Map());
   const [validating, setValidating] = useState(false);
 
   const loadAndValidateData = async (points: DataPoint[]) => {
-    setDataPoints(points);
-    setFilteredDataPoints(points);
+    // Calculate complexity for all data points
+    const pointsWithComplexity = await Promise.all(
+      points.map(async (point) => {
+        try {
+          const complexityAnalysis = await calculateComplexity(point);
+          return {
+            ...point,
+            complexity: complexityAnalysis.level,
+            complexityReason: complexityAnalysis.reason
+          };
+        } catch (error) {
+          console.error(`Error calculating complexity for ${point.folderName}:`, error);
+          return point;
+        }
+      })
+    );
+    
+    setDataPoints(pointsWithComplexity);
+    setFilteredDataPoints(pointsWithComplexity);
     
     // Run validation for all data points
     setValidating(true);
@@ -27,8 +46,8 @@ export function DashboardPage() {
     
     // Validate in batches to avoid overwhelming the browser
     const batchSize = 5;
-    for (let i = 0; i < points.length; i += batchSize) {
-      const batch = points.slice(i, i + batchSize);
+    for (let i = 0; i < pointsWithComplexity.length; i += batchSize) {
+      const batch = pointsWithComplexity.slice(i, i + batchSize);
       await Promise.all(
         batch.map(async (point) => {
           try {
@@ -99,17 +118,29 @@ export function DashboardPage() {
       });
     }
 
+    if (complexityFilter) {
+      filtered = filtered.filter((point) => {
+        return point.complexity === complexityFilter;
+      });
+    }
+
     setFilteredDataPoints(filtered);
-  }, [searchQuery, componentFilter, dataPoints]);
+  }, [searchQuery, componentFilter, complexityFilter, dataPoints]);
 
   const componentUsage = extractComponentUsage(dataPoints);
   const allComponents = Object.keys(componentUsage).sort();
   
-  // Calculate validation statistics
+  // Calculate validation statistics - only for "Props match schema" check
   const validationStats = {
     total: dataPoints.length,
-    passed: Array.from(validationResults.values()).filter(r => r.allPassed).length,
-    failed: Array.from(validationResults.values()).filter(r => !r.allPassed).length,
+    passed: Array.from(validationResults.values()).filter(r => {
+      const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
+      return propsMatchCheck?.passed ?? true;
+    }).length,
+    failed: Array.from(validationResults.values()).filter(r => {
+      const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
+      return propsMatchCheck && !propsMatchCheck.passed;
+    }).length,
     pending: dataPoints.length - validationResults.size
   };
 
@@ -121,24 +152,24 @@ export function DashboardPage() {
             <h1 className="text-3xl font-bold text-gray-900">
               UI Elements Visualizer
             </h1>
-            {validationResults.size > 0 && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-sm font-semibold text-green-700">
-                    {validationStats.passed} Pass All Checks
-                  </span>
-                </div>
-                {validationStats.failed > 0 && (
-                  <div className="flex items-center gap-2 px-4 py-2 bg-red-50 rounded-lg border border-red-200">
-                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                    <span className="text-sm font-semibold text-red-700">
-                      {validationStats.failed} Failed
-                    </span>
+                {validationResults.size > 0 && (
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span className="text-sm font-semibold text-green-700">
+                        {validationStats.passed} Pass Props Match Schema
+                      </span>
+                    </div>
+                    {validationStats.failed > 0 && (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-red-50 rounded-lg border border-red-200">
+                        <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                        <span className="text-sm font-semibold text-red-700">
+                          {validationStats.failed} Failed Props Match Schema
+                        </span>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
           </div>
           
           <FolderUpload 
@@ -166,7 +197,7 @@ export function DashboardPage() {
                 />
               </div>
               
-              <div className="sm:w-64">
+              <div className="sm:w-48">
                 <select
                   value={componentFilter}
                   onChange={(e) => setComponentFilter(e.target.value)}
@@ -178,6 +209,18 @@ export function DashboardPage() {
                       {component} ({componentUsage[component]})
                     </option>
                   ))}
+                </select>
+              </div>
+              
+              <div className="sm:w-40">
+                <select
+                  value={complexityFilter}
+                  onChange={(e) => setComplexityFilter(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="">All Complexity</option>
+                  <option value="simple">Simple</option>
+                  <option value="complex">Complex</option>
                 </select>
               </div>
             </div>

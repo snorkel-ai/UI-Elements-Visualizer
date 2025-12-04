@@ -9,6 +9,7 @@ import { parseComponents, ParsedComponent } from '../utils/parseComponents';
 import { ComponentDefinitionCard } from '../components/ComponentDefinitionCard';
 import { validateComponents, ValidationReport } from '../utils/validateComponents';
 import { ValidationReportComponent } from '../components/ValidationReport';
+import { calculateComplexity } from '../utils/calculateComplexity';
 
 export function DetailPage() {
   const { folderName } = useParams<{ folderName: string }>();
@@ -82,17 +83,24 @@ export function DetailPage() {
     fetchData();
   }, [folderName, contextDataPoints, hasCustomData]);
 
-  // Show message if no data is loaded
-  if (!hasCustomData || contextDataPoints.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">No data loaded</p>
-          <p className="text-sm text-gray-500">Please upload a folder list from the dashboard.</p>
-        </div>
-      </div>
-    );
-  }
+  // Calculate complexity if not already set - must be before any early returns
+  useEffect(() => {
+    async function calculateComplexityIfNeeded() {
+      if (dataPoint && !dataPoint.complexity) {
+        try {
+          const analysis = await calculateComplexity(dataPoint);
+          setDataPoint({
+            ...dataPoint,
+            complexity: analysis.level,
+            complexityReason: analysis.reason
+          });
+        } catch (error) {
+          console.error('Error calculating complexity:', error);
+        }
+      }
+    }
+    calculateComplexityIfNeeded();
+  }, [dataPoint]);
 
   // Inject highlighting script into iframe and send highlight messages
   useEffect(() => {
@@ -275,6 +283,18 @@ export function DetailPage() {
     }
   }, [highlightedComponent]);
 
+  // Show message if no data is loaded - must be after all hooks
+  if (!hasCustomData || contextDataPoints.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">No data loaded</p>
+          <p className="text-sm text-gray-500">Please upload a folder list from the dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -330,12 +350,31 @@ export function DetailPage() {
           </button>
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                {displayName}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {displayName}
+                </h1>
+                {dataPoint.complexity && (
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded ${
+                      dataPoint.complexity === 'simple'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-orange-100 text-orange-800'
+                    }`}
+                    title={dataPoint.complexityReason}
+                  >
+                    {dataPoint.complexity === 'simple' ? 'Simple' : 'Complex'}
+                  </span>
+                )}
+              </div>
               {date && (
                 <p className="text-sm text-gray-500 mt-1">
                   {formatDate(date)}
+                </p>
+              )}
+              {dataPoint.complexityReason && (
+                <p className="text-xs text-gray-400 mt-1">
+                  {dataPoint.complexityReason}
                 </p>
               )}
             </div>
@@ -385,7 +424,7 @@ export function DetailPage() {
           <div className="p-6 space-y-6">
             {/* Validation Report */}
             {validationReport && (
-              <ValidationReportComponent report={validationReport} />
+              <ValidationReportComponent report={validationReport} showAllChecks={true} />
             )}
 
             {componentNames.length > 0 && (

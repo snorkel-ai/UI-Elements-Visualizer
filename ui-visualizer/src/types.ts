@@ -16,6 +16,8 @@ export interface ComponentDefinition {
   props: Record<string, any>;
 }
 
+export type ComplexityLevel = 'simple' | 'complex';
+
 export interface DataPoint {
   folderName: string;
   folderPath: string;
@@ -25,6 +27,8 @@ export interface DataPoint {
   canvasHtml?: string;
   hasComponents?: boolean;
   componentsPath?: string;
+  complexity?: ComplexityLevel;
+  complexityReason?: string;
 }
 
 export interface ComponentUsage {

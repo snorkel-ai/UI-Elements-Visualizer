@@ -41,7 +41,6 @@ jobs:
         working-directory: ./ui-visualizer
         env:
           NODE_ENV: production
-          BASE_URL: /UI-Elements-Visualizer/
         run: npm run build
 
       - name: Setup Pages
