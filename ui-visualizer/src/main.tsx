@@ -10,6 +10,9 @@ if (!rootElement) {
 }
 
 console.log('Rendering app...');
+console.log('Base URL:', import.meta.env.BASE_URL);
+console.log('Mode:', import.meta.env.MODE);
+console.log('Production:', import.meta.env.PROD);
 
 createRoot(rootElement).render(
   <StrictMode>
