@@ -533,10 +533,10 @@ export function DetailPage() {
                         <p className="text-sm text-gray-800">{message.content}</p>
                       )}
                       
-                      {message.role === 'assistant' && message.grading_guidance && (
+                      {message.grading_guidance && (
                         <div className="mt-4 pt-4 border-t border-gray-300">
-                          <details className="group">
-                            <summary className="cursor-pointer text-sm font-semibold text-gray-700 hover:text-gray-900 flex items-center gap-2">
+                          <details className="group" open>
+                            <summary className="cursor-pointer text-sm font-semibold text-purple-700 hover:text-purple-900 flex items-center gap-2">
                               <svg
                                 className="w-4 h-4 transition-transform group-open:rotate-90"
                                 fill="none"
@@ -551,27 +551,38 @@ export function DetailPage() {
                               {message.grading_guidance.quality_criteria && (
                                 <div>
                                   <h4 className="text-xs font-semibold text-gray-700 mb-2">Quality Criteria</h4>
-                                  <ul className="list-disc list-inside space-y-1">
-                                    {message.grading_guidance.quality_criteria.map((criterion: string, i: number) => (
-                                      <li key={i} className="text-xs text-gray-600">{criterion}</li>
-                                    ))}
-                                  </ul>
+                                  {Array.isArray(message.grading_guidance.quality_criteria) ? (
+                                    <ul className="list-disc list-inside space-y-1">
+                                      {message.grading_guidance.quality_criteria.map((criterion: string, i: number) => (
+                                        <li key={i} className="text-xs text-gray-600">{criterion}</li>
+                                      ))}
+                                    </ul>
+                                  ) : (
+                                    <p className="text-xs text-gray-600">{JSON.stringify(message.grading_guidance.quality_criteria)}</p>
+                                  )}
                                 </div>
                               )}
                               
-                              {message.grading_guidance.expected_components && message.grading_guidance.expected_components.length > 0 && (
+                              {message.grading_guidance.expected_components && (
                                 <div>
                                   <h4 className="text-xs font-semibold text-gray-700 mb-2">Expected Components</h4>
-                                  <div className="flex flex-wrap gap-1">
-                                    {message.grading_guidance.expected_components.map((component: string, i: number) => (
-                                      <span
-                                        key={i}
-                                        className="px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded"
-                                      >
-                                        {component}
-                                      </span>
-                                    ))}
-                                  </div>
+                                  {Array.isArray(message.grading_guidance.expected_components) && message.grading_guidance.expected_components.length > 0 ? (
+                                    <div className="flex flex-wrap gap-1">
+                                      {message.grading_guidance.expected_components.map((component: any, i: number) => {
+                                        const componentName = typeof component === 'string' ? component : (component?.name || JSON.stringify(component));
+                                        return (
+                                          <span
+                                            key={i}
+                                            className="px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded"
+                                          >
+                                            {componentName}
+                                          </span>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-xs text-gray-600">{JSON.stringify(message.grading_guidance.expected_components)}</p>
+                                  )}
                                 </div>
                               )}
                               
@@ -593,6 +604,26 @@ export function DetailPage() {
                                 <div>
                                   <h4 className="text-xs font-semibold text-gray-700 mb-1">Component Relevance</h4>
                                   <p className="text-xs text-gray-600">{message.grading_guidance.component_relevance}</p>
+                                </div>
+                              )}
+                              
+                              {/* Show any other fields in grading_guidance */}
+                              {Object.keys(message.grading_guidance).filter(key => 
+                                !['quality_criteria', 'expected_components', 'tool_accuracy', 'response_completeness', 'component_relevance', 'tool_calls', 'toolCalls'].includes(key)
+                              ).length > 0 && (
+                                <div>
+                                  <h4 className="text-xs font-semibold text-gray-700 mb-1">Other Fields</h4>
+                                  <pre className="text-xs text-gray-600 overflow-x-auto bg-gray-50 p-2 rounded">
+                                    {JSON.stringify(
+                                      Object.fromEntries(
+                                        Object.entries(message.grading_guidance).filter(([key]) => 
+                                          !['quality_criteria', 'expected_components', 'tool_accuracy', 'response_completeness', 'component_relevance', 'tool_calls', 'toolCalls'].includes(key)
+                                        )
+                                      ),
+                                      null,
+                                      2
+                                    )}
+                                  </pre>
                                 </div>
                               )}
                             </div>
