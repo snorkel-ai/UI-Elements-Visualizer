@@ -7,6 +7,7 @@ import { formatFolderName } from '../utils/formatFolderName';
 import { DataPoint } from '../types';
 import { validateDataPoint, ValidationReport } from '../utils/validateComponents';
 import { calculateComplexity } from '../utils/calculateComplexity';
+import { useRatings } from '../hooks/useRatings';
 
 export function DashboardPage() {
   const { dataPoints: contextDataPoints, setDataPoints: setContextDataPoints, hasCustomData, setHasCustomData } = useDataContext();
@@ -18,6 +19,7 @@ export function DashboardPage() {
   const [complexityFilter, setComplexityFilter] = useState<string>('');
   const [validationResults, setValidationResults] = useState<Map<string, ValidationReport>>(new Map());
   const [validating, setValidating] = useState(false);
+  const { updateRating, getRating } = useRatings();
 
   const loadAndValidateData = async (points: DataPoint[]) => {
     // Calculate complexity for all data points
@@ -256,6 +258,8 @@ export function DashboardPage() {
             <DataPointTable 
               dataPoints={filteredDataPoints} 
               validationResults={validationResults}
+              getRating={getRating}
+              updateRating={updateRating}
             />
           )}
         </main>

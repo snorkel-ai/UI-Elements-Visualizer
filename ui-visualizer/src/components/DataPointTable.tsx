@@ -3,14 +3,17 @@ import { extractComponentNames } from '../utils/dataLoader';
 import { formatFolderName, extractDateFromFolderName, formatDate } from '../utils/formatFolderName';
 import { useNavigate } from 'react-router-dom';
 import { ValidationReport } from '../utils/validateComponents';
+import { Rating } from '../hooks/useRatings';
 
 interface DataPointTableProps {
   dataPoints: DataPoint[];
   validationResults?: Map<string, ValidationReport>;
   startIndex?: number;
+  getRating: (folderName: string) => Rating;
+  updateRating: (folderName: string, rating: Rating) => void;
 }
 
-export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }: DataPointTableProps) {
+export function DataPointTable({ dataPoints, validationResults, startIndex = 0, getRating, updateRating }: DataPointTableProps) {
   const navigate = useNavigate();
 
   return (
@@ -39,6 +42,9 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
             <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Validation
             </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Rating
+            </th>
           </tr>
         </thead>
         <tbody className="bg-white divide-y divide-gray-200">
@@ -51,6 +57,7 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
             const date = extractDateFromFolderName(point.folderName);
             const validation = validationResults?.get(point.folderName);
             const rowNumber = startIndex + index + 1;
+            const currentRating = getRating(point.folderName);
 
             return (
               <tr
@@ -163,6 +170,27 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
                   })() : (
                     <span className="text-xs text-gray-400">-</span>
                   )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                  <select
+                    value={currentRating || ''}
+                    onChange={(e) => {
+                      const value = e.target.value as Rating;
+                      updateRating(point.folderName, value || null);
+                    }}
+                    className={`px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      currentRating === 'Good'
+                        ? 'bg-green-50 border-green-300 text-green-700'
+                        : currentRating === 'Bad'
+                        ? 'bg-red-50 border-red-300 text-red-700'
+                        : 'bg-gray-50 border-gray-300 text-gray-700'
+                    }`}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <option value="">-</option>
+                    <option value="Good">Good</option>
+                    <option value="Bad">Bad</option>
+                  </select>
                 </td>
               </tr>
             );
