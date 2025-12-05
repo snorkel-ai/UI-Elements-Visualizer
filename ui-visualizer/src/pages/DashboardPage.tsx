@@ -135,7 +135,11 @@ export function DashboardPage() {
     total: dataPoints.length,
     passed: Array.from(validationResults.values()).filter(r => {
       const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
-      return propsMatchCheck && propsMatchCheck.passed === true;
+      const passed = propsMatchCheck && propsMatchCheck.passed === true;
+      if (!propsMatchCheck) {
+        console.warn('Props match schema check not found in validation results. Available checks:', r.results.map(res => res.check));
+      }
+      return passed;
     }).length,
     failed: Array.from(validationResults.values()).filter(r => {
       const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');

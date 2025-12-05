@@ -119,16 +119,18 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
                     // Only show "Props match schema" check
                     const propsMatchCheck = validation.results.find(r => r.check === 'Props match schema');
                     if (!propsMatchCheck) {
-                      return <span className="text-xs text-gray-400">-</span>;
+                      // Debug: log if check not found
+                      console.warn(`Props match schema check not found for ${point.folderName}. Available checks:`, validation.results.map(r => r.check));
+                      return <span className="text-xs text-gray-400" title="Validation pending or check not found">-</span>;
                     }
                     return (
                       <div className="flex items-center gap-2">
-                        {propsMatchCheck.passed ? (
+                        {propsMatchCheck.passed === true ? (
                           <div className="flex items-center gap-1">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span className="text-xs text-green-700 font-medium">Pass</span>
                           </div>
-                        ) : (
+                        ) : propsMatchCheck.passed === false ? (
                           <div className="flex flex-col gap-1">
                             <div className="flex items-center gap-1">
                               <div className="w-2 h-2 rounded-full bg-red-500"></div>
@@ -138,6 +140,8 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
                               {propsMatchCheck.check}
                             </div>
                           </div>
+                        ) : (
+                          <span className="text-xs text-gray-400">-</span>
                         )}
                       </div>
                     );
