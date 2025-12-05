@@ -22,6 +22,7 @@ export interface MatchingOptions {
   minComplexStringLength: number;    // Minimum length for a string to be considered "complex"
   minTokenLength: number;            // Minimum token length to include in comparison
   tokenOverlapThreshold: number;     // Minimum percentage of tokens that must match (0.0 - 1.0)
+  numericEpsilon: number;            // Tolerance for numeric comparisons (for floating point precision)
   enableTokenMatching: boolean;      // Enable/disable token-based matching
   enableStructuralExtraction: boolean; // Enable/disable structural extraction matching
 }
@@ -31,6 +32,7 @@ const DEFAULT_MATCHING_OPTIONS: MatchingOptions = {
   minComplexStringLength: 30,
   minTokenLength: 3,
   tokenOverlapThreshold: 0.4,
+  numericEpsilon: 0.01,
   enableTokenMatching: true,
   enableStructuralExtraction: true
 };
@@ -586,6 +588,20 @@ function checkAssistantMessageStructure(conversation: ConversationData | undefin
 }
 
 /**
+ * Checks if two numbers match within a tolerance (epsilon)
+ * Uses exact matching for integers, tolerance matching for floats
+ */
+function numbersMatch(num1: number, num2: number, epsilon: number): boolean {
+  // For integers, use exact match
+  if (Number.isInteger(num1) && Number.isInteger(num2)) {
+    return num1 === num2;
+  }
+
+  // For floats, use epsilon tolerance to handle precision differences
+  return Math.abs(num1 - num2) <= epsilon;
+}
+
+/**
  * Determines if a short string should still be checked for matching
  * Returns true for URLs, UUIDs, and structured identifiers
  */
@@ -710,6 +726,29 @@ function extractStrings(obj: any, depth: number = 0): string[] {
 }
 
 /**
+ * Extracts all numeric values from an object or array structure
+ */
+function extractNumbers(obj: any, depth: number = 0): number[] {
+  if (depth > 5) return []; // Prevent deep recursion
+
+  const numbers: number[] = [];
+
+  if (typeof obj === 'number') {
+    numbers.push(obj);
+  } else if (Array.isArray(obj)) {
+    for (const item of obj) {
+      numbers.push(...extractNumbers(item, depth + 1));
+    }
+  } else if (typeof obj === 'object' && obj !== null) {
+    for (const value of Object.values(obj)) {
+      numbers.push(...extractNumbers(value, depth + 1));
+    }
+  }
+
+  return numbers;
+}
+
+/**
  * Checks if a string matches any extracted string from a structure
  */
 function structuralExtractionMatch(
@@ -772,6 +811,59 @@ function valueFoundInTarget(
 
   // For objects, check if value is a subset of target
   if (typeof value === 'object' && typeof target === 'object') {
+    // Check if both are arrays of the same length - direct element-wise comparison
+    if (Array.isArray(value) && Array.isArray(target) && value.length === target.length) {
+      const allMatch = value.every((val, idx) => {
+        // Use numeric tolerance for numbers
+        if (typeof val === 'number' && typeof target[idx] === 'number') {
+          return numbersMatch(val, target[idx], options.numericEpsilon);
+        }
+        // Recursive check for other types
+        return valueFoundInTarget(val, target[idx], depth + 1, options);
+      });
+      if (allMatch) {
+        return true;
+      }
+    }
+
+    // Check if value is an array of numbers that matches numbers extracted from target structure
+    // Example: [0, 0, 1, 6] matches [{count: 0}, {count: 0}, {count: 1}, {count: 6}]
+    if (Array.isArray(value) && value.length > 0 && value.every(v => typeof v === 'number')) {
+      const extractedNumbers = extractNumbers(target);
+      // Check if value array matches the beginning of extracted numbers
+      if (extractedNumbers.length >= value.length) {
+        const matches = value.every((val, idx) =>
+          typeof extractedNumbers[idx] === 'number' &&
+          numbersMatch(val, extractedNumbers[idx], options.numericEpsilon)
+        );
+        if (matches) {
+          return true;
+        }
+      }
+    }
+
+    // Check if value is an array of strings that matches strings extracted from target structure
+    if (Array.isArray(value) && value.length > 0 && value.every(v => typeof v === 'string')) {
+      const extractedStrings = extractStrings(target);
+      // Check if value array matches the beginning of extracted strings (or with token matching)
+      if (extractedStrings.length >= value.length) {
+        const exactMatches = value.every((val, idx) => val === extractedStrings[idx]);
+        if (exactMatches) {
+          return true;
+        }
+        // Try token-based matching if exact match fails
+        if (options.enableTokenMatching) {
+          const tokenMatches = value.every((val, idx) =>
+            typeof extractedStrings[idx] === 'string' &&
+            matchStrings(val, extractedStrings[idx], options)
+          );
+          if (tokenMatches) {
+            return true;
+          }
+        }
+      }
+    }
+
     // Check if value is an array
     if (Array.isArray(value)) {
       // Check if any element of value array appears in target
@@ -813,9 +905,9 @@ function valueFoundInTarget(
     }
   }
 
-  // Number matching - exact match
+  // Number matching - with epsilon tolerance for floats
   if (typeof value === 'number' && typeof target === 'number') {
-    return value === target;
+    return numbersMatch(value, target, options.numericEpsilon);
   }
 
   // Boolean matching
