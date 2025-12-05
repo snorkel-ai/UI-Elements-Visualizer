@@ -115,6 +115,24 @@ export async function calculateComplexity(dataPoint: DataPoint): Promise<Complex
     const propCount = component.props.length;
     maxPropCount = Math.max(maxPropCount, propCount);
     
+    // Check the raw definition for nested array patterns (more reliable than parsed types)
+    // The regex parser stops at semicolons, so Array<{ id: string; name: string }> gets truncated
+    // Look for patterns like: Array<{ ... }> in the raw definition
+    const rawDef = component.rawDefinition;
+    
+    // Match patterns like: propName: Array<{ ... }> or propName?: Array<{ ... }>
+    // This catches arrays of objects even when the regex truncated the type
+    const arrayOfObjectPattern = /(\w+)\s*\??\s*:\s*Array\s*<\s*\{/gi;
+    if (arrayOfObjectPattern.test(rawDef)) {
+      hasNesting = true;
+    }
+    
+    // Also check for array syntax with braces: { ... }[]
+    const objectArrayPattern = /\{\s*[^}]+\s*\}\s*\[\]/g;
+    if (objectArrayPattern.test(rawDef)) {
+      hasNesting = true;
+    }
+    
     // Check prop types for array/object patterns that indicate nesting
     component.props.forEach(prop => {
       const propType = prop.type.toLowerCase();
@@ -126,13 +144,28 @@ export async function calculateComplexity(dataPoint: DataPoint): Promise<Complex
             propType.includes('record') || propType.includes('{')) {
           hasNesting = true;
         }
+        // If the parsed type is short and contains Array<, it might be truncated
+        // Check the raw definition for the full type
+        if (propType.includes('array<') && !propType.includes('{') && propType.length < 30) {
+          // Extract the full prop definition from raw definition
+          const propNameEscaped = prop.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const propPattern = new RegExp(`${propNameEscaped}\\s*\\??\\s*:\\s*([^;]+)`, 'i');
+          const propMatch = component.rawDefinition.match(propPattern);
+          if (propMatch && propMatch[1]) {
+            const fullType = propMatch[1].trim().toLowerCase();
+            // Check if full type is Array<{...}>
+            if (fullType.includes('array<{') || fullType.includes('array< {')) {
+              hasNesting = true;
+            }
+          }
+        }
       }
       
       // Check for object types with nested structures
       if (propType.includes('object') || propType.includes('record') || 
-          propType.includes('{') && propType.includes('}')) {
+          (propType.includes('{') && propType.includes('}'))) {
         // Check if it's more than just a simple object type
-        if (propType.includes('record<') || propType.includes('{') && propType.split('{').length > 2) {
+        if (propType.includes('record<') || (propType.includes('{') && propType.split('{').length > 2)) {
           hasNesting = true;
         }
       }
