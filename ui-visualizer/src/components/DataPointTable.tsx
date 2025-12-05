@@ -132,11 +132,15 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
                     return (
                       <div className="flex items-center gap-2">
                         {propsMatchCheck.passed === true ? (
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span className="text-xs text-green-700 font-medium">Pass</span>
                             {otherChecksFailed && (
-                              <span className="text-xs text-orange-600" title="Other checks failed (see detail page)">
+                              <span 
+                                className="text-sm text-orange-600 font-bold" 
+                                title="Other checks failed (see detail page for details)"
+                                style={{ fontSize: '14px', lineHeight: '1' }}
+                              >
                                 ⚠
                               </span>
                             )}
