@@ -123,12 +123,23 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0 }
                       console.warn(`Props match schema check not found for ${point.folderName}. Available checks:`, validation.results.map(r => r.check));
                       return <span className="text-xs text-gray-400" title="Validation pending or check not found">-</span>;
                     }
+                    
+                    // Check if other checks failed (for visual indicator)
+                    const otherChecksFailed = validation.results.some(r => 
+                      r.check !== 'Props match schema' && r.passed === false
+                    );
+                    
                     return (
                       <div className="flex items-center gap-2">
                         {propsMatchCheck.passed === true ? (
                           <div className="flex items-center gap-1">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
                             <span className="text-xs text-green-700 font-medium">Pass</span>
+                            {otherChecksFailed && (
+                              <span className="text-xs text-orange-600" title="Other checks failed (see detail page)">
+                                ⚠
+                              </span>
+                            )}
                           </div>
                         ) : propsMatchCheck.passed === false ? (
                           <div className="flex flex-col gap-1">
