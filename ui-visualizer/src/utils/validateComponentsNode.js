@@ -80,6 +80,30 @@ export function validateComponents(dataPoint, parsedComponents, componentsConten
   const propsMatchCheck = checkPropsMatchSchema(dataPoint.conversation);
   results.push(propsMatchCheck);
 
+  // Check 5: Props not before User Prompt
+  const propsBeforeUserCheck = checkPropsNotBeforeUserPrompt(dataPoint.conversation);
+  results.push(propsBeforeUserCheck);
+
+  // Check 6: No interactive elements
+  const interactiveElementsCheck = checkNoInteractiveElements(parsedComponents);
+  results.push(interactiveElementsCheck);
+
+  // Check 7: Message sequence
+  const messageSequenceCheck = checkMessageSequence(dataPoint.conversation);
+  results.push(messageSequenceCheck);
+
+  // Check 8: Assistant message structure
+  const assistantMessageCheck = checkAssistantMessageStructure(dataPoint.conversation);
+  results.push(assistantMessageCheck);
+
+  // Check 9: Component props source
+  const propsSourceCheck = checkComponentPropsSource(dataPoint.conversation);
+  results.push(propsSourceCheck);
+
+  // Check 10: Grading guidance structure
+  const gradingGuidanceCheck = checkGradingGuidanceStructure(dataPoint.conversation);
+  results.push(gradingGuidanceCheck);
+
   const allPassed = results.every(r => r.passed);
 
   return {
@@ -416,6 +440,558 @@ function checkPropsMatchSchema(conversation) {
     check: 'Props match schema',
     passed: true,
     message: 'All props in conversation match component schema params.'
+  };
+}
+
+/**
+ * Check 5: Props not before User Prompt
+ */
+function checkPropsNotBeforeUserPrompt(conversation) {
+  if (!conversation?.conversation) {
+    return {
+      check: 'Props not before User Prompt',
+      passed: true,
+      message: 'No conversation found to validate.'
+    };
+  }
+
+  const violations = [];
+  let userMessageCount = 0;
+
+  conversation.conversation.forEach((message, idx) => {
+    if (message.role === 'user') {
+      userMessageCount++;
+    }
+
+    if (userMessageCount === 0 && Array.isArray(message.content)) {
+      message.content.forEach(item => {
+        if (item.type === 'component' && item.component) {
+          violations.push(`Message ${idx + 1}: Component "${item.component.name}" before first user message`);
+        }
+      });
+    }
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'Props not before User Prompt',
+      passed: false,
+      message: `Found ${violations.length} component(s) before the first user message.`,
+      details: violations
+    };
+  }
+
+  return {
+    check: 'Props not before User Prompt',
+    passed: true,
+    message: 'No components appear before the first user message.'
+  };
+}
+
+/**
+ * Check 6: No interactive elements
+ */
+function checkNoInteractiveElements(parsedComponents) {
+  const interactiveKeywords = ['onClick', 'onSubmit', 'onChange', 'onFocus', 'onBlur', 'button', 'input', 'form'];
+  const violations = [];
+
+  parsedComponents.forEach(component => {
+    component.props.forEach(prop => {
+      if (interactiveKeywords.some(keyword => prop.name.toLowerCase().includes(keyword.toLowerCase()))) {
+        violations.push(`${component.name}.${prop.name}`);
+      }
+    });
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'No interactive elements',
+      passed: false,
+      message: `Found ${violations.length} potentially interactive prop(s).`,
+      details: violations
+    };
+  }
+
+  return {
+    check: 'No interactive elements',
+    passed: true,
+    message: 'No interactive elements found in component definitions.'
+  };
+}
+
+/**
+ * Check 7: Message sequence
+ */
+function checkMessageSequence(conversation) {
+  if (!conversation?.conversation) {
+    return {
+      check: 'Message sequence',
+      passed: true,
+      message: 'No conversation found to validate.'
+    };
+  }
+
+  const violations = [];
+  let lastRole = null;
+
+  conversation.conversation.forEach((message, idx) => {
+    if (lastRole === message.role && message.role !== 'tool') {
+      violations.push(`Message ${idx + 1}: Consecutive ${message.role} messages`);
+    }
+    lastRole = message.role;
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'Message sequence',
+      passed: false,
+      message: `Found ${violations.length} message sequence violation(s).`,
+      details: violations
+    };
+  }
+
+  return {
+    check: 'Message sequence',
+    passed: true,
+    message: 'Message sequence is correct (no consecutive messages from same role).'
+  };
+}
+
+/**
+ * Check 8: Assistant message structure
+ */
+function checkAssistantMessageStructure(conversation) {
+  if (!conversation?.conversation) {
+    return {
+      check: 'Assistant message structure',
+      passed: true,
+      message: 'No conversation found to validate.'
+    };
+  }
+
+  const violations = [];
+
+  conversation.conversation.forEach((message, idx) => {
+    if (message.role === 'assistant') {
+      const hasToolCalls = Array.isArray(message.toolCalls) && message.toolCalls.length > 0;
+      const hasContent = Array.isArray(message.content) && message.content.length > 0;
+
+      if (hasToolCalls && hasContent) {
+        const hasNonText = message.content.some(item => item.type !== 'text');
+        if (hasNonText) {
+          violations.push(
+            `Message ${idx + 1}: Assistant message has both tool_calls and non-text content (components)`
+          );
+        }
+      }
+    }
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'Assistant message structure',
+      passed: false,
+      message: `Found ${violations.length} assistant message(s) with incorrect structure.`,
+      details: violations
+    };
+  }
+
+  return {
+    check: 'Assistant message structure',
+    passed: true,
+    message: 'AssistantMessages correctly separate tool_calls from content/components.'
+  };
+}
+
+/**
+ * Configuration options for string matching in props source validation
+ */
+const DEFAULT_MATCHING_OPTIONS = {
+  minStringLength: 10,
+  minComplexStringLength: 30,
+  minTokenLength: 3,
+  tokenOverlapThreshold: 0.4,
+  numericEpsilon: 0.01,
+  enableTokenMatching: true,
+  enableStructuralExtraction: true
+};
+
+/**
+ * Helper: Check if two numbers match within epsilon tolerance
+ */
+function numbersMatch(num1, num2, epsilon) {
+  if (Number.isInteger(num1) && Number.isInteger(num2)) {
+    return num1 === num2;
+  }
+  return Math.abs(num1 - num2) <= epsilon;
+}
+
+/**
+ * Helper: Check if a short string should still be checked
+ */
+function shouldCheckShortString(str) {
+  if (str.includes('http') || str.includes('://')) return true;
+  if (/^[a-zA-Z0-9_-]{8,}$/.test(str)) return true;
+  if (/[.@:/\\]/.test(str)) return true;
+  return false;
+}
+
+/**
+ * Helper: Tokenize string into words
+ */
+function tokenizeString(str, minLength = 3) {
+  const tokens = str
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(token => token.length >= minLength);
+  return new Set(tokens);
+}
+
+/**
+ * Helper: Calculate token overlap percentage
+ */
+function calculateTokenOverlap(tokens1, tokens2) {
+  if (tokens1.size === 0 || tokens2.size === 0) return 0;
+  let matches = 0;
+  for (const token of tokens1) {
+    if (tokens2.has(token)) matches++;
+  }
+  const minSize = Math.min(tokens1.size, tokens2.size);
+  return matches / minSize;
+}
+
+/**
+ * Helper: Token-based string matching
+ */
+function tokenBasedMatch(str1, str2, options) {
+  const tokens1 = tokenizeString(str1, options.minTokenLength);
+  const tokens2 = tokenizeString(str2, options.minTokenLength);
+  const overlap = calculateTokenOverlap(tokens1, tokens2);
+  return overlap >= options.tokenOverlapThreshold;
+}
+
+/**
+ * Helper: Comprehensive string matching
+ */
+function matchStrings(value, target, options) {
+  if (value.length < options.minStringLength && !shouldCheckShortString(value)) return false;
+  if (target.length < options.minStringLength && !shouldCheckShortString(target)) return false;
+  if (value === target) return true;
+  if (value.includes(target) || target.includes(value)) return true;
+  if (options.enableTokenMatching && tokenBasedMatch(value, target, options)) return true;
+  return false;
+}
+
+/**
+ * Helper: Extract all strings from nested structure
+ */
+function extractStrings(obj, depth = 0) {
+  if (depth > 5) return [];
+  const strings = [];
+  if (typeof obj === 'string') {
+    strings.push(obj);
+  } else if (Array.isArray(obj)) {
+    obj.forEach(item => strings.push(...extractStrings(item, depth + 1)));
+  } else if (typeof obj === 'object' && obj !== null) {
+    Object.values(obj).forEach(value => strings.push(...extractStrings(value, depth + 1)));
+  }
+  return strings;
+}
+
+/**
+ * Helper: Extract all numbers from nested structure
+ */
+function extractNumbers(obj, depth = 0) {
+  if (depth > 5) return [];
+  const numbers = [];
+  if (typeof obj === 'number') {
+    numbers.push(obj);
+  } else if (Array.isArray(obj)) {
+    obj.forEach(item => numbers.push(...extractNumbers(item, depth + 1)));
+  } else if (typeof obj === 'object' && obj !== null) {
+    Object.values(obj).forEach(value => numbers.push(...extractNumbers(value, depth + 1)));
+  }
+  return numbers;
+}
+
+/**
+ * Helper: Check if string matches extracted strings
+ */
+function structuralExtractionMatch(str, structure, options) {
+  const extractedStrings = extractStrings(structure);
+  for (const extracted of extractedStrings) {
+    if (typeof extracted === 'string' && extracted.length >= options.minStringLength) {
+      if (str.includes(extracted) || extracted.includes(str)) return true;
+      if (options.enableTokenMatching && tokenBasedMatch(str, extracted, options)) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Helper: Recursively check if value appears in target
+ */
+function valueFoundInTarget(value, target, depth = 0, options = DEFAULT_MATCHING_OPTIONS) {
+  if (depth > 10) return false;
+  if (value === null || value === undefined || target === null || target === undefined) return false;
+  if (value === target) return true;
+
+  // String matching
+  if (typeof value === 'string' && typeof target === 'string') {
+    return matchStrings(value, target, options);
+  }
+
+  // String vs structure
+  if (typeof value === 'string' && typeof target === 'object' && options.enableStructuralExtraction) {
+    if (structuralExtractionMatch(value, target, options)) return true;
+  }
+
+  // Object/Array matching
+  if (typeof value === 'object' && typeof target === 'object') {
+    // Element-wise array comparison
+    if (Array.isArray(value) && Array.isArray(target) && value.length === target.length) {
+      const allMatch = value.every((val, idx) => {
+        if (typeof val === 'number' && typeof target[idx] === 'number') {
+          return numbersMatch(val, target[idx], options.numericEpsilon);
+        }
+        return valueFoundInTarget(val, target[idx], depth + 1, options);
+      });
+      if (allMatch) return true;
+    }
+
+    // Array of numbers vs extracted numbers
+    if (Array.isArray(value) && value.length > 0 && value.every(v => typeof v === 'number')) {
+      const extractedNumbers = extractNumbers(target);
+      if (extractedNumbers.length >= value.length) {
+        const matches = value.every((val, idx) =>
+          typeof extractedNumbers[idx] === 'number' &&
+          numbersMatch(val, extractedNumbers[idx], options.numericEpsilon)
+        );
+        if (matches) return true;
+      }
+    }
+
+    // Array of strings vs extracted strings
+    if (Array.isArray(value) && value.length > 0 && value.every(v => typeof v === 'string')) {
+      const extractedStrings = extractStrings(target);
+      if (extractedStrings.length >= value.length) {
+        const exactMatches = value.every((val, idx) => val === extractedStrings[idx]);
+        if (exactMatches) return true;
+        if (options.enableTokenMatching) {
+          const tokenMatches = value.every((val, idx) =>
+            typeof extractedStrings[idx] === 'string' &&
+            matchStrings(val, extractedStrings[idx], options)
+          );
+          if (tokenMatches) return true;
+        }
+      }
+    }
+
+    // Array element matching
+    if (Array.isArray(value) && value.length > 0) {
+      if (value.some(item => valueFoundInTarget(item, target, depth + 1, options))) return true;
+    }
+
+    // Object key matching
+    if (!Array.isArray(value) && !Array.isArray(target)) {
+      const valueKeys = Object.keys(value);
+      if (valueKeys.length > 0) {
+        const matchingKeys = valueKeys.filter(key => {
+          if (key in target) {
+            return valueFoundInTarget(value[key], target[key], depth + 1, options);
+          }
+          return false;
+        });
+        if (matchingKeys.length > 0 && matchingKeys.length >= Math.min(1, valueKeys.length * 0.5)) {
+          return true;
+        }
+      }
+    }
+
+    // Nested structure search
+    if (typeof target === 'object') {
+      if (Array.isArray(target)) {
+        if (target.some(item => valueFoundInTarget(value, item, depth + 1, options))) return true;
+      } else {
+        if (Object.values(target).some(targetValue =>
+          valueFoundInTarget(value, targetValue, depth + 1, options)
+        )) return true;
+      }
+    }
+  }
+
+  // Number matching
+  if (typeof value === 'number' && typeof target === 'number') {
+    return numbersMatch(value, target, options.numericEpsilon);
+  }
+
+  // Boolean matching
+  if (typeof value === 'boolean' && typeof target === 'boolean') {
+    return value === target;
+  }
+
+  return false;
+}
+
+/**
+ * Helper: Check if prop value can be traced to tool results
+ */
+function canTracePropValue(propValue, toolResults, options = DEFAULT_MATCHING_OPTIONS) {
+  if (propValue === null || propValue === undefined) return false;
+
+  if (typeof propValue === 'string' && propValue.length < options.minStringLength) {
+    if (!shouldCheckShortString(propValue)) return false;
+  }
+
+  if (typeof propValue === 'number' || typeof propValue === 'boolean') return false;
+
+  for (const [, toolResult] of toolResults.entries()) {
+    if (valueFoundInTarget(propValue, toolResult, 0, options)) return true;
+  }
+
+  return false;
+}
+
+/**
+ * Check 9: Component props source
+ */
+function checkComponentPropsSource(conversation) {
+  if (!conversation?.conversation) {
+    return {
+      check: 'Component props source',
+      passed: true,
+      message: 'No conversation found to validate.'
+    };
+  }
+
+  const options = DEFAULT_MATCHING_OPTIONS;
+  const violations = [];
+  const toolResults = new Map();
+
+  // Collect tool results
+  conversation.conversation.forEach((message) => {
+    if (message.role === 'tool' && message.content) {
+      const toolCallId = message.tool_call_id || message.toolCallId;
+      let content = message.content;
+
+      // Parse JSON strings
+      if (typeof content === 'string') {
+        try {
+          content = JSON.parse(content);
+        } catch (e) {
+          // Keep as string if not valid JSON
+        }
+      }
+
+      if (toolCallId) {
+        toolResults.set(toolCallId, content);
+      } else {
+        toolResults.set(`tool_${message.role}_${conversation.conversation.indexOf(message)}`, content);
+      }
+    }
+  });
+
+  // Check component props
+  conversation.conversation.forEach((message, idx) => {
+    if (Array.isArray(message.content)) {
+      message.content.forEach((item) => {
+        if (item.type === 'component' && item.component) {
+          const componentName = item.component.name;
+          const props = item.component.props || {};
+          const propKeys = Object.keys(props).filter(k => {
+            const value = props[k];
+            return value !== null && value !== undefined && value !== '';
+          });
+
+          propKeys.forEach(propKey => {
+            const propValue = props[propKey];
+
+            if (typeof propValue === 'string' && propValue.length < options.minStringLength) {
+              if (!shouldCheckShortString(propValue)) return;
+            }
+
+            const looksLikeToolResult =
+              typeof propValue === 'object' ||
+              (typeof propValue === 'string' && propValue.length > options.minComplexStringLength) ||
+              Array.isArray(propValue);
+
+            if (looksLikeToolResult) {
+              const canTrace = canTracePropValue(propValue, toolResults, options);
+              const hasToolResultsBefore = toolResults.size > 0;
+
+              if (!canTrace && hasToolResultsBefore && idx > 0) {
+                violations.push(
+                  `Message ${idx + 1}, Component ${componentName}.${propKey}: Prop value source unclear (may come from tool result but not traceable)`
+                );
+              }
+            }
+          });
+        }
+      });
+    }
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'Component props source',
+      passed: false,
+      message: `Found ${violations.length} prop(s) with unclear source.`,
+      details: violations
+    };
+  }
+
+  return {
+    check: 'Component props source',
+    passed: true,
+    message: 'All component props can be traced to their sources.'
+  };
+}
+
+/**
+ * Check 10: Grading guidance structure
+ */
+function checkGradingGuidanceStructure(conversation) {
+  if (!conversation?.conversation) {
+    return {
+      check: 'Grading guidance structure',
+      passed: true,
+      message: 'No conversation found to validate.'
+    };
+  }
+
+  const violations = [];
+
+  conversation.conversation.forEach((message, idx) => {
+    if (message.role === 'user' && message.grading_guidance) {
+      const guidance = message.grading_guidance;
+
+      if (!Array.isArray(guidance.quality_criteria)) {
+        violations.push(`Message ${idx + 1}: grading_guidance.quality_criteria must be an array`);
+      }
+
+      if (!Array.isArray(guidance.expected_components)) {
+        violations.push(`Message ${idx + 1}: grading_guidance.expected_components must be an array`);
+      }
+
+      if (message.toolCalls && message.toolCalls.length > 0) {
+        violations.push(`Message ${idx + 1}: grading_guidance should not have tool_calls`);
+      }
+    }
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'Grading guidance structure',
+      passed: false,
+      message: `Found ${violations.length} grading guidance structure violation(s).`,
+      details: violations
+    };
+  }
+
+  return {
+    check: 'Grading guidance structure',
+    passed: true,
+    message: 'Grading guidance structure is correct: has quality_criteria and expected_components, no tool_calls.'
   };
 }
 

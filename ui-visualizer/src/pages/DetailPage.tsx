@@ -9,12 +9,13 @@ import { parseComponents, ParsedComponent } from '../utils/parseComponents';
 import { ComponentDefinitionCard } from '../components/ComponentDefinitionCard';
 import { validateComponents, ValidationReport } from '../utils/validateComponents';
 import { ValidationReportComponent } from '../components/ValidationReport';
+import { LlmConfigPanel } from '../components/LlmConfigPanel';
 import { calculateComplexity } from '../utils/calculateComplexity';
 
 export function DetailPage() {
   const { folderName } = useParams<{ folderName: string }>();
   const navigate = useNavigate();
-  const { dataPoints: contextDataPoints, hasCustomData } = useDataContext();
+  const { dataPoints: contextDataPoints, hasCustomData, validationResults, setValidationResults } = useDataContext();
   const [dataPoint, setDataPoint] = useState<DataPoint | null>(null);
   const [loading, setLoading] = useState(true);
   const [componentsContent, setComponentsContent] = useState<string>('');
@@ -60,19 +61,17 @@ export function DetailPage() {
             setComponentsContent(text);
             const parsed = parseComponents(text);
             setParsedComponents(parsed);
-            
-            // Run validation
-            if (point) {
-              const report = validateComponents(point, parsed, text);
-              setValidationReport(report);
+
+            // Use cached validation report if available
+            if (point && validationResults.has(point.folderName)) {
+              setValidationReport(validationResults.get(point.folderName) || null);
             }
           } catch (e) {
             console.error('Error loading components.ts:', e);
           }
-        } else if (point) {
-          // Run validation even without components.ts
-          const report = validateComponents(point, [], '');
-          setValidationReport(report);
+        } else if (point && validationResults.has(point.folderName)) {
+          // Use cached validation report
+          setValidationReport(validationResults.get(point.folderName) || null);
         }
       } catch (error) {
         console.error('Error loading data:', error);
@@ -81,7 +80,7 @@ export function DetailPage() {
       }
     }
     fetchData();
-  }, [folderName, contextDataPoints, hasCustomData]);
+  }, [folderName, contextDataPoints, hasCustomData, validationResults]);
 
   // Calculate complexity if not already set - must be before any early returns
   useEffect(() => {
@@ -422,6 +421,24 @@ export function DetailPage() {
         {/* Scrollable Content on Right */}
         <div className="flex-1 overflow-y-auto">
           <div className="p-6 space-y-6">
+            {/* LLM Configuration Panel */}
+            {dataPoint && (
+              <LlmConfigPanel
+                onConfigChange={async () => {
+                  // Re-run validation when API key is configured
+                  if (dataPoint) {
+                    console.log('[DetailPage] Re-running validation with LLM...');
+                    const report = await validateComponents(dataPoint, parsedComponents, componentsContent);
+                    setValidationReport(report);
+                    // Update context validation results
+                    const newResults = new Map(validationResults);
+                    newResults.set(dataPoint.folderName, report);
+                    setValidationResults(newResults);
+                  }
+                }}
+              />
+            )}
+
             {/* Validation Report */}
             {validationReport && (
               <ValidationReportComponent report={validationReport} showAllChecks={true} />
@@ -501,8 +518,9 @@ export function DetailPage() {
                           : 'bg-gray-50 border-l-4 border-gray-400'
                       }`}
                     >
-                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase">
-                        {message.role}
+                      <div className="text-xs font-semibold text-gray-600 mb-2 uppercase flex items-center gap-2">
+                        <span className="bg-gray-700 text-white px-2 py-0.5 rounded">Message {idx + 1}</span>
+                        <span>{message.role}</span>
                       </div>
                       {Array.isArray(message.content) ? (
                         <div className="space-y-2">

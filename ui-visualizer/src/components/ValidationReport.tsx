@@ -66,8 +66,15 @@ export function ValidationReportComponent({ report, showAllChecks = false }: Val
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm text-gray-900 mb-1">
-                  {result.check}
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="font-semibold text-sm text-gray-900">
+                    {result.check}
+                  </div>
+                  {result.metadata?.llmAssisted && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      🤖 LLM-Assisted
+                    </span>
+                  )}
                 </div>
                 <div className={`text-sm ${
                   result.passed ? 'text-green-700' : 'text-red-700'
@@ -77,19 +84,36 @@ export function ValidationReportComponent({ report, showAllChecks = false }: Val
                 {result.details && result.details.length > 0 && (
                   <details className="mt-2" open={!result.passed}>
                     <summary className="text-xs text-gray-600 cursor-pointer hover:text-gray-900">
-                      {result.passed 
+                      {result.passed
                         ? `Show details (${result.details.length})`
                         : `Show violations (${result.details.length})`
                       }
                     </summary>
-                    <ul className="mt-2 ml-4 space-y-1">
-                      {result.details.map((detail, detailIdx) => (
-                        <li key={detailIdx} className={`text-xs font-mono ${
-                          result.passed ? 'text-gray-700' : 'text-red-700'
-                        }`}>
-                          {detail}
-                        </li>
-                      ))}
+                    <ul className="mt-2 ml-4 space-y-2">
+                      {result.details.map((detail, detailIdx) => {
+                        // Parse LLM approval markers
+                        const isAutoApproved = detail.includes('✓ LLM Auto-approved');
+                        const isRejected = detail.includes('✗ LLM Rejected');
+
+                        return (
+                          <li
+                            key={detailIdx}
+                            className={`text-xs p-2 rounded ${
+                              isAutoApproved
+                                ? 'bg-blue-50 text-blue-900 border border-blue-200'
+                                : isRejected
+                                ? 'bg-red-50 text-red-900 border border-red-200'
+                                : result.passed
+                                ? 'text-gray-700'
+                                : 'text-red-700'
+                            }`}
+                          >
+                            <pre className="whitespace-pre-wrap font-mono text-xs">
+                              {detail}
+                            </pre>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </details>
                 )}

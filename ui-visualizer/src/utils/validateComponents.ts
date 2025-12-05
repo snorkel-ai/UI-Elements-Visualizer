@@ -7,6 +7,18 @@ export interface ValidationResult {
   passed: boolean;
   message: string;
   details?: string[];
+  metadata?: {
+    llmAssisted?: boolean;
+    originalViolationCount?: number;
+    llmApprovedCount?: number;
+    llmRejectedCount?: number;
+    llmDetails?: Array<{
+      violation: string;
+      approved: boolean;
+      reasoning: string;
+      category: string;
+    }>;
+  };
 }
 
 export interface ValidationReport {
@@ -57,17 +69,18 @@ export async function validateDataPoint(dataPoint: DataPoint): Promise<Validatio
     }
   }
 
-  return validateComponents(dataPoint, parsedComponents, componentsContent);
+  return await validateComponents(dataPoint, parsedComponents, componentsContent);
 }
 
 /**
  * Validates component definitions against the specified rules
+ * Now async to support LLM-based validation
  */
-export function validateComponents(
+export async function validateComponents(
   dataPoint: DataPoint,
   parsedComponents: ParsedComponent[],
   componentsContent: string
-): ValidationReport {
+): Promise<ValidationReport> {
   const results: ValidationResult[] = [];
 
   // Check 1: No "export interface" - should be just "interface"
@@ -94,19 +107,15 @@ export function validateComponents(
   const interactiveElementsCheck = checkNoInteractiveElements(parsedComponents, componentsContent);
   results.push(interactiveElementsCheck);
 
-  // Check 7: Logical message sequence (tool calls → tool results → components)
-  const messageSequenceCheck = checkMessageSequence(dataPoint.conversation);
-  results.push(messageSequenceCheck);
-
-  // Check 8: No AssistantMessage with both content/components AND tool_calls
+  // Check 7: No AssistantMessage with both content/components AND tool_calls
   const assistantMessageStructureCheck = checkAssistantMessageStructure(dataPoint.conversation);
   results.push(assistantMessageStructureCheck);
 
-  // Check 9: Component props source clarity
-  const propsSourceCheck = checkComponentPropsSource(dataPoint.conversation);
+  // Check 8: Component props source clarity (async)
+  const propsSourceCheck = await checkComponentPropsSource(dataPoint.conversation);
   results.push(propsSourceCheck);
 
-  // Check 10: Grading guidance structure
+  // Check 9: Grading guidance structure
   const gradingGuidanceCheck = checkGradingGuidanceStructure(dataPoint.conversation);
   results.push(gradingGuidanceCheck);
 
@@ -479,71 +488,7 @@ function checkNoInteractiveElements(
 }
 
 /**
- * Check 7: Logical message sequence - tool calls → tool results → components
- */
-function checkMessageSequence(conversation: ConversationData | undefined): ValidationResult {
-  if (!conversation?.conversation) {
-    return {
-      check: 'Message sequence',
-      passed: true,
-      message: 'No conversation found to validate.'
-    };
-  }
-
-  const violations: string[] = [];
-  let lastToolCallIndex = -1;
-  let lastToolResultIndex = -1;
-
-  conversation.conversation.forEach((message, idx) => {
-    const hasToolCalls = message.toolCalls && Array.isArray(message.toolCalls) && message.toolCalls.length > 0;
-    const isToolMessage = message.role === 'tool';
-    const hasComponents = Array.isArray(message.content) && 
-      message.content.some((item: any) => item.type === 'component');
-
-    if (hasToolCalls) {
-      lastToolCallIndex = idx;
-    }
-
-    if (isToolMessage) {
-      lastToolResultIndex = idx;
-    }
-
-    // Check if components appear before tool results
-    if (hasComponents && lastToolCallIndex >= 0 && lastToolResultIndex === -1) {
-      violations.push(
-        `Message ${idx + 1}: Components appear before tool results (tool calls at message ${lastToolCallIndex + 1})`
-      );
-    }
-
-    // Check if components appear before tool calls
-    if (hasComponents && lastToolCallIndex === -1) {
-      // This might be OK if it's the first message, but flag for review
-      if (idx > 0) {
-        violations.push(
-          `Message ${idx + 1}: Components appear but no tool calls found before them`
-        );
-      }
-    }
-  });
-
-  if (violations.length > 0) {
-    return {
-      check: 'Message sequence',
-      passed: false,
-      message: `Found ${violations.length} sequence violation(s). Tool calls should come before tool results, which should come before components.`,
-      details: violations
-    };
-  }
-
-  return {
-    check: 'Message sequence',
-    passed: true,
-    message: 'Message sequence is logical: tool calls → tool results → components.'
-  };
-}
-
-/**
- * Check 8: No AssistantMessage with both content/components AND tool_calls
+ * Check 7: No AssistantMessage with both content/components AND tool_calls
  */
 function checkAssistantMessageStructure(conversation: ConversationData | undefined): ValidationResult {
   if (!conversation?.conversation) {
@@ -956,9 +901,10 @@ function canTracePropValue(
 }
 
 /**
- * Check 9: Component props source clarity - trace where props come from
+ * Check 8: Component props source clarity - trace where props come from
+ * Now includes LLM-based evaluation for potential false positives
  */
-function checkComponentPropsSource(conversation: ConversationData | undefined): ValidationResult {
+async function checkComponentPropsSource(conversation: ConversationData | undefined): Promise<ValidationResult> {
   if (!conversation?.conversation) {
     return {
       check: 'Component props source',
@@ -969,6 +915,7 @@ function checkComponentPropsSource(conversation: ConversationData | undefined): 
 
   const options: MatchingOptions = DEFAULT_MATCHING_OPTIONS;
   const violations: string[] = [];
+  const violationDetails: Array<{ messageIndex: number; componentName: string; propName: string; propValue: any }> = [];
   const toolResults = new Map<string, any>(); // Track tool results by ID
 
   // First pass: collect tool results
@@ -1037,9 +984,16 @@ function checkComponentPropsSource(conversation: ConversationData | undefined): 
               // 3. There are tool results in the conversation (meaning we should be able to trace it)
               // 4. It's not the first message (first message might have hardcoded values)
               if (!canTrace && hasToolResultsBefore && idx > 0) {
-                violations.push(
-                  `Message ${idx + 1}, Component ${item.component.name}.${propKey}: Prop value source unclear (may come from tool result but not traceable)`
-                );
+                const violationMsg = `Message ${idx + 1}, Component ${item.component.name}.${propKey}: Prop value source unclear (may come from tool result but not traceable)`;
+                violations.push(violationMsg);
+
+                // Store detailed info for LLM evaluation
+                violationDetails.push({
+                  messageIndex: idx,
+                  componentName: item.component.name,
+                  propName: propKey,
+                  propValue
+                });
               }
             }
           });
@@ -1049,6 +1003,71 @@ function checkComponentPropsSource(conversation: ConversationData | undefined): 
   });
 
   if (violations.length > 0) {
+    // Try LLM evaluation if enabled
+    const { loadLlmConfig } = await import('../config/llmConfig');
+    const { evaluateViolationsWithLLM } = await import('../services/llmPropsSourceEvaluator');
+
+    const llmConfig = loadLlmConfig();
+
+    if (llmConfig.enabled && llmConfig.apiKey && violationDetails.length > 0) {
+      try {
+        console.info('[LLM Validation] Starting evaluation of', violationDetails.length, 'violations');
+
+        const llmEval = await evaluateViolationsWithLLM(violationDetails, conversation, llmConfig);
+
+        // All violations approved by LLM?
+        if (llmEval.rejectedCount === 0) {
+          return {
+            check: 'Component props source',
+            passed: true, // Override to passed
+            message: `Passed with LLM assistance (${llmEval.approvedCount} violations auto-approved)`,
+            details: llmEval.details.map(d =>
+              `${d.violation}\n  ✓ LLM Auto-approved (${d.category}): ${d.reasoning}`
+            ),
+            metadata: {
+              llmAssisted: true,
+              originalViolationCount: violations.length,
+              llmApprovedCount: llmEval.approvedCount,
+              llmRejectedCount: llmEval.rejectedCount,
+              llmDetails: llmEval.details
+            }
+          };
+        } else {
+          // Some violations genuine, some approved
+          // Include original violations first, then LLM evaluation
+          const detailsWithOriginal = [
+            '=== ORIGINAL VALIDATION ERRORS ===',
+            ...violations.slice(0, 10),
+            '',
+            '=== LLM EVALUATION ===',
+            ...llmEval.details.map(d =>
+              d.approved
+                ? `${d.violation}\n  ✓ LLM Auto-approved (${d.category}): ${d.reasoning}`
+                : `${d.violation}\n  ✗ LLM Rejected (${d.category}): ${d.reasoning}`
+            )
+          ];
+
+          return {
+            check: 'Component props source',
+            passed: false,
+            message: `Found ${llmEval.rejectedCount} genuine violation(s) (${llmEval.approvedCount} auto-approved by LLM)`,
+            details: detailsWithOriginal,
+            metadata: {
+              llmAssisted: true,
+              originalViolationCount: violations.length,
+              llmApprovedCount: llmEval.approvedCount,
+              llmRejectedCount: llmEval.rejectedCount,
+              llmDetails: llmEval.details
+            }
+          };
+        }
+      } catch (error: any) {
+        // LLM evaluation failed - fall back to original result with warning
+        console.error('[LLM Validation] Failed, falling back to original validation:', error.message);
+      }
+    }
+
+    // Original result (LLM disabled, failed, or not configured)
     return {
       check: 'Component props source',
       passed: false,
@@ -1065,7 +1084,7 @@ function checkComponentPropsSource(conversation: ConversationData | undefined): 
 }
 
 /**
- * Check 10: Grading guidance structure
+ * Check 9: Grading guidance structure
  */
 function checkGradingGuidanceStructure(conversation: ConversationData | undefined): ValidationResult {
   if (!conversation?.conversation) {

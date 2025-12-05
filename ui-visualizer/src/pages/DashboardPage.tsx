@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { DataPointTable } from '../components/DataPointTable';
 import { FolderUpload } from '../components/FolderUpload';
+import { LlmConfigPanel } from '../components/LlmConfigPanel';
 import { useDataContext } from '../contexts/DataContext';
 import { extractComponentUsage, extractComponentNames } from '../utils/dataLoader';
 import { formatFolderName } from '../utils/formatFolderName';
@@ -10,18 +11,25 @@ import { calculateComplexity } from '../utils/calculateComplexity';
 import { useRatings } from '../hooks/useRatings';
 
 export function DashboardPage() {
-  const { dataPoints: contextDataPoints, setDataPoints: setContextDataPoints, hasCustomData, setHasCustomData } = useDataContext();
+  const {
+    dataPoints: contextDataPoints,
+    setDataPoints: setContextDataPoints,
+    hasCustomData,
+    setHasCustomData,
+    validationResults,
+    setValidationResults
+  } = useDataContext();
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
   const [filteredDataPoints, setFilteredDataPoints] = useState<DataPoint[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [componentFilter, setComponentFilter] = useState<string>('');
   const [complexityFilter, setComplexityFilter] = useState<string>('');
-  const [validationResults, setValidationResults] = useState<Map<string, ValidationReport>>(new Map());
   const [validating, setValidating] = useState(false);
+  const [validationProgress, setValidationProgress] = useState({ current: 0, total: 0 });
   const { updateRating, getRating } = useRatings();
 
-  const loadAndValidateData = async (points: DataPoint[]) => {
+  const loadData = async (points: DataPoint[]) => {
     // Calculate complexity for all data points
     const pointsWithComplexity = await Promise.all(
       points.map(async (point) => {
@@ -38,39 +46,39 @@ export function DashboardPage() {
         }
       })
     );
-    
+
     setDataPoints(pointsWithComplexity);
     setFilteredDataPoints(pointsWithComplexity);
-    
-    // Run validation for all data points
+  };
+
+  const runValidation = async () => {
+    if (dataPoints.length === 0) return;
+
     setValidating(true);
+    setValidationProgress({ current: 0, total: dataPoints.length });
     const results = new Map<string, ValidationReport>();
-    
-    // Validate in batches to avoid overwhelming the browser
-    const batchSize = 5;
-    for (let i = 0; i < pointsWithComplexity.length; i += batchSize) {
-      const batch = pointsWithComplexity.slice(i, i + batchSize);
-      await Promise.all(
-        batch.map(async (point) => {
-          try {
-            const report = await validateDataPoint(point);
-            results.set(point.folderName, report);
-          } catch (error) {
-            console.error(`Error validating ${point.folderName}:`, error);
-          }
-        })
-      );
-      // Update state incrementally for better UX
-      setValidationResults(new Map(results));
+
+    // Validate sequentially for progress tracking
+    for (let i = 0; i < dataPoints.length; i++) {
+      const point = dataPoints[i];
+      try {
+        const report = await validateDataPoint(point);
+        results.set(point.folderName, report);
+        setValidationProgress({ current: i + 1, total: dataPoints.length });
+        // Update results incrementally
+        setValidationResults(new Map(results));
+      } catch (error) {
+        console.error(`Error validating ${point.folderName}:`, error);
+      }
     }
-    
+
     setValidating(false);
   };
 
   // Sync with context data when it changes
   useEffect(() => {
     if (contextDataPoints.length > 0 && hasCustomData) {
-      loadAndValidateData(contextDataPoints);
+      loadData(contextDataPoints);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contextDataPoints, hasCustomData]);
@@ -83,7 +91,7 @@ export function DashboardPage() {
       const points = uploadedData as DataPoint[];
       console.log('Loaded uploaded data points:', points.length);
       setContextDataPoints(points);
-      await loadAndValidateData(points);
+      await loadData(points);
     } catch (error) {
       console.error('Error processing uploaded data:', error);
     } finally {
@@ -178,12 +186,58 @@ export function DashboardPage() {
                 )}
           </div>
           
-          <FolderUpload 
+          <FolderUpload
             onUpload={handleUpload}
             onReset={handleReset}
             hasCustomData={hasCustomData}
           />
-          
+
+          {dataPoints.length > 0 && (
+            <div className="mt-4">
+              <LlmConfigPanel onConfigChange={() => {
+                // Config changed - validation can be re-run via button
+              }} />
+
+              <div className="mt-4 border border-gray-300 rounded-lg p-4 bg-white">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Validation</h3>
+                    <p className="text-xs text-gray-600 mt-1">Run validation checks on all data points</p>
+                  </div>
+                  <button
+                    onClick={runValidation}
+                    disabled={validating || dataPoints.length === 0}
+                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {validating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Running...
+                      </>
+                    ) : (
+                      <>Run Validation</>
+                    )}
+                  </button>
+                </div>
+
+                {validating && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm text-gray-600">
+                      <span>Progress: {validationProgress.current} / {validationProgress.total}</span>
+                      <span>{Math.round((validationProgress.current / validationProgress.total) * 100)}%</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${(validationProgress.current / validationProgress.total) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {dataPoints.length === 0 && !loading && (
             <div className="mt-8 p-8 bg-blue-50 border border-blue-200 rounded-lg text-center">
               <p className="text-blue-800 font-medium mb-2">No data loaded</p>
