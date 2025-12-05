@@ -565,6 +565,117 @@ function checkAssistantMessageStructure(conversation: ConversationData | undefin
 }
 
 /**
+ * Recursively checks if a value (or any nested part of it) appears in a target object
+ */
+function valueFoundInTarget(value: any, target: any, depth: number = 0): boolean {
+  if (depth > 10) return false; // Prevent infinite recursion
+  
+  if (value === null || value === undefined || target === null || target === undefined) {
+    return false;
+  }
+
+  // Exact match
+  if (value === target) {
+    return true;
+  }
+
+  // String matching - check if value string appears in target string
+  if (typeof value === 'string' && typeof target === 'string') {
+    if (value.length > 0 && target.includes(value)) {
+      return true;
+    }
+  }
+
+  // For objects, check if value is a subset of target
+  if (typeof value === 'object' && typeof target === 'object') {
+    // Check if value is an array
+    if (Array.isArray(value)) {
+      // Check if any element of value array appears in target
+      if (value.length > 0) {
+        return value.some(item => valueFoundInTarget(item, target, depth + 1));
+      }
+    }
+    
+    // Check if value is a subset of target object
+    if (!Array.isArray(value) && !Array.isArray(target)) {
+      // Check if all keys in value exist in target with matching values
+      const valueKeys = Object.keys(value);
+      if (valueKeys.length > 0) {
+        // Check if at least some keys match (partial match is OK)
+        const matchingKeys = valueKeys.filter(key => {
+          if (key in target) {
+            return valueFoundInTarget(value[key], target[key], depth + 1);
+          }
+          return false;
+        });
+        
+        // If at least 50% of keys match, consider it traceable
+        if (matchingKeys.length > 0 && matchingKeys.length >= Math.min(1, valueKeys.length * 0.5)) {
+          return true;
+        }
+      }
+    }
+    
+    // Check if value appears anywhere in nested target structure
+    if (typeof target === 'object') {
+      if (Array.isArray(target)) {
+        return target.some(item => valueFoundInTarget(value, item, depth + 1));
+      } else {
+        // Check all values in target object
+        return Object.values(target).some(targetValue => 
+          valueFoundInTarget(value, targetValue, depth + 1)
+        );
+      }
+    }
+  }
+
+  // Number matching - exact match
+  if (typeof value === 'number' && typeof target === 'number') {
+    return value === target;
+  }
+
+  // Boolean matching
+  if (typeof value === 'boolean' && typeof target === 'boolean') {
+    return value === target;
+  }
+
+  return false;
+}
+
+/**
+ * Check if a prop value can be traced to any tool result
+ */
+function canTracePropValue(propValue: any, toolResults: Map<string, any>): boolean {
+  // Skip primitive values that are clearly not from tool results
+  if (propValue === null || propValue === undefined) {
+    return false;
+  }
+
+  // Simple primitives (short strings, numbers, booleans) are usually not from tool results
+  if (typeof propValue === 'string' && propValue.length < 20) {
+    // Unless it's a URL, ID, or looks like structured data
+    if (!propValue.includes('http') && !propValue.includes('://') && !propValue.match(/^[a-zA-Z0-9_-]+$/)) {
+      return false;
+    }
+  }
+
+  if (typeof propValue === 'number' || typeof propValue === 'boolean') {
+    // Numbers and booleans could come from tool results, but hard to trace
+    // Only flag if it's part of a complex structure
+    return false;
+  }
+
+  // Check all tool results for a match
+  for (const [, toolResult] of toolResults.entries()) {
+    if (valueFoundInTarget(propValue, toolResult)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Check 9: Component props source clarity - trace where props come from
  */
 function checkComponentPropsSource(conversation: ConversationData | undefined): ValidationResult {
@@ -586,6 +697,10 @@ function checkComponentPropsSource(conversation: ConversationData | undefined): 
       if (toolCallId) {
         toolResults.set(toolCallId, message.content);
       }
+      // Also store without ID for cases where ID might be missing
+      if (!toolCallId) {
+        toolResults.set(`tool_${message.role}_${conversation.conversation.indexOf(message)}`, message.content);
+      }
     }
   });
 
@@ -602,28 +717,31 @@ function checkComponentPropsSource(conversation: ConversationData | undefined): 
 
           propKeys.forEach(propKey => {
             const propValue = props[propKey];
-            const propValueStr = JSON.stringify(propValue);
+            
+            // Skip if prop value is clearly a simple primitive that's unlikely from tool results
+            if (typeof propValue === 'string' && propValue.length < 10 && !propValue.includes('http')) {
+              return; // Skip short strings that are likely hardcoded
+            }
 
             // Check if prop value looks like it might come from a tool result
-            // but we can't find a clear source
             const looksLikeToolResult = 
               typeof propValue === 'object' ||
-              (typeof propValue === 'string' && propValue.length > 50) ||
-              propValueStr.includes('result') ||
-              propValueStr.includes('data');
+              (typeof propValue === 'string' && propValue.length > 30) ||
+              Array.isArray(propValue);
 
             if (looksLikeToolResult) {
-              // Try to find if this value appears in any tool result
-              let foundSource = false;
-              for (const [, toolResult] of toolResults.entries()) {
-                const toolResultStr = JSON.stringify(toolResult);
-                if (toolResultStr.includes(propValueStr.substring(0, 20))) {
-                  foundSource = true;
-                  break;
-                }
-              }
-
-              if (!foundSource && idx > 0) {
+              // Try to trace the prop value to a tool result
+              const canTrace = canTracePropValue(propValue, toolResults);
+              
+              // Also check if there are tool results before this message
+              const hasToolResultsBefore = Array.from(toolResults.keys()).length > 0;
+              
+              // Only flag if:
+              // 1. It looks like it might come from a tool result
+              // 2. We can't trace it to any tool result
+              // 3. There are tool results in the conversation (meaning we should be able to trace it)
+              // 4. It's not the first message (first message might have hardcoded values)
+              if (!canTrace && hasToolResultsBefore && idx > 0) {
                 violations.push(
                   `Message ${idx + 1}, Component ${item.component.name}.${propKey}: Prop value source unclear (may come from tool result but not traceable)`
                 );
