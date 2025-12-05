@@ -175,9 +175,10 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0, 
                   <select
                     value={currentRating || ''}
                     onChange={(e) => {
-                      const value = e.target.value as Rating;
-                      updateRating(point.folderName, value || null);
+                      const value = e.target.value;
+                      updateRating(point.folderName, value === '' ? null : (value as 'Good' | 'Bad'));
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     className={`px-3 py-1.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                       currentRating === 'Good'
                         ? 'bg-green-50 border-green-300 text-green-700'
@@ -185,7 +186,6 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0, 
                         ? 'bg-red-50 border-red-300 text-red-700'
                         : 'bg-gray-50 border-gray-300 text-gray-700'
                     }`}
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <option value="">-</option>
                     <option value="Good">Good</option>
