@@ -135,11 +135,11 @@ export function DashboardPage() {
     total: dataPoints.length,
     passed: Array.from(validationResults.values()).filter(r => {
       const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
-      return propsMatchCheck?.passed ?? true;
+      return propsMatchCheck && propsMatchCheck.passed === true;
     }).length,
     failed: Array.from(validationResults.values()).filter(r => {
       const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
-      return propsMatchCheck && !propsMatchCheck.passed;
+      return propsMatchCheck && propsMatchCheck.passed === false;
     }).length,
     pending: dataPoints.length - validationResults.size
   };
