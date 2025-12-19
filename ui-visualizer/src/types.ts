@@ -1,3 +1,17 @@
+export interface ToolParameter {
+  name: string;
+  type: string;
+  description: string;
+  required: boolean;
+}
+
+export interface ToolDefinition {
+  name: string;
+  description: string;
+  parameters: ToolParameter[];
+  return_type?: string;
+}
+
 export interface ConversationData {
   componentsSchema: {
     $defs: Record<string, any>;
@@ -9,6 +23,7 @@ export interface ConversationData {
     grading_guidance?: any;
     toolCalls?: any[];
   }>;
+  tool_definitions?: ToolDefinition[];
 }
 
 export interface ComponentDefinition {

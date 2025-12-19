@@ -119,6 +119,10 @@ export async function validateComponents(
   const gradingGuidanceCheck = checkGradingGuidanceStructure(dataPoint.conversation);
   results.push(gradingGuidanceCheck);
 
+  // Check 10: Tool calls match definitions
+  const toolCallsCheck = checkToolCallsMatchDefinitions(dataPoint.conversation);
+  results.push(toolCallsCheck);
+
   const allPassed = results.every(r => r.passed);
 
   return {
@@ -1173,6 +1177,171 @@ function checkGradingGuidanceStructure(conversation: ConversationData | undefine
     check: 'Grading guidance structure',
     passed: true,
     message: 'Grading guidance structure is correct: has quality_criteria and expected_components, no tool_calls.'
+  };
+}
+
+/**
+ * Check 10: Tool calls match tool definitions
+ * Validates that all tool_use blocks reference defined tools with correct parameters
+ */
+function checkToolCallsMatchDefinitions(conversation: ConversationData | undefined): ValidationResult {
+  if (!conversation) {
+    return {
+      check: 'Tool calls match definitions',
+      passed: true,
+      message: 'No conversation data to validate.'
+    };
+  }
+
+  const toolDefinitions = conversation.tool_definitions;
+
+  // If no tool definitions exist, skip validation (nothing to check against)
+  if (!toolDefinitions || toolDefinitions.length === 0) {
+    return {
+      check: 'Tool calls match definitions',
+      passed: true,
+      message: 'No tool_definitions found - skipping validation.'
+    };
+  }
+
+  // Build a map of tool names to definitions for quick lookup
+  const toolDefMap = new Map<string, any>();
+  toolDefinitions.forEach(def => {
+    toolDefMap.set(def.name, def);
+  });
+
+  const violations: string[] = [];
+
+  // Check all messages for tool calls
+  conversation.conversation.forEach((message, msgIdx) => {
+    // Skip non-assistant messages (only assistant can call tools)
+    if (message.role !== 'assistant') {
+      return;
+    }
+
+    // Check for toolCalls field (format: toolCalls array with function objects)
+    const toolCalls = (message as any).toolCalls || [];
+
+    // Also check for tool_use blocks in content array (alternative format)
+    const toolUseBlocks = Array.isArray(message.content)
+      ? message.content.filter((block: any) => block.type === 'tool_use')
+      : [];
+
+    // Combine both formats
+    const allToolCalls = [
+      ...toolCalls.map((tc: any) => ({
+        name: tc.function?.name,
+        input: tc.function?.arguments ? JSON.parse(tc.function.arguments) : {}
+      })),
+      ...toolUseBlocks.map((tu: any) => ({
+        name: tu.name,
+        input: tu.input || {}
+      }))
+    ];
+
+    allToolCalls.forEach((toolCall: any) => {
+      const toolName = toolCall.name;
+      const toolInput = toolCall.input || {};
+
+      // Check 1: Tool name exists in definitions
+      if (!toolDefMap.has(toolName)) {
+        violations.push(
+          `Message ${msgIdx + 1}: Tool "${toolName}" not found in tool_definitions. Available tools: ${Array.from(toolDefMap.keys()).join(', ')}`
+        );
+        return;
+      }
+
+      const toolDef = toolDefMap.get(toolName);
+      const paramDefs = toolDef.parameters || [];
+
+      // Build parameter maps for validation
+      const requiredParams = new Set<string>();
+      const allParamNames = new Set<string>();
+      const paramTypes = new Map<string, string>();
+
+      paramDefs.forEach((param: any) => {
+        allParamNames.add(param.name);
+        paramTypes.set(param.name, param.type);
+        if (param.required) {
+          requiredParams.add(param.name);
+        }
+      });
+
+      // Check 2: All required parameters are provided
+      requiredParams.forEach(paramName => {
+        if (!(paramName in toolInput)) {
+          violations.push(
+            `Message ${msgIdx + 1}: Tool "${toolName}" missing required parameter "${paramName}"`
+          );
+        }
+      });
+
+      // Check 3: All provided parameters exist in definition
+      Object.keys(toolInput).forEach(inputParam => {
+        if (!allParamNames.has(inputParam)) {
+          violations.push(
+            `Message ${msgIdx + 1}: Tool "${toolName}" has unexpected parameter "${inputParam}". Expected parameters: ${Array.from(allParamNames).join(', ')}`
+          );
+        }
+      });
+
+      // Check 4: Basic type validation (string, number, boolean, array, object)
+      Object.keys(toolInput).forEach(inputParam => {
+        if (allParamNames.has(inputParam)) {
+          const expectedType = paramTypes.get(inputParam);
+          const actualValue = toolInput[inputParam];
+          const actualType = Array.isArray(actualValue) ? 'array' : typeof actualValue;
+
+          // Map JS types to schema types
+          let expectedJsType = expectedType;
+          if (expectedType === 'string' || expectedType === 'number' || expectedType === 'boolean') {
+            expectedJsType = expectedType;
+          } else if (expectedType === 'array') {
+            expectedJsType = 'array';
+          } else if (expectedType === 'object') {
+            expectedJsType = 'object';
+          }
+
+          if (actualType !== expectedJsType && actualValue !== null && actualValue !== undefined) {
+            violations.push(
+              `Message ${msgIdx + 1}: Tool "${toolName}" parameter "${inputParam}" has type "${actualType}" but expected "${expectedType}"`
+            );
+          }
+        }
+      });
+    });
+  });
+
+  if (violations.length > 0) {
+    return {
+      check: 'Tool calls match definitions',
+      passed: false,
+      message: `Found ${violations.length} tool call validation error(s).`,
+      details: violations
+    };
+  }
+
+  // Count total tool uses for success message
+  const totalToolUses = conversation.conversation.reduce((count, msg) => {
+    const toolCalls = (msg as any).toolCalls || [];
+    const toolUseBlocks = Array.isArray(msg.content)
+      ? msg.content.filter((block: any) => block.type === 'tool_use')
+      : [];
+    return count + toolCalls.length + toolUseBlocks.length;
+  }, 0);
+
+  if (totalToolUses === 0) {
+    return {
+      check: 'Tool calls match definitions',
+      passed: true,
+      message: `Found ${toolDefinitions.length} tool definition(s) but no tool calls in conversation.`
+    };
+  }
+
+  return {
+    check: 'Tool calls match definitions',
+    passed: true,
+    message: `All ${totalToolUses} tool call(s) match their definitions correctly.`
   };
 }
 
