@@ -27,6 +27,7 @@ export function DashboardPage() {
   const [complexityFilter, setComplexityFilter] = useState<string>('');
   const [validating, setValidating] = useState(false);
   const [validationProgress, setValidationProgress] = useState({ current: 0, total: 0 });
+  const [concurrency, setConcurrency] = useState(3); // Default: 3 concurrent validations
   const { updateRating, getRating } = useRatings();
 
   const loadData = async (points: DataPoint[]) => {
@@ -57,19 +58,36 @@ export function DashboardPage() {
     setValidating(true);
     setValidationProgress({ current: 0, total: dataPoints.length });
     const results = new Map<string, ValidationReport>();
+    let completed = 0;
 
-    // Validate sequentially for progress tracking
-    for (let i = 0; i < dataPoints.length; i++) {
-      const point = dataPoints[i];
-      try {
-        const report = await validateDataPoint(point);
-        results.set(point.folderName, report);
-        setValidationProgress({ current: i + 1, total: dataPoints.length });
-        // Update results incrementally
-        setValidationResults(new Map(results));
-      } catch (error) {
-        console.error(`Error validating ${point.folderName}:`, error);
-      }
+    // Process in concurrent batches
+    for (let i = 0; i < dataPoints.length; i += concurrency) {
+      const batch = dataPoints.slice(i, i + concurrency);
+
+      // Validate batch concurrently
+      const batchResults = await Promise.all(
+        batch.map(async (point) => {
+          try {
+            const report = await validateDataPoint(point);
+            return { folderName: point.folderName, report };
+          } catch (error) {
+            console.error(`Error validating ${point.folderName}:`, error);
+            return { folderName: point.folderName, report: null };
+          }
+        })
+      );
+
+      // Add batch results and update progress
+      batchResults.forEach(({ folderName, report }) => {
+        if (report) {
+          results.set(folderName, report);
+        }
+        completed++;
+      });
+
+      setValidationProgress({ current: completed, total: dataPoints.length });
+      // Update results incrementally after each batch
+      setValidationResults(new Map(results));
     }
 
     setValidating(false);
@@ -134,26 +152,29 @@ export function DashboardPage() {
       });
     }
 
+    // Sort by formatted folder name (alphabetically)
+    filtered = filtered.sort((a, b) => {
+      const nameA = formatFolderName(a.folderName).toLowerCase();
+      const nameB = formatFolderName(b.folderName).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
     setFilteredDataPoints(filtered);
   }, [searchQuery, componentFilter, complexityFilter, dataPoints]);
 
   const componentUsage = extractComponentUsage(dataPoints);
   const allComponents = Object.keys(componentUsage).sort();
   
-  // Calculate validation statistics - only for "Props match schema" check
+  // Calculate validation statistics - all checks
   const validationStats = {
     total: dataPoints.length,
     passed: Array.from(validationResults.values()).filter(r => {
-      const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
-      const passed = propsMatchCheck && propsMatchCheck.passed === true;
-      if (!propsMatchCheck) {
-        console.warn('Props match schema check not found in validation results. Available checks:', r.results.map(res => res.check));
-      }
-      return passed;
+      // All checks must pass
+      return r.results.every(result => result.passed === true);
     }).length,
     failed: Array.from(validationResults.values()).filter(r => {
-      const propsMatchCheck = r.results.find(result => result.check === 'Props match schema');
-      return propsMatchCheck && propsMatchCheck.passed === false;
+      // At least one check failed
+      return r.results.some(result => result.passed === false);
     }).length,
     pending: dataPoints.length - validationResults.size
   };
@@ -171,14 +192,14 @@ export function DashboardPage() {
                     <div className="flex items-center gap-2 px-4 py-2 bg-green-50 rounded-lg border border-green-200">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
                       <span className="text-sm font-semibold text-green-700">
-                        {validationStats.passed} Pass Props Match Schema
+                        {validationStats.passed} All Checks Passed
                       </span>
                     </div>
                     {validationStats.failed > 0 && (
                       <div className="flex items-center gap-2 px-4 py-2 bg-red-50 rounded-lg border border-red-200">
                         <div className="w-2 h-2 rounded-full bg-red-500"></div>
                         <span className="text-sm font-semibold text-red-700">
-                          {validationStats.failed} Failed Props Match Schema
+                          {validationStats.failed} With Failures
                         </span>
                       </div>
                     )}
@@ -200,24 +221,47 @@ export function DashboardPage() {
 
               <div className="mt-4 border border-gray-300 rounded-lg p-4 bg-white">
                 <div className="flex items-center justify-between mb-3">
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">Validation</h3>
                     <p className="text-xs text-gray-600 mt-1">Run validation checks on all data points</p>
                   </div>
-                  <button
-                    onClick={runValidation}
-                    disabled={validating || dataPoints.length === 0}
-                    className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {validating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Running...
-                      </>
-                    ) : (
-                      <>Run Validation</>
-                    )}
-                  </button>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <label htmlFor="concurrency" className="text-sm text-gray-700">
+                        Concurrency:
+                      </label>
+                      <select
+                        id="concurrency"
+                        value={concurrency}
+                        onChange={(e) => setConcurrency(parseInt(e.target.value, 10))}
+                        disabled={validating}
+                        className="px-2 py-1 border border-gray-300 rounded text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                      >
+                        <option value="1">1 (Sequential)</option>
+                        <option value="2">2</option>
+                        <option value="3">3 (Default)</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={runValidation}
+                      disabled={validating || dataPoints.length === 0}
+                      className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {validating ? (
+                        <>
+                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                          Running...
+                        </>
+                      ) : (
+                        <>Run Validation</>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {validating && (

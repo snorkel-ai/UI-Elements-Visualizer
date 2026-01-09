@@ -4,6 +4,20 @@
  */
 
 /**
+ * Load LLM config from environment variables (Node.js version)
+ */
+function loadLlmConfig() {
+  return {
+    enabled: !!process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY,
+    model: process.env.OPENAI_MODEL || 'gpt-4-turbo',
+    temperature: 0.1,
+    maxTokens: 2000,
+    timeout: 30000
+  };
+}
+
+/**
  * Parses TypeScript component definitions from components.ts file
  */
 export function parseComponents(componentsContent) {
@@ -61,7 +75,7 @@ export function parseComponents(componentsContent) {
 /**
  * Validates component definitions against the specified rules
  */
-export function validateComponents(dataPoint, parsedComponents, componentsContent) {
+export async function validateComponents(dataPoint, parsedComponents, componentsContent) {
   const results = [];
 
   // Check 1: No "export interface" - should be just "interface"
@@ -107,6 +121,14 @@ export function validateComponents(dataPoint, parsedComponents, componentsConten
   // Check 11: Tool calls match definitions
   const toolCallsCheck = checkToolCallsMatchDefinitions(dataPoint.conversation);
   results.push(toolCallsCheck);
+
+  // Check 12: Tool Correctness (LLMAJ Section 2)
+  const toolCorrectnessCheck = await checkToolCorrectness(dataPoint.conversation);
+  results.push(toolCorrectnessCheck);
+
+  // Check 13: Conversation Flow (LLMAJ Section 3)
+  const flowCheck = await checkConversationFlow(dataPoint.conversation);
+  results.push(flowCheck);
 
   const allPassed = results.every(r => r.passed);
 
@@ -1162,5 +1184,277 @@ function checkToolCallsMatchDefinitions(conversation) {
     passed: true,
     message: `All ${totalToolUses} tool call(s) match their definitions correctly.`
   };
+}
+
+/**
+ * Check 12: Tool Correctness (LLMAJ Section 2)
+ */
+async function checkToolCorrectness(conversation) {
+  if (!conversation) {
+    return {
+      check: 'Tool Correctness',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations = identifyToolCorrectnessViolations(conversation);
+  const toolDefs = conversation.tool_definitions || [];
+  const toolCalls = conversation.conversation.filter(m => m.toolCalls?.length > 0);
+
+  if (toolDefs.length === 0 && toolCalls.length === 0) {
+    return {
+      check: 'Tool Correctness',
+      passed: true,
+      message: 'No tools used in conversation.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const { evaluateToolCorrectnessWithLLM } = await import('../services/llmToolCorrectnessEvaluator.ts');
+
+      const sectionEval = await evaluateToolCorrectnessWithLLM(violations, conversation, llmConfig);
+
+      // Convert to ValidationResult format - Show ALL items with status
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      // Format ALL items with status icons and details
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Tool Correctness',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All tool usage patterns validated (${toolDefs.length} tools, ${toolCalls.length} calls)`
+          : `Found ${failedItems.length} tool correctness violation(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error) {
+      console.error('LLM tool correctness evaluation failed:', error.message);
+      // Continue with other checks, mark this one with warning
+      return {
+        check: 'Tool Correctness',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map(v => `Tool "${v.toolName}": ${v.details}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Tool Correctness',
+    passed: violations.length === 0,
+    message: violations.length === 0
+      ? 'Tool usage patterns appear correct (LLM disabled)'
+      : `Found ${violations.length} potential tool issue(s) (LLM evaluation disabled)`,
+    details: violations.map(v => `Tool "${v.toolName}": ${v.details}`)
+  };
+}
+
+/**
+ * Helper function to identify tool correctness violations
+ */
+function identifyToolCorrectnessViolations(conversation) {
+  const violations = [];
+  const toolDefs = conversation.tool_definitions || [];
+  const toolDefNames = new Set(toolDefs.map(td => td.name));
+
+  // Check 1: All tools used are defined
+  conversation.conversation.forEach((msg, idx) => {
+    const toolCalls = msg.toolCalls || [];
+    toolCalls.forEach(tc => {
+      const toolName = tc.function?.name;
+      if (toolName && !toolDefNames.has(toolName)) {
+        violations.push({
+          toolName,
+          messageIndices: [idx],
+          violationType: 'inconsistent_definition',
+          details: `Tool "${toolName}" used but not found in tool_definitions`
+        });
+      }
+    });
+  });
+
+  // Check 2: Sequential calls in same message (flag for LLM review)
+  // Note: Multiple tool calls in same message are VALID if they can run in parallel
+  // Only flag as violation if tools have dependencies
+  conversation.conversation.forEach((msg, idx) => {
+    const toolCalls = msg.toolCalls || [];
+    if (toolCalls.length > 1) {
+      // Flag multiple tool calls for LLM to review dependencies
+      violations.push({
+        toolName: toolCalls.map(tc => tc.function?.name).join(', '),
+        messageIndices: [idx],
+        violationType: 'sequential_issue',
+        details: `${toolCalls.length} tool calls in same message: ${toolCalls.map(tc => tc.function?.name).join(', ')} - LLM should verify they can run in parallel`
+      });
+    }
+  });
+
+  return violations;
+}
+
+/**
+ * Check 13: Conversation Flow (LLMAJ Section 3)
+ */
+async function checkConversationFlow(conversation) {
+  if (!conversation) {
+    return {
+      check: 'Conversation Flow',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations = identifyFlowViolations(conversation);
+
+  if (violations.length === 0) {
+    return {
+      check: 'Conversation Flow',
+      passed: true,
+      message: 'Conversation flow follows expected patterns.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const { evaluateFlowWithLLM } = await import('../services/llmFlowEvaluator.ts');
+
+      const sectionEval = await evaluateFlowWithLLM(violations, conversation, llmConfig);
+
+      // Convert to ValidationResult format - Show ALL items with status
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      // Format ALL items with status icons and details
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Conversation Flow',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All conversation flow patterns validated`
+          : `Found ${failedItems.length} flow violation(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error) {
+      console.error('LLM flow evaluation failed:', error.message);
+      // Continue with other checks, mark this one with warning
+      return {
+        check: 'Conversation Flow',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map(v => `Messages ${v.messageIndices.join(', ')}: ${v.expectedFlow} → ${v.actualFlow}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Conversation Flow',
+    passed: false,
+    message: `Found ${violations.length} potential flow issue(s) (LLM evaluation disabled)`,
+    details: violations.map(v => `Messages ${v.messageIndices.join(', ')}: ${v.expectedFlow} → ${v.actualFlow}`)
+  };
+}
+
+/**
+ * Helper function to identify flow violations
+ */
+function identifyFlowViolations(conversation) {
+  const violations = [];
+  const messages = conversation.conversation;
+
+  // Check: Tool messages should be followed by assistant messages
+  // BUT: Multiple consecutive tool messages are allowed after an assistant with multiple tool calls
+  for (let i = 0; i < messages.length; i++) {
+    const current = messages[i];
+
+    // When we find an assistant message with tool calls, track expected tool message count
+    if (current.role === 'assistant' && current.tool_calls && current.tool_calls.length > 0) {
+      const expectedToolCount = current.tool_calls.length;
+      let actualToolCount = 0;
+      let j = i + 1;
+
+      // Count consecutive tool messages
+      while (j < messages.length && messages[j].role === 'tool') {
+        actualToolCount++;
+        j++;
+      }
+
+      // Check if we have the right number of tool messages
+      if (actualToolCount < expectedToolCount) {
+        violations.push({
+          messageIndices: [i, j - 1],
+          violationType: 'missing_assistant_response',
+          expectedFlow: `Assistant with ${expectedToolCount} tool calls → ${expectedToolCount} tool messages → Assistant response`,
+          actualFlow: `Assistant with ${expectedToolCount} tool calls → only ${actualToolCount} tool messages found`
+        });
+      }
+
+      // Check if tool messages are followed by assistant (if we have any tool messages)
+      if (actualToolCount > 0) {
+        const nextAfterTools = messages[j];
+        if (nextAfterTools && nextAfterTools.role !== 'assistant') {
+          violations.push({
+            messageIndices: [i, j],
+            violationType: 'missing_assistant_response',
+            expectedFlow: `Assistant → ${expectedToolCount} tool messages → Assistant response`,
+            actualFlow: `Assistant → ${actualToolCount} tool messages → ${nextAfterTools.role} message (missing assistant response)`
+          });
+        }
+      }
+
+      // Skip past the tool messages we've already checked
+      i = j - 1;
+    }
+  }
+
+  return violations;
 }
 

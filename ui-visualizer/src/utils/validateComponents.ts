@@ -18,6 +18,11 @@ export interface ValidationResult {
       reasoning: string;
       category: string;
     }>;
+    // NEW: Additional metadata for LLMAJ validators
+    llmCallCount?: number;
+    totalTokens?: number;
+    evaluationFailed?: boolean;
+    error?: string;
   };
 }
 
@@ -122,6 +127,30 @@ export async function validateComponents(
   // Check 10: Tool calls match definitions
   const toolCallsCheck = checkToolCallsMatchDefinitions(dataPoint.conversation);
   results.push(toolCallsCheck);
+
+  // NEW: Check 11 - Tool Correctness (LLMAJ Section 2)
+  const toolCorrectnessCheck = await checkToolCorrectness(dataPoint.conversation);
+  results.push(toolCorrectnessCheck);
+
+  // NEW: Check 12 - Conversation Flow (LLMAJ Section 3)
+  const flowCheck = await checkConversationFlow(dataPoint.conversation);
+  results.push(flowCheck);
+
+  // NEW: Check 13 - Traceability (LLMAJ Section 1)
+  const traceabilityCheck = await checkTraceability(dataPoint.conversation);
+  results.push(traceabilityCheck);
+
+  // NEW: Check 14 - Grading Guidance (LLMAJ Section 5)
+  const gradingGuidanceQualityCheck = await checkGradingGuidanceQuality(dataPoint.conversation);
+  results.push(gradingGuidanceQualityCheck);
+
+  // NEW: Check 15 - Assistant Response (LLMAJ Section 6)
+  const assistantResponseCheck = await checkAssistantResponse(dataPoint.conversation);
+  results.push(assistantResponseCheck);
+
+  // NEW: Check 16 - Component Quality (LLMAJ Section 4)
+  const componentQualityCheck = await checkComponentQuality(dataPoint.conversation);
+  results.push(componentQualityCheck);
 
   const allPassed = results.every(r => r.passed);
 
@@ -1345,3 +1374,800 @@ function checkToolCallsMatchDefinitions(conversation: ConversationData | undefin
   };
 }
 
+/**
+ * NEW: Check 11 - Tool Correctness (LLMAJ Section 2)
+ * Verifies tools are properly defined, consistently used, and appropriately applied
+ */
+async function checkToolCorrectness(
+  conversation: ConversationData | undefined
+): Promise<ValidationResult> {
+  if (!conversation) {
+    return {
+      check: 'Tool Correctness',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations: any[] = identifyToolCorrectnessViolations(conversation);
+
+  // If no tools and no violations, pass
+  const toolDefs = conversation.tool_definitions || [];
+  const toolCalls = conversation.conversation.filter(m => (m as any).toolCalls?.length > 0);
+
+  if (toolDefs.length === 0 && toolCalls.length === 0) {
+    return {
+      check: 'Tool Correctness',
+      passed: true,
+      message: 'No tools used in conversation.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const { loadLlmConfig } = await import('../config/llmConfig');
+  const { evaluateToolCorrectnessWithLLM } = await import('../services/llmToolCorrectnessEvaluator');
+
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const sectionEval = await evaluateToolCorrectnessWithLLM(
+        violations,
+        conversation,
+        llmConfig
+      );
+
+      // Convert to ValidationResult format - Show ALL items with status
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      // Format ALL items with status icons and details
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Tool Correctness',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All tool usage patterns validated (${toolDefs.length} tools, ${toolCalls.length} calls)`
+          : `Found ${failedItems.length} tool correctness violation(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error: any) {
+      console.error('LLM tool correctness evaluation failed:', error.message);
+      // Continue with other checks, mark this one with warning
+      return {
+        check: 'Tool Correctness',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map((v: any) => `Tool "${v.toolName}": ${v.details}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Tool Correctness',
+    passed: violations.length === 0,
+    message: violations.length === 0
+      ? 'Tool usage patterns appear correct (LLM disabled)'
+      : `Found ${violations.length} potential tool issue(s) (LLM evaluation disabled)`,
+    details: violations.map((v: any) => `Tool "${v.toolName}": ${v.details}`)
+  };
+}
+
+/**
+ * Identify tool correctness violations (sync phase)
+ */
+function identifyToolCorrectnessViolations(conversation: ConversationData): any[] {
+  const violations: any[] = [];
+  const toolDefs = conversation.tool_definitions || [];
+  const toolDefNames = new Set(toolDefs.map(td => td.name));
+
+  // Check 1: All tools used are defined
+  conversation.conversation.forEach((msg, idx) => {
+    const toolCalls = (msg as any).toolCalls || [];
+    toolCalls.forEach((tc: any) => {
+      const toolName = tc.function?.name;
+      if (toolName && !toolDefNames.has(toolName)) {
+        violations.push({
+          toolName,
+          messageIndices: [idx],
+          violationType: 'inconsistent_definition',
+          details: `Tool "${toolName}" used but not found in tool_definitions`
+        });
+      }
+    });
+  });
+
+  // Check 2: Sequential calls in same message (flag for LLM review)
+  // Note: Multiple tool calls in same message are VALID if they can run in parallel
+  // Only flag as violation if tools have dependencies
+  conversation.conversation.forEach((msg, idx) => {
+    const toolCalls = (msg as any).toolCalls || [];
+    if (toolCalls.length > 1) {
+      // Flag multiple tool calls for LLM to review dependencies
+      violations.push({
+        toolName: toolCalls.map((tc: any) => tc.function?.name).join(', '),
+        messageIndices: [idx],
+        violationType: 'sequential_issue',
+        details: `${toolCalls.length} tool calls in same message: ${toolCalls.map((tc: any) => tc.function?.name).join(', ')} - LLM should verify they can run in parallel`
+      });
+    }
+  });
+
+  return violations;
+}
+
+/**
+ * NEW: Check 12 - Conversation Flow (LLMAJ Section 3)
+ * Ensures logical message sequences and proper ordering
+ */
+async function checkConversationFlow(
+  conversation: ConversationData | undefined
+): Promise<ValidationResult> {
+  if (!conversation?.conversation || conversation.conversation.length === 0) {
+    return {
+      check: 'Conversation Flow',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential flow violations (sync phase)
+  const violations: any[] = identifyFlowViolations(conversation);
+
+  if (violations.length === 0) {
+    return {
+      check: 'Conversation Flow',
+      passed: true,
+      message: 'Message sequence follows logical flow.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const { loadLlmConfig } = await import('../config/llmConfig');
+  const { evaluateFlowWithLLM } = await import('../services/llmFlowEvaluator');
+
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const sectionEval = await evaluateFlowWithLLM(
+        violations,
+        conversation,
+        llmConfig
+      );
+
+      // Convert to ValidationResult format - Show ALL items with status
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      // Format ALL items with status icons and details
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Conversation Flow',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All conversation flow patterns validated`
+          : `Found ${failedItems.length} flow violation(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error: any) {
+      console.error('LLM flow evaluation failed:', error.message);
+      // Continue with other checks, mark this one with warning
+      return {
+        check: 'Conversation Flow',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map((v: any) => `Messages ${v.messageIndices.join(', ')}: ${v.expectedFlow}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Conversation Flow',
+    passed: false,
+    message: `Found ${violations.length} potential flow issue(s) (LLM evaluation disabled)`,
+    details: violations.map((v: any) => `Messages ${v.messageIndices.join(', ')}: ${v.expectedFlow}`)
+  };
+}
+
+/**
+ * Identify conversation flow violations (sync phase)
+ */
+function identifyFlowViolations(conversation: ConversationData): any[] {
+  const violations: any[] = [];
+  const messages = conversation.conversation;
+
+  // Check: Tool messages should be followed by assistant messages
+  // BUT: Multiple consecutive tool messages are allowed after an assistant with multiple tool calls
+  for (let i = 0; i < messages.length; i++) {
+    const current = messages[i];
+
+    // When we find an assistant message with tool calls, track expected tool message count
+    if (current.role === 'assistant' && current.toolCalls && current.toolCalls.length > 0) {
+      const expectedToolCount = current.toolCalls.length;
+      let actualToolCount = 0;
+      let j = i + 1;
+
+      // Count consecutive tool messages
+      while (j < messages.length && messages[j].role === 'tool') {
+        actualToolCount++;
+        j++;
+      }
+
+      // Check if we have the right number of tool messages
+      if (actualToolCount < expectedToolCount) {
+        violations.push({
+          messageIndices: [i, j - 1],
+          violationType: 'missing_assistant_response',
+          expectedFlow: `Assistant with ${expectedToolCount} tool calls → ${expectedToolCount} tool messages → Assistant response`,
+          actualFlow: `Assistant with ${expectedToolCount} tool calls → only ${actualToolCount} tool messages found`
+        });
+      }
+
+      // Check if tool messages are followed by assistant (if we have any tool messages)
+      if (actualToolCount > 0) {
+        const nextAfterTools = messages[j];
+        if (nextAfterTools && nextAfterTools.role !== 'assistant') {
+          violations.push({
+            messageIndices: [i, j],
+            violationType: 'missing_assistant_response',
+            expectedFlow: `Assistant → ${expectedToolCount} tool messages → Assistant response`,
+            actualFlow: `Assistant → ${actualToolCount} tool messages → ${nextAfterTools.role} message (missing assistant response)`
+          });
+        }
+      }
+
+      // Skip past the tool messages we've already checked
+      i = j - 1;
+    }
+  }
+
+  return violations;
+}
+
+
+/**
+ * NEW: Check 13 - Traceability (LLMAJ Section 1)
+ * Ensures all information traces back to conversation context or tool outputs
+ */
+async function checkTraceability(
+  conversation: ConversationData | undefined
+): Promise<ValidationResult> {
+  if (!conversation) {
+    return {
+      check: 'Traceability',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations: any[] = identifyTraceabilityViolations(conversation);
+
+  if (violations.length === 0) {
+    return {
+      check: 'Traceability',
+      passed: true,
+      message: 'All information is traceable to conversation context.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const { loadLlmConfig } = await import('../config/llmConfig');
+  const { evaluateTraceabilityWithLLM } = await import('../services/llmTraceabilityEvaluator');
+
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const sectionEval = await evaluateTraceabilityWithLLM(violations, conversation, llmConfig);
+
+      // Convert to ValidationResult format - Show ALL items with status
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      // Format ALL items with status icons and details
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Traceability',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All information is traceable to conversation context`
+          : `Found ${failedItems.length} traceability violation(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error: any) {
+      console.error('LLM traceability evaluation failed:', error.message);
+      return {
+        check: 'Traceability',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map((v: any) => `Message ${v.messageIndex}: ${v.content}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Traceability',
+    passed: false,
+    message: `Found ${violations.length} potential traceability issue(s) (LLM evaluation disabled)`,
+    details: violations.map((v: any) => `Message ${v.messageIndex}: ${v.content}`)
+  };
+}
+
+/**
+ * Identify traceability violations (sync phase)
+ */
+function identifyTraceabilityViolations(conversation: ConversationData): any[] {
+  const violations: any[] = [];
+
+  // Check for common placeholder patterns
+  const placeholderPatterns = [
+    /example@/i,
+    /@example\./i,
+    /website\.com/i,
+    /yoursite\./i,
+    /placeholder/i
+  ];
+
+  conversation.conversation.forEach((msg, idx) => {
+    if (msg.role === 'assistant') {
+      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+
+      placeholderPatterns.forEach(pattern => {
+        if (pattern.test(content)) {
+          violations.push({
+            messageIndex: idx,
+            violationType: 'untraced_claim',
+            content: content.substring(0, 200),
+            context: { pattern: pattern.source }
+          });
+        }
+      });
+    }
+  });
+
+  return violations;
+}
+
+/**
+ * NEW: Check 14 - Grading Guidance Quality (LLMAJ Section 5)
+ * Ensures grading guidance is turn-specific and matches actual components
+ */
+async function checkGradingGuidanceQuality(
+  conversation: ConversationData | undefined
+): Promise<ValidationResult> {
+  if (!conversation) {
+    return {
+      check: 'Grading Guidance Quality',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations: any[] = identifyGradingGuidanceViolations(conversation);
+
+  if (violations.length === 0) {
+    return {
+      check: 'Grading Guidance Quality',
+      passed: true,
+      message: 'All grading guidance is appropriate and matches components.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const { loadLlmConfig } = await import('../config/llmConfig');
+  const { evaluateGradingGuidanceWithLLM } = await import('../services/llmGradingGuidanceEvaluator');
+
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const sectionEval = await evaluateGradingGuidanceWithLLM(violations, conversation, llmConfig);
+
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Grading Guidance Quality',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All grading guidance is appropriate and matches components`
+          : `Found ${failedItems.length} grading guidance issue(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error: any) {
+      console.error('LLM grading guidance evaluation failed:', error.message);
+      return {
+        check: 'Grading Guidance Quality',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map((v: any) => `Turn ${v.turnIndex}: ${v.details}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Grading Guidance Quality',
+    passed: false,
+    message: `Found ${violations.length} potential grading guidance issue(s) (LLM evaluation disabled)`,
+    details: violations.map((v: any) => `Turn ${v.turnIndex}: ${v.details}`)
+  };
+}
+
+/**
+ * Identify grading guidance violations (sync phase)
+ */
+function identifyGradingGuidanceViolations(conversation: ConversationData): any[] {
+  const violations: any[] = [];
+  let turnIndex = 0;
+
+  conversation.conversation.forEach((msg) => {
+    if (msg.role === 'user') {
+      const gg = (msg as any).grading_guidance;
+
+      if (gg) {
+        // Check for broad language suggesting whole-conversation scope
+        const qualityCriteria = JSON.stringify(gg.quality_criteria || {});
+        if (/throughout|all|entire|complete|overall/i.test(qualityCriteria)) {
+          violations.push({
+            turnIndex,
+            violationType: 'not_turn_specific',
+            details: 'Quality criteria uses broad language suggesting whole-conversation scope'
+          });
+        }
+      }
+
+      turnIndex++;
+    }
+  });
+
+  return violations;
+}
+
+/**
+ * NEW: Check 15 - Assistant Response Quality (LLMAJ Section 6)
+ * Verifies responses contain no placeholders, false claims, or redundant info
+ */
+async function checkAssistantResponse(
+  conversation: ConversationData | undefined
+): Promise<ValidationResult> {
+  if (!conversation) {
+    return {
+      check: 'Assistant Response Quality',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations: any[] = identifyAssistantResponseViolations(conversation);
+
+  if (violations.length === 0) {
+    return {
+      check: 'Assistant Response Quality',
+      passed: true,
+      message: 'All assistant responses are appropriate and complete.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const { loadLlmConfig } = await import('../config/llmConfig');
+  const { evaluateAssistantResponseWithLLM } = await import('../services/llmAssistantResponseEvaluator');
+
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const sectionEval = await evaluateAssistantResponseWithLLM(violations, conversation, llmConfig);
+
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Assistant Response Quality',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All assistant responses are appropriate and complete`
+          : `Found ${failedItems.length} assistant response issue(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error: any) {
+      console.error('LLM assistant response evaluation failed:', error.message);
+      return {
+        check: 'Assistant Response Quality',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map((v: any) => `Message ${v.messageIndex}: ${v.details}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Assistant Response Quality',
+    passed: false,
+    message: `Found ${violations.length} potential assistant response issue(s) (LLM evaluation disabled)`,
+    details: violations.map((v: any) => `Message ${v.messageIndex}: ${v.details}`)
+  };
+}
+
+/**
+ * Identify assistant response violations (sync phase)
+ */
+function identifyAssistantResponseViolations(conversation: ConversationData): any[] {
+  const violations: any[] = [];
+
+  // Check for common issues
+  const placeholderPatterns = [
+    /example@/i,
+    /@example\./i,
+    /website\.com/i
+  ];
+
+  const actionClaims = [
+    /I've sent/i,
+    /I've uploaded/i,
+    /I've created/i,
+    /I've updated/i,
+    /I've added/i
+  ];
+
+  conversation.conversation.forEach((msg, idx) => {
+    if (msg.role === 'assistant') {
+      const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
+
+      // Check for placeholders
+      placeholderPatterns.forEach(pattern => {
+        if (pattern.test(content)) {
+          violations.push({
+            messageIndex: idx,
+            violationType: 'placeholder',
+            details: `Contains placeholder pattern: ${pattern.source}`
+          });
+        }
+      });
+
+      // Check for action claims without tool calls
+      const toolCalls = (msg as any).toolCalls || [];
+      if (toolCalls.length === 0) {
+        actionClaims.forEach(pattern => {
+          if (pattern.test(content)) {
+            violations.push({
+              messageIndex: idx,
+              violationType: 'false_claim',
+              details: `Claims action but has no tool calls: ${pattern.source}`
+            });
+          }
+        });
+      }
+    }
+  });
+
+  return violations;
+}
+
+/**
+ * NEW: Check 16 - Component Quality (LLMAJ Section 4)
+ * Verifies components are non-interactive, generalizable, grounded, relevant
+ */
+async function checkComponentQuality(
+  conversation: ConversationData | undefined
+): Promise<ValidationResult> {
+  if (!conversation) {
+    return {
+      check: 'Component Quality',
+      passed: true,
+      message: 'No conversation to validate.'
+    };
+  }
+
+  // Step 1: Identify potential violations (sync phase)
+  const violations: any[] = identifyComponentQualityViolations(conversation);
+
+  if (violations.length === 0) {
+    return {
+      check: 'Component Quality',
+      passed: true,
+      message: 'All components meet quality standards.'
+    };
+  }
+
+  // Step 2: LLM evaluation (async phase with parallel calls)
+  const { loadLlmConfig } = await import('../config/llmConfig');
+  const { evaluateComponentQualityWithLLM } = await import('../services/llmComponentQualityEvaluator');
+
+  const llmConfig = loadLlmConfig();
+
+  if (llmConfig.enabled && llmConfig.apiKey) {
+    try {
+      const sectionEval = await evaluateComponentQualityWithLLM(violations, conversation, llmConfig);
+
+      const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
+
+      const details = sectionEval.checkItemResults.map(item => {
+        if (item.passed) {
+          return `✅ ${item.checkDescription}`;
+        } else {
+          return `❌ ${item.checkDescription} - ${item.failureReason} Context: ${item.context}`;
+        }
+      });
+
+      return {
+        check: 'Component Quality',
+        passed: failedItems.length === 0,
+        message: failedItems.length === 0
+          ? `All components meet quality standards`
+          : `Found ${failedItems.length} component quality issue(s)`,
+        details,
+        metadata: {
+          llmAssisted: true,
+          originalViolationCount: violations.length,
+          llmApprovedCount: sectionEval.checkItemResults.filter(r => r.passed).length,
+          llmRejectedCount: failedItems.length,
+          llmCallCount: sectionEval.metadata.llmCallCount,
+          totalTokens: sectionEval.metadata.totalTokens
+        }
+      };
+    } catch (error: any) {
+      console.error('LLM component quality evaluation failed:', error.message);
+      return {
+        check: 'Component Quality',
+        passed: false,
+        message: `⚠️ LLM evaluation failed: ${error.message}. Found ${violations.length} potential issues (not validated)`,
+        details: violations.map((v: any) => `Component ${v.componentName}: ${v.details}`),
+        metadata: {
+          llmAssisted: false,
+          evaluationFailed: true,
+          error: error.message
+        }
+      };
+    }
+  }
+
+  return {
+    check: 'Component Quality',
+    passed: false,
+    message: `Found ${violations.length} potential component quality issue(s) (LLM evaluation disabled)`,
+    details: violations.map((v: any) => `Component ${v.componentName}: ${v.details}`)
+  };
+}
+
+/**
+ * Identify component quality violations (sync phase)
+ */
+function identifyComponentQualityViolations(conversation: ConversationData): any[] {
+  const violations: any[] = [];
+
+  conversation.conversation.forEach((msg, idx) => {
+    if (msg.role === 'assistant' && Array.isArray(msg.content)) {
+      msg.content.forEach((block: any) => {
+        if (block.type === 'component' && block.component) {
+          const componentName = block.component.name;
+
+          // Check for interactive elements in code
+          const code = block.component.code || '';
+          const interactivePatterns = [
+            /onClick/i,
+            /onChange/i,
+            /<button/i,
+            /<input/i,
+            /<textarea/i,
+            /<select/i
+          ];
+
+          interactivePatterns.forEach(pattern => {
+            if (pattern.test(code)) {
+              violations.push({
+                componentName,
+                messageIndex: idx,
+                violationType: 'interactive',
+                details: `Contains potentially interactive element: ${pattern.source}`
+              });
+            }
+          });
+        }
+      });
+    }
+  });
+
+  return violations;
+}

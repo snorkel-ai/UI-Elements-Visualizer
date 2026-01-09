@@ -184,13 +184,82 @@ function categorizeFolder(report, conversation, parsedComponents) {
 }
 
 /**
- * Generate validation report for all folders
+ * Process a batch of validation tasks concurrently
+ */
+async function processBatch(dataPoints, startIndex, total) {
+  const results = await Promise.all(
+    dataPoints.map(async (dataPoint, batchIndex) => {
+      const index = startIndex + batchIndex;
+      console.log(`[${index + 1}/${total}] Validating ${dataPoint.folderName}...`);
+
+      try {
+        // Load components.ts content
+        const componentsContent = loadComponentsFile(dataPoint.folderName);
+        const parsedComponents = parseComponents(componentsContent);
+
+        // Run validation (async)
+        const validationReport = await validateComponents(dataPoint, parsedComponents, componentsContent);
+
+        // Store conversation in report for later analysis
+        validationReport.conversation = dataPoint.conversation;
+
+        // Categorize (pass conversation and parsedComponents for analysis)
+        const category = categorizeFolder(validationReport, dataPoint.conversation, parsedComponents);
+
+        const folderResult = {
+          folderName: dataPoint.folderName,
+          report: validationReport,
+          category: category.reason
+        };
+
+        if (category.tier === 1) {
+          return { tier: 1, result: folderResult };
+        } else if (category.tier === 2) {
+          // Extract filtered issues for Tier 2
+          const schemaCheck = validationReport.results.find(r => r.check === 'Interface matches schema');
+          folderResult.filteredIssues = schemaCheck && !schemaCheck.passed ? schemaCheck.details : [];
+          folderResult.safeMismatchCount = schemaCheck?.metadata?.totalSafeMismatches || 0;
+          return { tier: 2, result: folderResult };
+        } else {
+          // Extract critical issues for Tier 3
+          const criticalIssues = validationReport.results
+            .filter(r => !r.passed)
+            .map(r => ({ check: r.check, message: r.message, details: r.details }));
+          folderResult.criticalIssues = criticalIssues;
+          return { tier: 3, result: folderResult };
+        }
+      } catch (error) {
+        console.error(`Error validating ${dataPoint.folderName}:`, error.message);
+        return {
+          tier: 3,
+          result: {
+            folderName: dataPoint.folderName,
+            error: error.message,
+            criticalIssues: [{ check: 'Validation Error', message: error.message }]
+          }
+        };
+      }
+    })
+  );
+
+  return results;
+}
+
+/**
+ * Generate validation report for all folders with concurrent processing
  */
 async function generateValidationReport() {
   console.log('Loading data index...');
   const dataIndex = JSON.parse(fs.readFileSync(dataIndexPath, 'utf-8'));
   console.log(`Found ${dataIndex.length} folders`);
-  
+
+  // Configurable concurrency (process N folders at a time)
+  const CONCURRENCY = process.env.VALIDATION_CONCURRENCY
+    ? parseInt(process.env.VALIDATION_CONCURRENCY, 10)
+    : 3;
+
+  console.log(`Processing with concurrency: ${CONCURRENCY}`);
+
   const report = {
     generatedAt: new Date().toISOString(),
     totalFolders: dataIndex.length,
@@ -198,57 +267,24 @@ async function generateValidationReport() {
     tier2: [],
     tier3: []
   };
-  
-  for (let i = 0; i < dataIndex.length; i++) {
-    const dataPoint = dataIndex[i];
-    console.log(`[${i + 1}/${dataIndex.length}] Validating ${dataPoint.folderName}...`);
-    
-    try {
-      // Load components.ts content
-      const componentsContent = loadComponentsFile(dataPoint.folderName);
-      const parsedComponents = parseComponents(componentsContent);
-      
-      // Run validation
-      const validationReport = validateComponents(dataPoint, parsedComponents, componentsContent);
-      
-      // Store conversation in report for later analysis
-      validationReport.conversation = dataPoint.conversation;
-      
-      // Categorize (pass conversation and parsedComponents for analysis)
-      const category = categorizeFolder(validationReport, dataPoint.conversation, parsedComponents);
-      
-      const folderResult = {
-        folderName: dataPoint.folderName,
-        report: validationReport,
-        category: category.reason
-      };
-      
-      if (category.tier === 1) {
-        report.tier1.push(folderResult);
-      } else       if (category.tier === 2) {
-        // Extract filtered issues for Tier 2
-        const schemaCheck = validationReport.results.find(r => r.check === 'Interface matches schema');
-        folderResult.filteredIssues = schemaCheck && !schemaCheck.passed ? schemaCheck.details : [];
-        folderResult.safeMismatchCount = schemaCheck?.metadata?.totalSafeMismatches || 0;
-        report.tier2.push(folderResult);
+
+  // Process in batches
+  for (let i = 0; i < dataIndex.length; i += CONCURRENCY) {
+    const batch = dataIndex.slice(i, i + CONCURRENCY);
+    const batchResults = await processBatch(batch, i, dataIndex.length);
+
+    // Categorize results
+    batchResults.forEach(({ tier, result }) => {
+      if (tier === 1) {
+        report.tier1.push(result);
+      } else if (tier === 2) {
+        report.tier2.push(result);
       } else {
-        // Extract critical issues for Tier 3
-        const criticalIssues = validationReport.results
-          .filter(r => !r.passed)
-          .map(r => ({ check: r.check, message: r.message, details: r.details }));
-        folderResult.criticalIssues = criticalIssues;
-        report.tier3.push(folderResult);
+        report.tier3.push(result);
       }
-    } catch (error) {
-      console.error(`Error validating ${dataPoint.folderName}:`, error.message);
-      report.tier3.push({
-        folderName: dataPoint.folderName,
-        error: error.message,
-        criticalIssues: [{ check: 'Validation Error', message: error.message }]
-      });
-    }
+    });
   }
-  
+
   // Write report
   fs.writeFileSync(outputPath, JSON.stringify(report, null, 2));
   console.log(`\nValidation report generated: ${outputPath}`);

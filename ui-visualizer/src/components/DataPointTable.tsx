@@ -123,47 +123,30 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0, 
                 </td>
                 <td className="px-6 py-4">
                   {validation ? (() => {
-                    // Only show "Props match schema" check
-                    const propsMatchCheck = validation.results.find(r => r.check === 'Props match schema');
-                    if (!propsMatchCheck) {
-                      // Debug: log if check not found
-                      console.warn(`Props match schema check not found for ${point.folderName}. Available checks:`, validation.results.map(r => r.check));
-                      return <span className="text-xs text-gray-400" title="Validation pending or check not found">-</span>;
-                    }
-                    
-                    // Check if other checks failed (for visual indicator)
-                    const otherChecksFailed = validation.results.some(r => 
-                      r.check !== 'Props match schema' && r.passed === false
-                    );
-                    
+                    // Get all failed checks
+                    const failedChecks = validation.results.filter(r => r.passed === false);
+                    const allPassed = failedChecks.length === 0;
+
                     return (
-                      <div className="flex items-center gap-2">
-                        {propsMatchCheck.passed === true ? (
+                      <div className="flex flex-col gap-1">
+                        {allPassed ? (
                           <div className="flex items-center gap-1.5">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            <span className="text-xs text-green-700 font-medium">Pass</span>
-                            {otherChecksFailed && (
-                              <span 
-                                className="text-sm text-orange-600 font-bold" 
-                                title="Other checks failed (see detail page for details)"
-                                style={{ fontSize: '14px', lineHeight: '1' }}
-                              >
-                                ⚠
-                              </span>
-                            )}
-                          </div>
-                        ) : propsMatchCheck.passed === false ? (
-                          <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-1">
-                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                              <span className="text-xs text-red-700 font-medium">Failed</span>
-                            </div>
-                            <div className="text-xs text-gray-600">
-                              {propsMatchCheck.check}
-                            </div>
+                            <span className="text-xs text-green-700 font-medium">All Passed</span>
                           </div>
                         ) : (
-                          <span className="text-xs text-gray-400">-</span>
+                          <>
+                            <div className="flex items-center gap-1.5">
+                              <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                              <span className="text-xs text-red-700 font-medium">
+                                {failedChecks.length} Failed
+                              </span>
+                            </div>
+                            <div className="text-xs text-gray-600 max-w-xs">
+                              <span className="font-medium">Failures:</span>{' '}
+                              {failedChecks.map(check => check.check).join(', ')}
+                            </div>
+                          </>
                         )}
                       </div>
                     );
