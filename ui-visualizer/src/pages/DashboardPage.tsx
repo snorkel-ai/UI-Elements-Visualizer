@@ -48,8 +48,15 @@ export function DashboardPage() {
       })
     );
 
-    setDataPoints(pointsWithComplexity);
-    setFilteredDataPoints(pointsWithComplexity);
+    // Sort by formatted folder name (alphabetically)
+    const sortedPoints = pointsWithComplexity.sort((a, b) => {
+      const nameA = formatFolderName(a.folderName).toLowerCase();
+      const nameB = formatFolderName(b.folderName).toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+
+    setDataPoints(sortedPoints);
+    setFilteredDataPoints(sortedPoints);
   };
 
   const runValidation = async () => {
