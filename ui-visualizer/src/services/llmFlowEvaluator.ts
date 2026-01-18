@@ -61,7 +61,7 @@ export async function evaluateFlowWithLLM(
             }
           ],
           temperature: 0.1,
-          max_tokens: 2000
+          max_tokens: 8000
         });
 
         totalTokens += (response.usage?.total_tokens || 0);
@@ -116,13 +116,29 @@ You are evaluating conversation flow against this criterion:
 
 CHECKLIST ITEM: "${checkDescription}"
 
-MESSAGE SEQUENCE:
-${messageStructure.map(m => `
+FULL MESSAGE SEQUENCE:
+${messageStructure.map(m => {
+  let content = '';
+  if (typeof m.fullContent === 'string') {
+    content = m.fullContent;
+  } else if (Array.isArray(m.fullContent)) {
+    content = m.fullContent.map((block: any) => {
+      if (block.type === 'text') return block.text;
+      if (block.type === 'component') return `[Component: ${block.component?.name || 'unknown'}]`;
+      return '';
+    }).join('\n');
+  } else {
+    content = JSON.stringify(m.fullContent);
+  }
+
+  return `
 Message ${m.index} (${m.role}):
+  Content: ${content.substring(0, 500)}${content.length > 500 ? '...' : ''}
   - Has grading guidance: ${m.hasGradingGuidance}
   - Has tool calls: ${m.hasToolCalls} (${m.toolCallCount} calls)
   - Has components: ${m.hasComponents} (${m.componentNames.join(', ')})
-`).join('\n')}
+`;
+}).join('\n')}
 `;
 
   if (violations.length > 0) {

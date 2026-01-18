@@ -59,7 +59,7 @@ export async function evaluateGradingGuidanceWithLLM(
             }
           ],
           temperature: 0.1,
-          max_tokens: 2000
+          max_tokens: 8000
         });
 
         totalTokens += (response.usage?.total_tokens || 0);

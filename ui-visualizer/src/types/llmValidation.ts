@@ -184,6 +184,7 @@ export interface AssistantResponseViolation {
 export interface MessageStructure {
   index: number;
   role: string;
+  fullContent: any; // Full message content (string or array of content blocks)
   hasGradingGuidance: boolean;
   hasToolCalls: boolean;
   hasComponents: boolean;

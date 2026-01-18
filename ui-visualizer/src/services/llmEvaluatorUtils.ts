@@ -17,7 +17,7 @@ export function truncateValue(value: any, _maxChars: number = 1000): any {
 }
 
 /**
- * Extract message structure metadata (lightweight, no content)
+ * Extract message structure with full content
  * Used for conversation flow validation
  */
 export function extractMessageStructure(conversation: ConversationData): MessageStructure[] {
@@ -42,6 +42,7 @@ export function extractMessageStructure(conversation: ConversationData): Message
     return {
       index,
       role: msg.role,
+      fullContent: msg.content, // Include full message content
       hasGradingGuidance,
       hasToolCalls,
       hasComponents,
