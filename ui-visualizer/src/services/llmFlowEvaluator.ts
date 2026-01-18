@@ -21,6 +21,7 @@ export async function evaluateFlowWithLLM(
   config: LlmConfig
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
+  console.log('[LLMAJ Section 3: Conversation Flow] Evaluation starting...');
   const startTime = Date.now();
   let totalTokens = 0;
   let failedCallCount = 0;
@@ -36,14 +37,7 @@ export async function evaluateFlowWithLLM(
         isRelevantToChecklistItem(v, itemIndex)
       );
 
-      if (relevantViolations.length === 0) {
-        return {
-          checkDescription,
-          passed: true,
-          severity: 'info' as const
-        };
-      }
-
+      // Always call LLM for comprehensive validation, even when no violations detected
       try {
         // Build prompt for this checklist item
         const prompt = buildFlowPrompt(

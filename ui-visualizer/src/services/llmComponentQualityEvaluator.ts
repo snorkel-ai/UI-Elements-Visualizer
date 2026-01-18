@@ -26,6 +26,7 @@ export async function evaluateComponentQualityWithLLM(
   config: LlmConfig
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
+  console.log('[LLMAJ Section 4: Component Quality] Evaluation starting...');
   const startTime = Date.now();
   let totalTokens = 0;
   let failedCallCount = 0;
@@ -38,14 +39,7 @@ export async function evaluateComponentQualityWithLLM(
         isRelevantToChecklistItem(v, itemIndex)
       );
 
-      if (relevantViolations.length === 0 && !shouldAlwaysCheck(itemIndex)) {
-        return {
-          checkDescription,
-          passed: true,
-          severity: 'info' as const
-        };
-      }
-
+      // Always call LLM for comprehensive validation, even when no violations detected
       try {
         // Build prompt for this checklist item
         const prompt = buildComponentQualityPrompt(
@@ -284,7 +278,3 @@ function isRelevantToChecklistItem(
   return mapping[violation.violationType]?.includes(itemIndex) || false;
 }
 
-function shouldAlwaysCheck(itemIndex: number): boolean {
-  // Items 0, 2, 6, 7 should always be checked even without pre-identified violations
-  return [0, 2, 6, 7].includes(itemIndex);
-}

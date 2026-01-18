@@ -24,6 +24,7 @@ export async function evaluateAssistantResponseWithLLM(
   config: LlmConfig
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
+  console.log('[LLMAJ Section 6: Assistant Response] Evaluation starting...');
   const startTime = Date.now();
   let totalTokens = 0;
   let failedCallCount = 0;
@@ -36,14 +37,7 @@ export async function evaluateAssistantResponseWithLLM(
         isRelevantToChecklistItem(v, itemIndex)
       );
 
-      if (relevantViolations.length === 0 && !shouldAlwaysCheck(itemIndex)) {
-        return {
-          checkDescription,
-          passed: true,
-          severity: 'info' as const
-        };
-      }
-
+      // Always call LLM for comprehensive validation, even when no violations detected
       try {
         // Build prompt for this checklist item
         const prompt = buildAssistantResponsePrompt(
@@ -266,7 +260,3 @@ function isRelevantToChecklistItem(
   return mapping[violation.violationType]?.includes(itemIndex) || false;
 }
 
-function shouldAlwaysCheck(itemIndex: number): boolean {
-  // Items 0, 1, 3, 4 should always be checked even without pre-identified violations
-  return [0, 1, 3, 4].includes(itemIndex);
-}

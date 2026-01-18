@@ -128,29 +128,44 @@ export async function validateComponents(
   const toolCallsCheck = checkToolCallsMatchDefinitions(dataPoint.conversation);
   results.push(toolCallsCheck);
 
-  // NEW: Check 11 - Tool Correctness (LLMAJ Section 2)
-  const toolCorrectnessCheck = await checkToolCorrectness(dataPoint.conversation);
-  results.push(toolCorrectnessCheck);
+  // NEW: LLMAJ validators - run independently (don't let one failure stop others)
+  // Run all validators concurrently using Promise.allSettled
+  const llmajChecks = await Promise.allSettled([
+    checkToolCorrectness(dataPoint.conversation),
+    checkConversationFlow(dataPoint.conversation),
+    checkTraceability(dataPoint.conversation),
+    checkGradingGuidanceQuality(dataPoint.conversation),
+    checkAssistantResponse(dataPoint.conversation),
+    checkComponentQuality(dataPoint.conversation)
+  ]);
 
-  // NEW: Check 12 - Conversation Flow (LLMAJ Section 3)
-  const flowCheck = await checkConversationFlow(dataPoint.conversation);
-  results.push(flowCheck);
+  // Process results - convert rejections to error results
+  llmajChecks.forEach((result, index) => {
+    const checkNames = [
+      'Tool Correctness',
+      'Conversation Flow',
+      'Traceability',
+      'Grading Guidance Quality',
+      'Assistant Response Quality',
+      'Component Quality'
+    ];
 
-  // NEW: Check 13 - Traceability (LLMAJ Section 1)
-  const traceabilityCheck = await checkTraceability(dataPoint.conversation);
-  results.push(traceabilityCheck);
-
-  // NEW: Check 14 - Grading Guidance (LLMAJ Section 5)
-  const gradingGuidanceQualityCheck = await checkGradingGuidanceQuality(dataPoint.conversation);
-  results.push(gradingGuidanceQualityCheck);
-
-  // NEW: Check 15 - Assistant Response (LLMAJ Section 6)
-  const assistantResponseCheck = await checkAssistantResponse(dataPoint.conversation);
-  results.push(assistantResponseCheck);
-
-  // NEW: Check 16 - Component Quality (LLMAJ Section 4)
-  const componentQualityCheck = await checkComponentQuality(dataPoint.conversation);
-  results.push(componentQualityCheck);
+    if (result.status === 'fulfilled') {
+      results.push(result.value);
+    } else {
+      // If a validator threw an error, create a failure result
+      console.error(`[LLMAJ] ${checkNames[index]} validator failed:`, result.reason);
+      results.push({
+        check: checkNames[index],
+        passed: false,
+        message: `⚠️ Validator encountered an error: ${result.reason?.message || 'Unknown error'}`,
+        details: [
+          `This validator failed to run completely. The error was: ${result.reason?.message || 'Unknown error'}`,
+          `Other validators continued running independently.`
+        ]
+      });
+    }
+  });
 
   const allPassed = results.every(r => r.passed);
 
@@ -1381,7 +1396,10 @@ function checkToolCallsMatchDefinitions(conversation: ConversationData | undefin
 async function checkToolCorrectness(
   conversation: ConversationData | undefined
 ): Promise<ValidationResult> {
+  console.log('[LLMAJ Section 2: Tool Correctness] Check starting...');
+
   if (!conversation) {
+    console.log('[LLMAJ Section 2: Tool Correctness] No conversation, skipping');
     return {
       check: 'Tool Correctness',
       passed: true,
@@ -1391,6 +1409,7 @@ async function checkToolCorrectness(
 
   // Step 1: Identify potential violations (sync phase)
   const violations: any[] = identifyToolCorrectnessViolations(conversation);
+  console.log(`[LLMAJ Section 2: Tool Correctness] Found ${violations.length} potential violations`);
 
   // If no tools and no violations, pass
   const toolDefs = conversation.tool_definitions || [];
@@ -1523,7 +1542,10 @@ function identifyToolCorrectnessViolations(conversation: ConversationData): any[
 async function checkConversationFlow(
   conversation: ConversationData | undefined
 ): Promise<ValidationResult> {
+  console.log('[LLMAJ Section 3: Conversation Flow] Check starting...');
+
   if (!conversation?.conversation || conversation.conversation.length === 0) {
+    console.log('[LLMAJ Section 3: Conversation Flow] No conversation, skipping');
     return {
       check: 'Conversation Flow',
       passed: true,
@@ -1533,16 +1555,10 @@ async function checkConversationFlow(
 
   // Step 1: Identify potential flow violations (sync phase)
   const violations: any[] = identifyFlowViolations(conversation);
-
-  if (violations.length === 0) {
-    return {
-      check: 'Conversation Flow',
-      passed: true,
-      message: 'Message sequence follows logical flow.'
-    };
-  }
+  console.log(`[LLMAJ Section 3: Conversation Flow] Found ${violations.length} potential violations`);
 
   // Step 2: LLM evaluation (async phase with parallel calls)
+  // Always proceed to LLM for comprehensive validation of all checklist items
   const { loadLlmConfig } = await import('../config/llmConfig');
   const { evaluateFlowWithLLM } = await import('../services/llmFlowEvaluator');
 
@@ -1672,7 +1688,10 @@ function identifyFlowViolations(conversation: ConversationData): any[] {
 async function checkTraceability(
   conversation: ConversationData | undefined
 ): Promise<ValidationResult> {
+  console.log('[LLMAJ Section 1: Traceability] Check starting...');
+
   if (!conversation) {
+    console.log('[LLMAJ Section 1: Traceability] No conversation, skipping');
     return {
       check: 'Traceability',
       passed: true,
@@ -1682,16 +1701,10 @@ async function checkTraceability(
 
   // Step 1: Identify potential violations (sync phase)
   const violations: any[] = identifyTraceabilityViolations(conversation);
-
-  if (violations.length === 0) {
-    return {
-      check: 'Traceability',
-      passed: true,
-      message: 'All information is traceable to conversation context.'
-    };
-  }
+  console.log(`[LLMAJ Section 1: Traceability] Found ${violations.length} potential violations`);
 
   // Step 2: LLM evaluation (async phase with parallel calls)
+  // Always proceed to LLM for comprehensive validation of all checklist items
   const { loadLlmConfig } = await import('../config/llmConfig');
   const { evaluateTraceabilityWithLLM } = await import('../services/llmTraceabilityEvaluator');
 
@@ -1795,7 +1808,10 @@ function identifyTraceabilityViolations(conversation: ConversationData): any[] {
 async function checkGradingGuidanceQuality(
   conversation: ConversationData | undefined
 ): Promise<ValidationResult> {
+  console.log('[LLMAJ Section 5: Grading Guidance] Check starting...');
+
   if (!conversation) {
+    console.log('[LLMAJ Section 5: Grading Guidance] No conversation, skipping');
     return {
       check: 'Grading Guidance Quality',
       passed: true,
@@ -1805,16 +1821,10 @@ async function checkGradingGuidanceQuality(
 
   // Step 1: Identify potential violations (sync phase)
   const violations: any[] = identifyGradingGuidanceViolations(conversation);
-
-  if (violations.length === 0) {
-    return {
-      check: 'Grading Guidance Quality',
-      passed: true,
-      message: 'All grading guidance is appropriate and matches components.'
-    };
-  }
+  console.log(`[LLMAJ Section 5: Grading Guidance] Found ${violations.length} potential violations`);
 
   // Step 2: LLM evaluation (async phase with parallel calls)
+  // Always proceed to LLM for comprehensive validation of all checklist items
   const { loadLlmConfig } = await import('../config/llmConfig');
   const { evaluateGradingGuidanceWithLLM } = await import('../services/llmGradingGuidanceEvaluator');
 
@@ -1911,7 +1921,10 @@ function identifyGradingGuidanceViolations(conversation: ConversationData): any[
 async function checkAssistantResponse(
   conversation: ConversationData | undefined
 ): Promise<ValidationResult> {
+  console.log('[LLMAJ Section 6: Assistant Response] Check starting...');
+
   if (!conversation) {
+    console.log('[LLMAJ Section 6: Assistant Response] No conversation, skipping');
     return {
       check: 'Assistant Response Quality',
       passed: true,
@@ -1921,16 +1934,10 @@ async function checkAssistantResponse(
 
   // Step 1: Identify potential violations (sync phase)
   const violations: any[] = identifyAssistantResponseViolations(conversation);
-
-  if (violations.length === 0) {
-    return {
-      check: 'Assistant Response Quality',
-      passed: true,
-      message: 'All assistant responses are appropriate and complete.'
-    };
-  }
+  console.log(`[LLMAJ Section 6: Assistant Response] Found ${violations.length} potential violations`);
 
   // Step 2: LLM evaluation (async phase with parallel calls)
+  // Always proceed to LLM for comprehensive validation of all checklist items
   const { loadLlmConfig } = await import('../config/llmConfig');
   const { evaluateAssistantResponseWithLLM } = await import('../services/llmAssistantResponseEvaluator');
 
@@ -2052,7 +2059,10 @@ function identifyAssistantResponseViolations(conversation: ConversationData): an
 async function checkComponentQuality(
   conversation: ConversationData | undefined
 ): Promise<ValidationResult> {
+  console.log('[LLMAJ Section 4: Component Quality] Check starting...');
+
   if (!conversation) {
+    console.log('[LLMAJ Section 4: Component Quality] No conversation, skipping');
     return {
       check: 'Component Quality',
       passed: true,
@@ -2062,16 +2072,10 @@ async function checkComponentQuality(
 
   // Step 1: Identify potential violations (sync phase)
   const violations: any[] = identifyComponentQualityViolations(conversation);
-
-  if (violations.length === 0) {
-    return {
-      check: 'Component Quality',
-      passed: true,
-      message: 'All components meet quality standards.'
-    };
-  }
+  console.log(`[LLMAJ Section 4: Component Quality] Found ${violations.length} potential violations`);
 
   // Step 2: LLM evaluation (async phase with parallel calls)
+  // Always proceed to LLM for comprehensive validation of all checklist items
   const { loadLlmConfig } = await import('../config/llmConfig');
   const { evaluateComponentQualityWithLLM } = await import('../services/llmComponentQualityEvaluator');
 

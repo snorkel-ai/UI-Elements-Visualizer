@@ -177,25 +177,59 @@ export function findComponentInSchema(
 /**
  * Parse LLM response JSON
  * Handles markdown code blocks and raw JSON
- * Returns parsed object or throws error
+ * Returns parsed object with robust error handling
  */
 export function parseLlmResponse(content: string): any {
   try {
+    // Handle empty or whitespace-only responses
+    if (!content || content.trim().length === 0) {
+      console.warn('Empty LLM response received, returning default failure');
+      return {
+        passed: false,
+        failureReason: 'LLM returned empty response',
+        context: 'No content received from LLM',
+        severity: 'warning'
+      };
+    }
+
     // Remove markdown code blocks if present
     const jsonMatch = content.match(/```(?:json)?\s*(\{[\s\S]*\})\s*```/);
-    const jsonStr = jsonMatch ? jsonMatch[1] : content;
+    let jsonStr = jsonMatch ? jsonMatch[1] : content.trim();
+
+    // Try to find JSON object in the response if direct parse fails
+    if (!jsonStr.startsWith('{')) {
+      const jsonObjectMatch = jsonStr.match(/\{[\s\S]*\}/);
+      if (jsonObjectMatch) {
+        jsonStr = jsonObjectMatch[0];
+      }
+    }
 
     const parsed = JSON.parse(jsonStr);
 
-    // Validate required fields
+    // Validate required fields and provide defaults
     if (typeof parsed.passed !== 'boolean') {
-      throw new Error('Missing required field: passed');
+      console.warn('Missing "passed" field in LLM response, defaulting to false');
+      parsed.passed = false;
+    }
+
+    // Ensure other fields have defaults
+    if (!parsed.failureReason && !parsed.passed) {
+      parsed.failureReason = 'Validation failed (no reason provided)';
+    }
+    if (!parsed.severity) {
+      parsed.severity = 'warning';
     }
 
     return parsed;
   } catch (error) {
-    console.error('Failed to parse LLM response:', content);
-    throw error;
+    console.error('Failed to parse LLM response:', content, 'Error:', error);
+    // Return a safe default instead of throwing
+    return {
+      passed: false,
+      failureReason: `Failed to parse LLM response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      context: `Raw response: ${content.substring(0, 200)}...`,
+      severity: 'warning'
+    };
   }
 }
 

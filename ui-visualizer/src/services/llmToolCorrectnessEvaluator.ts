@@ -22,6 +22,7 @@ export async function evaluateToolCorrectnessWithLLM(
   conversation: ConversationData,
   config: LlmConfig
 ): Promise<SectionEvaluation> {
+  console.log('[LLMAJ Section 2] Tool Correctness evaluation starting...');
   const client = new OpenAIClient(config.apiKey!, config.timeout);
   const startTime = Date.now();
   let totalTokens = 0;
@@ -40,14 +41,7 @@ export async function evaluateToolCorrectnessWithLLM(
         isRelevantToChecklistItem(v, itemIndex)
       );
 
-      if (relevantViolations.length === 0 && !shouldAlwaysCheck(itemIndex)) {
-        return {
-          checkDescription,
-          passed: true,
-          severity: 'info' as const
-        };
-      }
-
+      // Always call LLM for comprehensive validation, even when no violations detected
       try {
         // Build prompt for this checklist item
         const prompt = buildToolCorrectnessPrompt(
@@ -240,7 +234,3 @@ function isRelevantToChecklistItem(
   return mapping[violation.violationType]?.includes(itemIndex) || false;
 }
 
-function shouldAlwaysCheck(itemIndex: number): boolean {
-  // Items 0, 2, 4 should always be checked even without pre-identified violations
-  return [0, 2, 4].includes(itemIndex);
-}

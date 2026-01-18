@@ -22,6 +22,7 @@ export async function evaluateGradingGuidanceWithLLM(
   config: LlmConfig
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
+  console.log('[LLMAJ Section 5: Grading Guidance] Evaluation starting...');
   const startTime = Date.now();
   let totalTokens = 0;
   let failedCallCount = 0;
@@ -34,14 +35,7 @@ export async function evaluateGradingGuidanceWithLLM(
         isRelevantToChecklistItem(v, itemIndex)
       );
 
-      if (relevantViolations.length === 0) {
-        return {
-          checkDescription,
-          passed: true,
-          severity: 'info' as const
-        };
-      }
-
+      // Always call LLM for comprehensive validation, even when no violations detected
       try {
         // Build prompt for this checklist item
         const prompt = buildGradingGuidancePrompt(
@@ -57,7 +51,7 @@ export async function evaluateGradingGuidanceWithLLM(
           messages: [
             {
               role: 'system',
-              content: 'You are validating grading guidance quality in conversations. Respond with valid JSON only. Provide detailed explanations and relevant context for any failures.'
+              content: 'You are validating grading guidance quality in conversations. You MUST respond with ONLY valid JSON - no markdown code blocks, no explanations, no additional text before or after. Your entire response must be parseable as JSON.'
             },
             {
               role: 'user',
@@ -164,15 +158,32 @@ ${i + 1}. Turn ${v.turnIndex} (${v.violationType}):
       break;
   }
 
-  prompt += `\n\nRESPOND WITH JSON:
+  prompt += `\n\nRESPOND WITH VALID JSON ONLY (no additional text before or after):
 {
-  "passed": true/false,
-  "failureReason": "IF FAILED: Detailed explanation of what's wrong. Include specific turn numbers and exact issues.",
-  "context": "IF FAILED: Relevant context showing the violation. Quote grading guidance text and explain the problem.",
-  "severity": "critical" | "warning" | "info"
+  "passed": true,
+  "failureReason": "",
+  "context": "",
+  "severity": "info"
 }
 
-IMPORTANT: If failed, provide detailed failureReason and context that clearly explains:
+OR if validation failed:
+
+{
+  "passed": false,
+  "failureReason": "Detailed explanation of what's wrong. Include specific turn numbers and exact issues.",
+  "context": "Relevant context showing the violation. Quote grading guidance text and explain the problem.",
+  "severity": "critical"
+}
+
+CRITICAL INSTRUCTIONS:
+- Your entire response must be ONLY valid JSON
+- Do not include any explanatory text before or after the JSON
+- Do not wrap in markdown code blocks
+- Ensure all strings are properly escaped
+- Use "critical", "warning", or "info" for severity (not other values)
+- If passed=true, failureReason and context should be empty strings
+
+If failed, provide detailed failureReason and context that clearly explains:
 1. Which turn(s) have the grading guidance issue
 2. What the grading guidance says
 3. Why it violates the criterion

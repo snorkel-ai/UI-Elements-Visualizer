@@ -30,13 +30,16 @@ export class OpenAIClient {
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
-      // Use Portkey's chat completions API
+      // Use Portkey's chat completions API with metadata
       const response = await this.portkey.chat.completions.create({
         model: request.model,
         messages: request.messages,
         temperature: request.temperature,
-        max_tokens: request.max_tokens
-      });
+        max_tokens: request.max_tokens,
+        metadata: {
+          _source: 'mistral-ui-visualizer'
+        }
+      } as any); // Type assertion needed for metadata field
 
       clearTimeout(timeoutId);
 
