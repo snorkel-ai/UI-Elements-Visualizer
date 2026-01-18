@@ -14,7 +14,10 @@ export class OpenAIClient {
   constructor(apiKey: string, timeout: number = 30000) {
     this.portkey = new Portkey({
       apiKey: apiKey,
-      dangerouslyAllowBrowser: true
+      dangerouslyAllowBrowser: true,
+      metadata: {
+        _source: 'mistral-ui-visualizer'
+      }
     });
     this.timeout = timeout;
   }
