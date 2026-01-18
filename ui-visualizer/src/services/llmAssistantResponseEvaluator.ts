@@ -38,56 +38,76 @@ export async function evaluateAssistantResponseWithLLM(
       );
 
       // Always call LLM for comprehensive validation, even when no violations detected
-      try {
-        // Build prompt for this checklist item
-        const prompt = buildAssistantResponsePrompt(
-          checkDescription,
-          itemIndex,
-          relevantViolations,
-          conversation
-        );
+      // Retry up to 5 times on errors
+      const maxRetries = 5;
+      let lastError: any = null;
 
-        // Call LLM
-        const response = await client.createChatCompletion({
-          model: config.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are validating assistant response quality in conversations. Respond with valid JSON only. Provide detailed explanations and relevant context for any failures.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 8000
-        });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Build prompt for this checklist item
+          const prompt = buildAssistantResponsePrompt(
+            checkDescription,
+            itemIndex,
+            relevantViolations,
+            conversation
+          );
 
-        totalTokens += (response.usage?.total_tokens || 0);
+          // Call LLM
+          const response = await client.createChatCompletion({
+            model: config.model,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are validating assistant response quality in conversations. You MUST respond with ONLY valid JSON - no markdown code blocks, no explanations, no additional text before or after. Your entire response must be parseable as JSON. Always include all required fields: passed, failureReason, context, severity.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.1,
+            max_tokens: 16000
+          });
 
-        // Parse response
-        const evaluation = parseLlmResponse(response.choices[0].message.content);
+          totalTokens += (response.usage?.total_tokens || 0);
 
-        return {
-          checkDescription,
-          passed: evaluation.passed,
-          failureReason: evaluation.passed ? undefined : evaluation.failureReason,
-          context: evaluation.passed ? undefined : evaluation.context,
-          severity: evaluation.severity || 'warning'
-        } as CheckItemResult;
-      } catch (error: any) {
-        failedCallCount++;
-        console.error(`LLM call failed for assistant response item ${itemIndex}:`, error.message);
-        // Return failure for this item but don't abort
-        return {
-          checkDescription,
-          passed: false,
-          failureReason: `LLM evaluation failed: ${error.message}`,
-          context: `Violations detected: ${relevantViolations.length}`,
-          severity: 'warning' as const
-        } as CheckItemResult;
+          // Parse response
+          const evaluation = parseLlmResponse(response.choices[0].message.content);
+
+          // If we get here without error, return successfully
+          if (attempt > 1) {
+            console.log(`[LLMAJ Section 6] Item ${itemIndex} succeeded on attempt ${attempt}`);
+          }
+
+          return {
+            checkDescription,
+            passed: evaluation.passed,
+            failureReason: evaluation.passed ? undefined : evaluation.failureReason,
+            context: evaluation.passed ? undefined : evaluation.context,
+            severity: evaluation.severity || 'warning'
+          } as CheckItemResult;
+        } catch (error: any) {
+          lastError = error;
+          console.error(`[LLMAJ Section 6] Item ${itemIndex} attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+          // If not the last attempt, wait before retrying (exponential backoff)
+          if (attempt < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10s
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
       }
+
+      // All retries failed
+      failedCallCount++;
+      console.error(`[LLMAJ Section 6] Item ${itemIndex} failed after ${maxRetries} attempts`);
+      return {
+        checkDescription,
+        passed: false,
+        failureReason: `LLM evaluation failed after ${maxRetries} attempts: ${lastError?.message}`,
+        context: `Violations detected: ${relevantViolations.length}`,
+        severity: 'warning' as const
+      } as CheckItemResult;
     })
   );
 
@@ -143,17 +163,27 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
 - Placeholders are only acceptable if they appear in prior context or tool outputs`;
       break;
     case 1: // No false claims
-      prompt += `- Check for claims about actions without corresponding tool calls:
+      prompt += `- Check for claims about EXTERNAL actions without corresponding tool calls:
   * "I've sent the email" → requires send_email tool
   * "I've uploaded the file" → requires upload_file tool
   * "I've created the calendar event" → requires create_event tool
   * "I've updated the database" → requires update_database tool
-- Distinguish between "I can help..." (okay) vs "I've done..." (needs tool)`;
+- IMPORTANT: Generating UI components to display user-provided data does NOT require tool calls
+- Phrases like "Here's a board" or "I've created a matrix" are VALID when UI components are present in the message
+- Only flag missing tool calls for actions that interact with external systems
+- Distinguish between "I can help..." (okay) vs "I've uploaded to your drive..." (needs tool)`;
       break;
     case 2: // Tool calls include components
-      prompt += `- If assistant message has tool calls, it should include UI components that display results
-- Tool outputs should be visualized, not just described in text
-- Exception: Tool calls for errors or validation don't need components`;
+      prompt += `- IMPORTANT: This check only applies to messages that make tool calls
+- If NO tool calls are made in the conversation, this check PASSES automatically
+- When an assistant message includes tool calls for data retrieval/generation:
+  * The assistant's response (after tool output) should include UI components to visualize the data
+  * Simply describing the results in text is not sufficient
+  * Exception: Error-handling tools, validation tools, or simple lookups don't need components
+- Example PASS: Message has tool call 'get_schedule' → Response includes ScheduleBoard component
+- Example FAIL: Message has tool call 'get_schedule' → Response only says "Here are the results: ..." without component
+- Example PASS (no violation): No tool calls made, assistant generates components from user data
+- Look for patterns: Tool Call → Tool Output → Assistant Message with/without components`;
       break;
     case 3: // No redundancy
       prompt += `- Text should not repeat information already shown in components
@@ -166,25 +196,43 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
 - URLs that could be outdated (startup pricing, 2026 events) need verification`;
       break;
     case 5: // Actions have tool calls
-      prompt += `- Action-oriented statements should have corresponding tool calls
-- Check for verbs like: send, create, update, delete, upload, download, schedule
-- "I'll..." or "Let me..." implies action that needs tools`;
+      prompt += `- EXTERNAL action-oriented statements should have corresponding tool calls
+- Check for verbs that interact with external systems: send (email), upload, download, schedule (external calendar)
+- IMPORTANT: "Create", "generate", "show", "display" UI components do NOT require external tool calls
+- "I'll..." or "Let me..." for external actions needs tools
+- Examples that DON'T need tools: "I'll create a board", "Let me show you a schedule", "I've generated a matrix" (when UI components are present)
+- Examples that DO need tools: "I'll send this to your email", "Let me upload to your drive", "I've scheduled this in your calendar"`;
       break;
   }
 
-  prompt += `\n\nRESPOND WITH JSON:
+  prompt += `\n\nRESPOND WITH VALID JSON ONLY:
+
+If validation passes:
 {
-  "passed": true/false,
-  "failureReason": "IF FAILED: Detailed explanation of what's wrong. Include specific message numbers and exact issues.",
-  "context": "IF FAILED: Relevant context showing the violation. Quote problematic text and explain the issue.",
+  "passed": true,
+  "failureReason": "",
+  "context": "",
+  "severity": "info"
+}
+
+If validation fails:
+{
+  "passed": false,
+  "failureReason": "Detailed explanation of what's wrong. Include specific message numbers and exact issues.",
+  "context": "Relevant context showing the violation. Quote problematic text and explain the issue.",
   "severity": "critical" | "warning" | "info"
 }
 
-IMPORTANT: If failed, provide detailed failureReason and context that clearly explains:
-1. Which message(s) have the issue
-2. What specific text/claim/content is problematic
-3. Why it violates the criterion
-4. What should be done to fix it`;
+CRITICAL INSTRUCTIONS:
+- You MUST respond with valid JSON - no markdown code blocks, no explanatory text
+- If the checklist item doesn't apply (e.g., no tool calls when checking tool-related criteria), respond with passed: true
+- Always include all four fields: passed, failureReason, context, severity
+- Use empty strings for failureReason and context when passed is true
+- If failed, provide detailed failureReason and context that clearly explains:
+  1. Which message(s) have the issue
+  2. What specific text/claim/content is problematic
+  3. Why it violates the criterion
+  4. What should be done to fix it`;
 
   return prompt;
 }
@@ -224,10 +272,26 @@ function extractAssistantMessagesInfo(conversation: ConversationData): string {
 
       const fullTextContent = textContent.substring(0, 1000) + (textContent.length > 1000 ? '...' : '');
 
+      // Check if there are tool outputs following this message (for context about tool usage)
+      let hasToolOutputsAfter = false;
+      for (let k = i + 1; k < Math.min(i + 5, messages.length); k++) {
+        if (messages[k].role === 'tool') {
+          hasToolOutputsAfter = true;
+          break;
+        }
+        if (messages[k].role === 'user' || messages[k].role === 'assistant') {
+          break;
+        }
+      }
+
+      const toolCallInfo = toolCalls.length > 0
+        ? `${toolCalls.map((tc: any) => tc.function?.name).join(', ')} (followed by tool outputs: ${hasToolOutputsAfter ? 'YES' : 'NO'})`
+        : '(none)';
+
       info += `\nMessage ${i}:
   Prior user request: ${priorUserMsg || '(none)'}
   Text content: ${fullTextContent || '(no text)'}
-  Tool calls: ${toolCalls.length > 0 ? toolCalls.map((tc: any) => tc.function?.name).join(', ') : '(none)'}
+  Tool calls: ${toolCallInfo}
   Components: ${componentNames.length > 0 ? componentNames.join(', ') : '(none)'}
 `;
       msgCount++;

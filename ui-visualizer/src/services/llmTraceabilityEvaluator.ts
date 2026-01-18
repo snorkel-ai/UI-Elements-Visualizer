@@ -39,57 +39,77 @@ export async function evaluateTraceabilityWithLLM(
       );
 
       // Always call LLM for comprehensive validation, even when no violations detected
-      try {
-        // Build prompt for this checklist item
-        const prompt = buildTraceabilityPrompt(
-          checkDescription,
-          itemIndex,
-          relevantViolations,
-          conversation,
-          toolResults
-        );
+      // Retry up to 5 times on errors
+      const maxRetries = 5;
+      let lastError: any = null;
 
-        // Call LLM
-        const response = await client.createChatCompletion({
-          model: config.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are validating conversation traceability. Respond with valid JSON only. Provide detailed explanations and relevant context for any failures.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 8000
-        });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Build prompt for this checklist item
+          const prompt = buildTraceabilityPrompt(
+            checkDescription,
+            itemIndex,
+            relevantViolations,
+            conversation,
+            toolResults
+          );
 
-        totalTokens += (response.usage?.total_tokens || 0);
+          // Call LLM
+          const response = await client.createChatCompletion({
+            model: config.model,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are validating conversation traceability. You MUST respond with ONLY valid JSON - no markdown code blocks, no explanations, no additional text before or after. Your entire response must be parseable as JSON.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.1,
+            max_tokens: 16000
+          });
 
-        // Parse response
-        const evaluation = parseLlmResponse(response.choices[0].message.content);
+          totalTokens += (response.usage?.total_tokens || 0);
 
-        return {
-          checkDescription,
-          passed: evaluation.passed,
-          failureReason: evaluation.passed ? undefined : evaluation.failureReason,
-          context: evaluation.passed ? undefined : evaluation.context,
-          severity: evaluation.severity || 'warning'
-        } as CheckItemResult;
-      } catch (error: any) {
-        failedCallCount++;
-        console.error(`LLM call failed for traceability item ${itemIndex}:`, error.message);
-        // Return failure for this item but don't abort
-        return {
-          checkDescription,
-          passed: false,
-          failureReason: `LLM evaluation failed: ${error.message}`,
-          context: `Violations detected: ${relevantViolations.length}`,
-          severity: 'warning' as const
-        } as CheckItemResult;
+          // Parse response
+          const evaluation = parseLlmResponse(response.choices[0].message.content);
+
+          // If we get here without error, return successfully
+          if (attempt > 1) {
+            console.log(`[LLMAJ Section 1] Item ${itemIndex} succeeded on attempt ${attempt}`);
+          }
+
+          return {
+            checkDescription,
+            passed: evaluation.passed,
+            failureReason: evaluation.passed ? undefined : evaluation.failureReason,
+            context: evaluation.passed ? undefined : evaluation.context,
+            severity: evaluation.severity || 'warning'
+          } as CheckItemResult;
+        } catch (error: any) {
+          lastError = error;
+          console.error(`[LLMAJ Section 1] Item ${itemIndex} attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+          // If not the last attempt, wait before retrying (exponential backoff)
+          if (attempt < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10s
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
       }
+
+      // All retries failed
+      failedCallCount++;
+      console.error(`[LLMAJ Section 1] Item ${itemIndex} failed after ${maxRetries} attempts`);
+      return {
+        checkDescription,
+        passed: false,
+        failureReason: `LLM evaluation failed after ${maxRetries} attempts: ${lastError?.message}`,
+        context: `Violations detected: ${relevantViolations.length}`,
+        severity: 'warning' as const
+      } as CheckItemResult;
     })
   );
 
@@ -114,23 +134,29 @@ function buildTraceabilityPrompt(
   conversation: ConversationData,
   toolResults: Map<string, any>
 ): string {
-  // Build full conversation history
+  // Build full conversation history with explicit component details
   const conversationHistory = conversation.conversation.map((msg, idx) => {
-    let content = '';
+    let textParts: string[] = [];
+    let componentParts: string[] = [];
+
     if (typeof msg.content === 'string') {
-      content = msg.content;
+      textParts.push(msg.content);
     } else if (Array.isArray(msg.content)) {
-      content = msg.content.map((block: any) => {
-        if (block.type === 'text') return block.text;
-        if (block.type === 'component') {
+      msg.content.forEach((block: any) => {
+        if (block.type === 'text') {
+          textParts.push(block.text);
+        } else if (block.type === 'component') {
           const componentName = block.component?.name || 'unknown';
-          const componentProps = block.component?.props ? JSON.stringify(block.component.props) : '{}';
-          return `[Component: ${componentName}, Props: ${componentProps.substring(0, 500)}${componentProps.length > 500 ? '...' : ''}]`;
+          const componentProps = block.component?.props ? JSON.stringify(block.component.props, null, 2) : '{}';
+          componentParts.push(`
+    *** UI COMPONENT GENERATED: ${componentName} ***
+    Props: ${componentProps.substring(0, 2000)}${componentProps.length > 2000 ? '...' : ''}
+    (This is a visual artifact/UI element that was generated and displayed to the user)
+`);
         }
-        return '';
-      }).join('\n');
-    } else {
-      content = JSON.stringify(msg.content);
+      });
+    } else if (msg.content) {
+      textParts.push(JSON.stringify(msg.content));
     }
 
     const toolCalls = (msg as any).toolCalls || [];
@@ -138,9 +164,13 @@ function buildTraceabilityPrompt(
       ? `\n  Tool Calls: ${toolCalls.map((tc: any) => tc.function?.name || 'unknown').join(', ')}`
       : '';
 
+    const textContent = textParts.join('\n');
+    const textDisplay = textContent.substring(0, 1000) + (textContent.length > 1000 ? '...' : '');
+
     return `
 Message ${idx} (${msg.role}):${toolCallInfo}
-  ${content.substring(0, 1000)}${content.length > 1000 ? '...' : ''}
+  Text: ${textDisplay || '(no text)'}
+${componentParts.length > 0 ? componentParts.join('\n') : ''}
 `;
   }).join('\n');
 
@@ -173,32 +203,40 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
   switch (itemIndex) {
     case 0: // Traceable to context
       prompt += `- "Traceable" means the information can be found in:
-  * Prior user messages
-  * Tool outputs
+  * Prior user messages (PRIMARY SOURCE - components can use data directly from user input)
+  * Tool outputs (when external data is fetched)
   * Conversation context (established facts)
+- IMPORTANT: If a message includes "*** UI COMPONENT GENERATED ***", the assistant HAS provided a visual artifact
+- Text claims like "Here's a board" or "The matrix shows" are NOT hallucinations when accompanied by actual UI components
 - Very minor/timeless knowledge is acceptable (e.g., common date formats, standard units)
 - Placeholder data (example@mail.com) is a violation
 - Specific details (dates, names, numbers) must come from context`;
       break;
     case 1: // Actions have tool calls
-      prompt += `- Claims about actions require corresponding tool calls:
+      prompt += `- Claims about EXTERNAL actions require corresponding tool calls:
   * "I've uploaded the PDF" → needs upload_file tool
   * "I've sent the notification" → needs send_notification tool
   * "I've updated the database" → needs update_database tool
-- Distinguish: "I can help..." (okay) vs "I've done..." (needs tool)`;
+- IMPORTANT: Generating UI components to display user-provided data does NOT require tools
+- Phrases like "Here's a board" or "I've created a matrix" are VALID when UI components are actually generated
+- Only flag missing tool calls for actions that interact with external systems
+- Distinguish: "I can help..." (okay) vs "I've uploaded to your drive..." (needs tool)`;
       break;
     case 2: // Timing of component props
       prompt += `- Component properties should only appear after the data source:
-  * User provides data in their message → component can use it
+  * User provides data in their message → component can IMMEDIATELY use it (NO TOOL REQUIRED)
   * Tool returns data in message N → component in message > N can use it
-  * Component in message N using data from message N+1 = timing violation`;
+  * Component in message N using data from message N+1 = timing violation
+- IMPORTANT: Components using data from the current or prior user messages do NOT violate this rule`;
       break;
     case 3: // No hallucinated content
       prompt += `- ALL component content must be pulled from conversation:
-  * Prop values must appear in prior context or tool outputs
+  * Prop values from user messages (MOST COMMON - this is valid!)
+  * Prop values from tool outputs (when external data is fetched)
   * No invented/assumed data
   * Check specific values like dates, names, IDs, status values
-  * Generic/default values (e.g., "placeholder") are violations`;
+  * Generic/default values (e.g., "placeholder") are violations
+- IMPORTANT: If user provides chore names/schedules in their message, components showing those chores are NOT hallucinations`;
       break;
   }
 

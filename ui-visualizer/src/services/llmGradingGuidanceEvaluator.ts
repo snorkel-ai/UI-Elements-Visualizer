@@ -36,56 +36,76 @@ export async function evaluateGradingGuidanceWithLLM(
       );
 
       // Always call LLM for comprehensive validation, even when no violations detected
-      try {
-        // Build prompt for this checklist item
-        const prompt = buildGradingGuidancePrompt(
-          checkDescription,
-          itemIndex,
-          relevantViolations,
-          conversation
-        );
+      // Retry up to 5 times on errors
+      const maxRetries = 5;
+      let lastError: any = null;
 
-        // Call LLM
-        const response = await client.createChatCompletion({
-          model: config.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are validating grading guidance quality in conversations. You MUST respond with ONLY valid JSON - no markdown code blocks, no explanations, no additional text before or after. Your entire response must be parseable as JSON.'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.1,
-          max_tokens: 8000
-        });
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          // Build prompt for this checklist item
+          const prompt = buildGradingGuidancePrompt(
+            checkDescription,
+            itemIndex,
+            relevantViolations,
+            conversation
+          );
 
-        totalTokens += (response.usage?.total_tokens || 0);
+          // Call LLM
+          const response = await client.createChatCompletion({
+            model: config.model,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are validating grading guidance quality in conversations. You MUST respond with ONLY valid JSON - no markdown code blocks, no explanations, no additional text before or after. Your entire response must be parseable as JSON.'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.1,
+            max_tokens: 16000
+          });
 
-        // Parse response
-        const evaluation = parseLlmResponse(response.choices[0].message.content);
+          totalTokens += (response.usage?.total_tokens || 0);
 
-        return {
-          checkDescription,
-          passed: evaluation.passed,
-          failureReason: evaluation.passed ? undefined : evaluation.failureReason,
-          context: evaluation.passed ? undefined : evaluation.context,
-          severity: evaluation.severity || 'warning'
-        } as CheckItemResult;
-      } catch (error: any) {
-        failedCallCount++;
-        console.error(`LLM call failed for grading guidance item ${itemIndex}:`, error.message);
-        // Return failure for this item but don't abort
-        return {
-          checkDescription,
-          passed: false,
-          failureReason: `LLM evaluation failed: ${error.message}`,
-          context: `Violations detected: ${relevantViolations.length}`,
-          severity: 'warning' as const
-        } as CheckItemResult;
+          // Parse response
+          const evaluation = parseLlmResponse(response.choices[0].message.content);
+
+          // If we get here without error, return successfully
+          if (attempt > 1) {
+            console.log(`[LLMAJ Section 5] Item ${itemIndex} succeeded on attempt ${attempt}`);
+          }
+
+          return {
+            checkDescription,
+            passed: evaluation.passed,
+            failureReason: evaluation.passed ? undefined : evaluation.failureReason,
+            context: evaluation.passed ? undefined : evaluation.context,
+            severity: evaluation.severity || 'warning'
+          } as CheckItemResult;
+        } catch (error: any) {
+          lastError = error;
+          console.error(`[LLMAJ Section 5] Item ${itemIndex} attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+          // If not the last attempt, wait before retrying (exponential backoff)
+          if (attempt < maxRetries) {
+            const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10s
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
       }
+
+      // All retries failed
+      failedCallCount++;
+      console.error(`[LLMAJ Section 5] Item ${itemIndex} failed after ${maxRetries} attempts`);
+      return {
+        checkDescription,
+        passed: false,
+        failureReason: `LLM evaluation failed after ${maxRetries} attempts: ${lastError?.message}`,
+        context: `Violations detected: ${relevantViolations.length}`,
+        severity: 'warning' as const
+      } as CheckItemResult;
     })
   );
 
