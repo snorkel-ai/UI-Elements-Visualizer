@@ -7,7 +7,7 @@ import { OpenAIClient } from './openaiClient';
 import type { LlmConfig } from '../config/llmConfig';
 import type { ConversationData } from '../types';
 import type { TraceabilityViolation, SectionEvaluation, CheckItemResult } from '../types/llmValidation';
-import { buildWindowedContext, extractToolResults, truncateValue, parseLlmResponse } from './llmEvaluatorUtils';
+import { extractToolResults, parseLlmResponse } from './llmEvaluatorUtils';
 
 const CHECKLIST_ITEMS = [
   "Every assistant action, claim, or component field is traceable to a user message, prior context, or a tool output",
@@ -114,27 +114,55 @@ function buildTraceabilityPrompt(
   conversation: ConversationData,
   toolResults: Map<string, any>
 ): string {
+  // Build full conversation history
+  const conversationHistory = conversation.conversation.map((msg, idx) => {
+    let content = '';
+    if (typeof msg.content === 'string') {
+      content = msg.content;
+    } else if (Array.isArray(msg.content)) {
+      content = msg.content.map((block: any) => {
+        if (block.type === 'text') return block.text;
+        if (block.type === 'component') {
+          const componentName = block.component?.name || 'unknown';
+          const componentProps = block.component?.props ? JSON.stringify(block.component.props) : '{}';
+          return `[Component: ${componentName}, Props: ${componentProps.substring(0, 500)}${componentProps.length > 500 ? '...' : ''}]`;
+        }
+        return '';
+      }).join('\n');
+    } else {
+      content = JSON.stringify(msg.content);
+    }
+
+    const toolCalls = (msg as any).toolCalls || [];
+    const toolCallInfo = toolCalls.length > 0
+      ? `\n  Tool Calls: ${toolCalls.map((tc: any) => tc.function?.name || 'unknown').join(', ')}`
+      : '';
+
+    return `
+Message ${idx} (${msg.role}):${toolCallInfo}
+  ${content.substring(0, 1000)}${content.length > 1000 ? '...' : ''}
+`;
+  }).join('\n');
+
   let prompt = `
 You are evaluating conversation traceability against this criterion:
 
 CHECKLIST ITEM: "${checkDescription}"
 
-POTENTIAL VIOLATIONS DETECTED:
-${violations.map((v, i) => {
-    const contextWindow = buildWindowedContext(conversation, v.messageIndex, 3);
-    return `
-${i + 1}. Message ${v.messageIndex} (${v.violationType}):
-   Content: ${truncateValue(v.content, 500)}
-   Context window (3 prior messages):
-${contextWindow.map((msg, idx) => `     - Msg ${v.messageIndex - contextWindow.length + idx + 1} (${msg.role}): ${truncateValue(msg.content, 200)}`).join('\n')}
-   ${v.context ? `Additional context: ${JSON.stringify(truncateValue(v.context, 500), null, 2)}` : ''}
-`;
-  }).join('\n')}
+FULL CONVERSATION HISTORY:
+${conversationHistory}
 
 TOOL RESULTS AVAILABLE:
-${toolResults.size > 0 ? Array.from(toolResults.entries()).slice(0, 5).map(([id, result]) => `
-  ${id}: ${JSON.stringify(truncateValue(result, 300), null, 2)}
+${toolResults.size > 0 ? Array.from(toolResults.entries()).map(([id, result]) => `
+  ${id}: ${JSON.stringify(result).substring(0, 500)}
 `).join('\n') : '(No tool results)'}
+
+POTENTIAL VIOLATIONS DETECTED:
+${violations.length > 0 ? violations.map((v, i) => `
+${i + 1}. Message ${v.messageIndex} (${v.violationType}):
+   Content: ${v.content}
+   ${v.context ? `Additional context: ${JSON.stringify(v.context)}` : ''}
+`).join('\n') : '(No violations pre-detected - perform comprehensive validation)'}
 `;
 
   prompt += `\n\nEVALUATION CRITERIA:

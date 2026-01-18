@@ -7,7 +7,7 @@ import { OpenAIClient } from './openaiClient';
 import type { LlmConfig } from '../config/llmConfig';
 import type { ConversationData } from '../types';
 import type { ComponentQualityViolation, SectionEvaluation, CheckItemResult } from '../types/llmValidation';
-import { extractComponentsFromMessage, buildWindowedContext, findComponentInSchema, getExpectedComponents, truncateValue, parseLlmResponse } from './llmEvaluatorUtils';
+import { extractComponentsFromMessage, findComponentInSchema, getExpectedComponents, parseLlmResponse } from './llmEvaluatorUtils';
 
 const CHECKLIST_ITEMS = [
   "The UI elements do not contain any elements that are or appear that they would be interactive",
@@ -223,26 +223,37 @@ function extractComponentsInfo(conversation: ConversationData): string {
       const components = extractComponentsFromMessage(msg, i);
 
       if (components.length > 0) {
-        // Get context window
-        const contextWindow = buildWindowedContext(conversation, i, 2);
-
-        // Get expected components from prior user message
+        // Get full user request and tool calls for context
+        let priorUserRequest = '';
         let expectedComponents: string[] = [];
+        let toolCallsInContext: any[] = [];
+
+        // Look back to find user message and any tool calls between
         for (let j = i - 1; j >= 0; j--) {
-          if (messages[j].role === 'user') {
-            expectedComponents = getExpectedComponents(messages[j]);
+          const priorMsg = messages[j];
+          if (priorMsg.role === 'assistant' && (priorMsg as any).toolCalls) {
+            toolCallsInContext = (priorMsg as any).toolCalls || [];
+          }
+          if (priorMsg.role === 'user') {
+            const content = typeof priorMsg.content === 'string'
+              ? priorMsg.content
+              : JSON.stringify(priorMsg.content);
+            priorUserRequest = content.substring(0, 500) + (content.length > 500 ? '...' : '');
+            expectedComponents = getExpectedComponents(priorMsg);
             break;
           }
         }
 
         components.forEach(comp => {
           const componentSchema = findComponentInSchema(comp.name, schema);
+          const propsJson = JSON.stringify(comp.props, null, 2);
 
           info += `\nComponent: ${comp.name} (Message ${i})
-  Props: ${JSON.stringify(truncateValue(comp.props, 500), null, 2)}
+  Props: ${propsJson.substring(0, 1000)}${propsJson.length > 1000 ? '...' : ''}
   Expected by GG: ${expectedComponents.includes(comp.name) ? 'YES' : 'NO (expected: ' + expectedComponents.join(', ') + ')'}
   Has schema definition: ${componentSchema ? 'YES' : 'NO'}
-  Context (2 prior messages): ${contextWindow.map(m => `${m.role}: ${truncateValue(m.content, 150)}`).join(' | ')}
+  User request: ${priorUserRequest || '(none)'}
+  Tool calls before component: ${toolCallsInContext.length > 0 ? toolCallsInContext.map((tc: any) => tc.function?.name).join(', ') : '(none)'}
 `;
 
           componentCount++;

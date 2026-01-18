@@ -7,7 +7,7 @@ import { OpenAIClient } from './openaiClient';
 import type { LlmConfig } from '../config/llmConfig';
 import type { ConversationData } from '../types';
 import type { GradingGuidanceViolation, SectionEvaluation, CheckItemResult } from '../types/llmValidation';
-import { truncateValue, parseLlmResponse, getExpectedComponents } from './llmEvaluatorUtils';
+import { parseLlmResponse, getExpectedComponents } from './llmEvaluatorUtils';
 
 const CHECKLIST_ITEMS = [
   "Grading guidance is adapted per user turn, not for the whole conversation",
@@ -203,23 +203,33 @@ function extractTurnsInfo(conversation: ConversationData): string {
       const gg = (msg as any).grading_guidance;
       const nextMsg = messages[i + 1];
 
-      // Get components from next assistant message
+      // Get components and text from next assistant message
       let componentNames: string[] = [];
-      if (nextMsg && nextMsg.role === 'assistant' && Array.isArray(nextMsg.content)) {
-        nextMsg.content.forEach((block: any) => {
-          if (block.type === 'component' && block.component) {
-            componentNames.push(block.component.name);
-          }
-        });
+      let assistantResponse = '';
+      if (nextMsg && nextMsg.role === 'assistant') {
+        if (typeof nextMsg.content === 'string') {
+          assistantResponse = nextMsg.content;
+        } else if (Array.isArray(nextMsg.content)) {
+          nextMsg.content.forEach((block: any) => {
+            if (block.type === 'text') {
+              assistantResponse += block.text + '\n';
+            } else if (block.type === 'component' && block.component) {
+              componentNames.push(block.component.name);
+              assistantResponse += `[Component: ${block.component.name}]\n`;
+            }
+          });
+        }
       }
 
       const expectedComponents = getExpectedComponents(msg);
+      const userContent = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
 
       turnsInfo += `\nTurn ${turnIndex}:
-  User message: ${truncateValue(typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content), 200)}
+  User message: ${userContent.substring(0, 500)}${userContent.length > 500 ? '...' : ''}
   Expected components: ${expectedComponents.length > 0 ? expectedComponents.join(', ') : '(none)'}
   Actual components: ${componentNames.length > 0 ? componentNames.join(', ') : '(none)'}
-  Quality criteria: ${gg?.quality_criteria ? truncateValue(JSON.stringify(gg.quality_criteria), 300) : '(none)'}
+  Assistant response: ${assistantResponse.substring(0, 500)}${assistantResponse.length > 500 ? '...' : ''}
+  Quality criteria: ${gg?.quality_criteria ? JSON.stringify(gg.quality_criteria) : '(none)'}
 `;
       turnIndex++;
     }

@@ -133,10 +133,28 @@ ${i + 1}. Message ${tc.messageIndex}: ${tc.name}
    Arguments: ${JSON.stringify(truncateValue(tc.arguments, 500), null, 2)}
 `).join('\n')}
 
-MESSAGE STRUCTURE:
-${messageStructure.map(m => `
-Message ${m.index} (${m.role}): ${m.toolCallCount} tool call(s), ${m.componentNames.length} component(s)
-`).join('\n')}
+FULL MESSAGE SEQUENCE WITH CONTENT:
+${messageStructure.map(m => {
+  let content = '';
+  if (m.fullContent) {
+    if (typeof m.fullContent === 'string') {
+      content = m.fullContent;
+    } else if (Array.isArray(m.fullContent)) {
+      content = m.fullContent.map((block: any) => {
+        if (block.type === 'text') return block.text;
+        if (block.type === 'component') return `[Component: ${block.component?.name || 'unknown'}]`;
+        return '';
+      }).join('\n');
+    } else {
+      content = JSON.stringify(m.fullContent);
+    }
+  }
+  return `
+Message ${m.index} (${m.role}):
+  Content: ${content.substring(0, 500)}${content.length > 500 ? '...' : ''}
+  Tool calls: ${m.toolCallCount}, Components: ${m.componentNames.length}
+`;
+}).join('\n')}
 `;
 
   if (violations.length > 0) {

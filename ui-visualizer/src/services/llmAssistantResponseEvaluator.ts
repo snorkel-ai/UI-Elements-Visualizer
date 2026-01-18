@@ -7,7 +7,7 @@ import { OpenAIClient } from './openaiClient';
 import type { LlmConfig } from '../config/llmConfig';
 import type { ConversationData } from '../types';
 import type { AssistantResponseViolation, SectionEvaluation, CheckItemResult } from '../types/llmValidation';
-import { extractTextContent, truncateValue, parseLlmResponse } from './llmEvaluatorUtils';
+import { extractTextContent, parseLlmResponse } from './llmEvaluatorUtils';
 
 const CHECKLIST_ITEMS = [
   "The assistant response contains no placeholder data (example@mail.com, website.com)",
@@ -214,19 +214,19 @@ function extractAssistantMessagesInfo(conversation: ConversationData): string {
       let priorUserMsg = '';
       for (let j = i - 1; j >= 0; j--) {
         if (messages[j].role === 'user') {
-          priorUserMsg = truncateValue(
-            typeof messages[j].content === 'string'
-              ? messages[j].content
-              : JSON.stringify(messages[j].content),
-            150
-          );
+          const content = typeof messages[j].content === 'string'
+            ? messages[j].content
+            : JSON.stringify(messages[j].content);
+          priorUserMsg = content.substring(0, 500) + (content.length > 500 ? '...' : '');
           break;
         }
       }
 
+      const fullTextContent = textContent.substring(0, 1000) + (textContent.length > 1000 ? '...' : '');
+
       info += `\nMessage ${i}:
   Prior user request: ${priorUserMsg || '(none)'}
-  Text content: ${truncateValue(textContent, 300) || '(no text)'}
+  Text content: ${fullTextContent || '(no text)'}
   Tool calls: ${toolCalls.length > 0 ? toolCalls.map((tc: any) => tc.function?.name).join(', ') : '(none)'}
   Components: ${componentNames.length > 0 ? componentNames.join(', ') : '(none)'}
 `;
