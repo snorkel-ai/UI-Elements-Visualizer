@@ -16,52 +16,12 @@ import type {
 import type { ConversationData } from '../types';
 
 /**
- * Truncate a value to reduce token count
- * Keeps structure but limits array lengths and string sizes
+ * Pass-through function (no truncation)
+ * Previously truncated values, but now returns values unchanged to preserve full context for LLM
+ * @param _maxChars Unused parameter (kept for backwards compatibility)
  */
-function truncateValue(value: any, maxChars: number = 1000): any {
-  if (value === null || value === undefined) {
-    return value;
-  }
-
-  if (typeof value === 'string') {
-    if (value.length > maxChars) {
-      return value.substring(0, maxChars) + '... [truncated]';
-    }
-    return value;
-  }
-
-  if (Array.isArray(value)) {
-    // For arrays, keep first 3 items and last 1 item
-    if (value.length > 4) {
-      return [
-        ...value.slice(0, 3).map(item => truncateValue(item, maxChars / 2)),
-        `... [${value.length - 4} items omitted]`,
-        truncateValue(value[value.length - 1], maxChars / 2)
-      ];
-    }
-    return value.map(item => truncateValue(item, maxChars / 2));
-  }
-
-  if (typeof value === 'object') {
-    const entries = Object.entries(value);
-    if (entries.length > 10) {
-      // Keep first 10 keys
-      const truncated: any = {};
-      entries.slice(0, 10).forEach(([key, val]) => {
-        truncated[key] = truncateValue(val, maxChars / 2);
-      });
-      truncated['...'] = `[${entries.length - 10} more keys omitted]`;
-      return truncated;
-    }
-
-    const truncated: any = {};
-    entries.forEach(([key, val]) => {
-      truncated[key] = truncateValue(val, maxChars / 2);
-    });
-    return truncated;
-  }
-
+function truncateValue(value: any, _maxChars: number = 1000): any {
+  // No truncation - return value as-is to preserve full conversation context
   return value;
 }
 
