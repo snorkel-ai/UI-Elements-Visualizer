@@ -1,5 +1,5 @@
 /**
- * Configuration for LLM-based validation using OpenAI API
+ * Configuration for LLM-based validation using Portkey Gateway
  *
  * Security Note: API keys are stored in sessionStorage (cleared on tab close)
  * and are visible in browser DevTools Network tab. Suitable for internal tools.
@@ -8,54 +8,50 @@
 export interface LlmConfig {
   enabled: boolean;
   apiKey?: string;
-  model: 'gpt-4' | 'gpt-4o' | 'gpt-4-turbo' | 'o1-preview' | 'o1-mini' | 'gpt-3.5-turbo';
+  model: string; // Supports @provider/model format (e.g., @gemini/gemini-3-pro-preview)
   temperature: number;
   maxTokens: number;
   timeout: number; // milliseconds
 }
 
 // Session storage keys
-const OPENAI_API_KEY_SESSION = 'openai_api_key';
-const OPENAI_MODEL_SESSION = 'openai_model';
+const PORTKEY_API_KEY_SESSION = 'portkey_api_key';
+const LLM_MODEL_SESSION = 'llm_model';
 
 /**
- * Store API key in sessionStorage (cleared when tab closes)
+ * Store Portkey API key in sessionStorage (cleared when tab closes)
  */
 export function setApiKey(key: string): void {
-  sessionStorage.setItem(OPENAI_API_KEY_SESSION, key);
+  sessionStorage.setItem(PORTKEY_API_KEY_SESSION, key);
 }
 
 /**
- * Retrieve API key from sessionStorage
+ * Retrieve Portkey API key from sessionStorage
  */
 export function getApiKey(): string | null {
-  return sessionStorage.getItem(OPENAI_API_KEY_SESSION);
+  return sessionStorage.getItem(PORTKEY_API_KEY_SESSION);
 }
 
 /**
  * Clear API key from sessionStorage
  */
 export function clearApiKey(): void {
-  sessionStorage.removeItem(OPENAI_API_KEY_SESSION);
+  sessionStorage.removeItem(PORTKEY_API_KEY_SESSION);
 }
 
 /**
  * Store model selection in sessionStorage
  */
-export function setModel(model: 'gpt-4' | 'gpt-4o' | 'gpt-4-turbo' | 'o1-preview' | 'o1-mini' | 'gpt-3.5-turbo'): void {
-  sessionStorage.setItem(OPENAI_MODEL_SESSION, model);
+export function setModel(model: string): void {
+  sessionStorage.setItem(LLM_MODEL_SESSION, model);
 }
 
 /**
  * Retrieve model selection from sessionStorage
  */
-export function getModel(): 'gpt-4' | 'gpt-4o' | 'gpt-4-turbo' | 'o1-preview' | 'o1-mini' | 'gpt-3.5-turbo' {
-  const stored = sessionStorage.getItem(OPENAI_MODEL_SESSION);
-  if (stored === 'gpt-4' || stored === 'gpt-4o' || stored === 'gpt-4-turbo' ||
-      stored === 'o1-preview' || stored === 'o1-mini' || stored === 'gpt-3.5-turbo') {
-    return stored;
-  }
-  return 'gpt-4-turbo'; // Default to gpt-4-turbo for larger context
+export function getModel(): string {
+  const stored = sessionStorage.getItem(LLM_MODEL_SESSION);
+  return stored || '@gemini/gemini-3-pro-preview'; // Default to Gemini 3 Pro
 }
 
 /**
@@ -63,7 +59,7 @@ export function getModel(): 'gpt-4' | 'gpt-4o' | 'gpt-4-turbo' | 'o1-preview' | 
  * Falls back to environment variable if sessionStorage is empty
  */
 export function loadLlmConfig(): LlmConfig {
-  const apiKey = getApiKey() || import.meta.env.VITE_OPENAI_API_KEY;
+  const apiKey = getApiKey() || import.meta.env.VITE_PORTKEY_API_KEY;
 
   return {
     enabled: !!apiKey, // Enabled if key is set (either way)

@@ -1,7 +1,7 @@
 /**
  * LLM Configuration Panel
  *
- * Allows users to input OpenAI API key and select model for LLM-based validation
+ * Allows users to input Portkey API key and select model for LLM-based validation
  */
 
 import { useState } from 'react';
@@ -13,7 +13,7 @@ interface LlmConfigPanelProps {
 
 export function LlmConfigPanel({ onConfigChange }: LlmConfigPanelProps) {
   const [apiKey, setApiKeyState] = useState(getApiKey() || '');
-  const [model, setModelState] = useState<'gpt-4' | 'gpt-4o' | 'gpt-4-turbo' | 'o1-preview' | 'o1-mini' | 'gpt-3.5-turbo'>(getModel());
+  const [model, setModelState] = useState(getModel());
   const [isVisible, setIsVisible] = useState(false);
   const [isSaved, setIsSaved] = useState(!!getApiKey());
 
@@ -22,7 +22,7 @@ export function LlmConfigPanel({ onConfigChange }: LlmConfigPanelProps) {
       setApiKey(apiKey.trim());
       setModel(model);
       setIsSaved(true);
-      console.log('[LLM Config] API key saved to sessionStorage');
+      console.log('[LLM Config] Portkey API key saved to sessionStorage');
 
       if (onConfigChange) {
         onConfigChange();
@@ -45,7 +45,7 @@ export function LlmConfigPanel({ onConfigChange }: LlmConfigPanelProps) {
     <div className="border border-gray-300 rounded-lg p-4 mb-4 bg-white shadow-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="font-semibold text-gray-900">🤖 LLM Validation</h3>
+          <h3 className="font-semibold text-gray-900">🤖 LLM Validation (via Portkey)</h3>
           {isSaved && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
               ✓ Configured
@@ -66,20 +66,20 @@ export function LlmConfigPanel({ onConfigChange }: LlmConfigPanelProps) {
           <div className="bg-blue-50 border border-blue-200 rounded p-3 text-sm text-blue-800">
             <p className="font-medium mb-1">About LLM Validation</p>
             <p className="text-xs">
-              Uses OpenAI to detect false positives in prop source validation (e.g., hardcoded data, reasonable transformations).
-              Helps reduce manual review time.
+              Uses Portkey LLM Gateway to validate conversations with models from multiple providers (Gemini, OpenAI, Claude, etc.).
+              Helps detect false positives in prop source validation and verify conversation quality.
             </p>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              OpenAI API Key
+              Portkey API Key
             </label>
             <input
               type="password"
               value={apiKey}
               onChange={(e) => setApiKeyState(e.target.value)}
-              placeholder="sk-proj-..."
+              placeholder="Enter your Portkey API key..."
               className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="text-xs text-gray-600 mt-1">
@@ -90,22 +90,17 @@ export function LlmConfigPanel({ onConfigChange }: LlmConfigPanelProps) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Model
+              Model (use @provider/model format)
             </label>
-            <select
+            <input
+              type="text"
               value={model}
-              onChange={(e) => setModelState(e.target.value as any)}
-              className="border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="gpt-4-turbo">GPT-4 Turbo (recommended, 128k context, ~$0.01/violation)</option>
-              <option value="o1-preview">o1-preview (most capable, 128k context, ~$0.05/violation)</option>
-              <option value="o1-mini">o1-mini (fast reasoning, 128k context, ~$0.015/violation)</option>
-              <option value="gpt-4o">GPT-4o (fast, 128k context, ~$0.0075/violation)</option>
-              <option value="gpt-4">GPT-4 (8k context, ~$0.018/violation)</option>
-              <option value="gpt-3.5-turbo">GPT-3.5 Turbo (8k context, ~$0.0006/violation)</option>
-            </select>
+              onChange={(e) => setModelState(e.target.value)}
+              placeholder="@gemini/gemini-3-pro-preview"
+              className="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
             <p className="text-xs text-gray-500 mt-1">
-              Use GPT-4 Turbo or o1 models for large props (128k context). GPT-4 and GPT-3.5 have only 8k context and may fail on large data.
+              Examples: @gemini/gemini-3-pro-preview (default), @openai/gpt-4o, @anthropic/claude-3-5-sonnet
             </p>
           </div>
 
@@ -130,10 +125,10 @@ export function LlmConfigPanel({ onConfigChange }: LlmConfigPanelProps) {
           <div className="border-t border-gray-200 pt-3 text-xs text-gray-600">
             <p className="font-medium mb-1">How it works:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>When validation finds unclear prop sources, LLM analyzes each violation</li>
-              <li>LLM determines if prop is hardcoded, a transformation, or genuinely unclear</li>
-              <li>If all violations are approved, the check passes with "LLM assistance" label</li>
-              <li>Evaluation happens sequentially to respect API rate limits (~2s per violation)</li>
+              <li>Portkey routes requests to your specified LLM provider (Gemini, OpenAI, Claude, etc.)</li>
+              <li>When validation finds issues, LLM analyzes each violation for accuracy</li>
+              <li>LLM determines if issues are false positives or genuine problems</li>
+              <li>Multiple sections validated concurrently for speed (~30 LLM calls per conversation)</li>
             </ul>
           </div>
         </div>
