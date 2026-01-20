@@ -17,7 +17,7 @@ export function DataPointTable({ dataPoints, validationResults, startIndex = 0, 
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
