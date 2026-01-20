@@ -23,7 +23,8 @@ const CHECKLIST_ITEMS = [
 export async function evaluateComponentQualityWithLLM(
   violations: ComponentQualityViolation[],
   conversation: ConversationData,
-  config: LlmConfig
+  config: LlmConfig,
+  folderName: string
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
   console.log('[LLMAJ Section 4: Component Quality] Evaluation starting...');
@@ -68,7 +69,10 @@ export async function evaluateComponentQualityWithLLM(
               }
             ],
             temperature: 0.1,
-            max_tokens: 16000
+            max_tokens: 16000,
+            metadata: {
+              run_id: folderName
+            }
           });
 
           totalTokens += (response.usage?.total_tokens || 0);
@@ -140,6 +144,14 @@ CHECKLIST ITEM: "${checkDescription}"
 
 COMPONENTS IN CONVERSATION:
 ${extractComponentsInfo(conversation)}
+
+IMPORTANT NOTE ON COMPONENT STRUCTURE:
+- Components can contain nested child components in a "components" array field
+- Parent components provide configuration/labels via props (e.g., titles, descriptions)
+- Child components provide the actual data/content (e.g., issue cards, list items)
+- A component with nested children is NOT missing data - the data is in the nested components
+- Example: IssueProgressView (parent with labels) → IssueProgressCard[] (children with issue data)
+- Always check for nested components before flagging a component as incomplete
 `;
 
   if (violations.length > 0) {
@@ -180,7 +192,12 @@ ${i + 1}. Component "${v.componentName}" at message ${v.messageIndex} (${v.viola
   * User's input/request
   * Tool outputs
   * Prior established facts
-- No assumed/invented content`;
+- No assumed/invented content
+- IMPORTANT: Check BOTH top-level props AND nested components for requested data
+  * Parent components may only contain labels/configuration
+  * Nested child components contain the actual data requested by user
+  * Example: User requests "show issue cards" → IssueProgressView (parent) contains nested IssueProgressCard[] (children with issue data)
+  * A component IS grounded if nested children contain the requested information`;
       break;
     case 3: // Relevant to turn
       prompt += `- Components should only appear when needed for current turn's response
@@ -199,18 +216,34 @@ ${i + 1}. Component "${v.componentName}" at message ${v.messageIndex} (${v.viola
   * Component name exists in schema
   * Props match schema properties
   * Required props are present
-  * Prop types align with schema types`;
+  * Prop types align with schema types
+- IMPORTANT: Components can have nested child components in a "components" array
+  * Example: IssueProgressView with nested IssueProgressCard children
+  * Data can be provided through nested components, not just top-level props
+  * Check the FULL component structure including nested components
+  * A component is NOT missing data if it provides data through nested child components`;
       break;
     case 6: // Not hallucinated
       prompt += `- All component information must be traceable to conversation
-- Check specific prop values against context/tool outputs
+- Check specific prop values against context/tool outputs (including nested components)
 - No invented data (dates, names, IDs, statuses)
-- Each field should have clear source in prior messages`;
+- Each field should have clear source in prior messages
+- IMPORTANT: Check nested child components for data content, not just parent props
+  * Parent component props typically contain labels/configuration
+  * Nested components contain actual data (e.g., IssueProgressCard[] inside IssueProgressView)
+  * Verify nested component data is grounded in conversation context`;
       break;
     case 7: // In expected components
-      prompt += `- Component must be listed in grading_guidance.expected_components
-- Check component name matches expected list
-- If not in list = violation (either add to GG or remove component)`;
+      prompt += `- IMPORTANT: expected_components uses NATURAL LANGUAGE descriptions, not exact component names
+- Check if the component SEMANTICALLY MATCHES the natural language description
+- Examples of VALID matches:
+  * Component "NewsletterContentCalendar" matches description "A weekly calendar-style layout..."
+  * Component "IssueCard" matches description "A set of issue cards..."
+  * Component "BacklogIdeaList" matches description "A backlog section..."
+- Do NOT require exact name matching - focus on whether the component fulfills the described purpose
+- Only flag as violation if component has NO semantic match in expected_components
+- If expected_components describes "a calendar" and component is "CalendarBoard" → PASS
+- If expected_components describes "user profile cards" and component is "ProductList" → FAIL (semantic mismatch)`;
       break;
   }
 
@@ -268,9 +301,27 @@ function extractComponentsInfo(conversation: ConversationData): string {
           const componentSchema = findComponentInSchema(comp.name, schema);
           const propsJson = JSON.stringify(comp.props, null, 2);
 
+          // Check if component name exactly matches expected (rare) or if we need semantic matching
+          const exactMatch = expectedComponents.includes(comp.name);
+          const expectedDescriptions = expectedComponents.length > 0
+            ? `Expected (natural language): ${expectedComponents.join(' | ')}`
+            : 'Expected: (none)';
+
+          // Format nested components if present
+          let nestedComponentsInfo = '';
+          if (comp.nestedComponents && comp.nestedComponents.length > 0) {
+            nestedComponentsInfo = `\n  Nested components (${comp.nestedComponents.length}):\n`;
+            comp.nestedComponents.forEach((nested, idx) => {
+              const nestedPropsJson = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
+              nestedComponentsInfo += `    ${idx + 1}. ${nested.name}\n`;
+              nestedComponentsInfo += `       Props: ${nestedPropsJson.substring(0, 500)}${nestedPropsJson.length > 500 ? '...' : ''}\n`;
+            });
+          }
+
           info += `\nComponent: ${comp.name} (Message ${i})
-  Props: ${propsJson.substring(0, 1000)}${propsJson.length > 1000 ? '...' : ''}
-  Expected by GG: ${expectedComponents.includes(comp.name) ? 'YES' : 'NO (expected: ' + expectedComponents.join(', ') + ')'}
+  Props: ${propsJson.substring(0, 1000)}${propsJson.length > 1000 ? '...' : ''}${nestedComponentsInfo}
+  ${expectedDescriptions}
+  Exact name match: ${exactMatch ? 'YES' : 'NO (requires semantic match)'}
   Has schema definition: ${componentSchema ? 'YES' : 'NO'}
   User request: ${priorUserRequest || '(none)'}
   Tool calls before component: ${toolCallsInContext.length > 0 ? toolCallsInContext.map((tc: any) => tc.function?.name).join(', ') : '(none)'}

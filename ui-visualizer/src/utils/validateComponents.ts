@@ -131,12 +131,12 @@ export async function validateComponents(
   // NEW: LLMAJ validators - run independently (don't let one failure stop others)
   // Run all validators concurrently using Promise.allSettled
   const llmajChecks = await Promise.allSettled([
-    checkToolCorrectness(dataPoint.conversation),
-    checkConversationFlow(dataPoint.conversation),
-    checkTraceability(dataPoint.conversation),
-    checkGradingGuidanceQuality(dataPoint.conversation),
-    checkAssistantResponse(dataPoint.conversation),
-    checkComponentQuality(dataPoint.conversation)
+    checkToolCorrectness(dataPoint.conversation, dataPoint.folderName),
+    checkConversationFlow(dataPoint.conversation, dataPoint.folderName),
+    checkTraceability(dataPoint.conversation, dataPoint.folderName),
+    checkGradingGuidanceQuality(dataPoint.conversation, dataPoint.folderName),
+    checkAssistantResponse(dataPoint.conversation, dataPoint.folderName),
+    checkComponentQuality(dataPoint.conversation, dataPoint.folderName)
   ]);
 
   // Process results - convert rejections to error results
@@ -1394,7 +1394,8 @@ function checkToolCallsMatchDefinitions(conversation: ConversationData | undefin
  * Verifies tools are properly defined, consistently used, and appropriately applied
  */
 async function checkToolCorrectness(
-  conversation: ConversationData | undefined
+  conversation: ConversationData | undefined,
+  folderName: string
 ): Promise<ValidationResult> {
   console.log('[LLMAJ Section 2: Tool Correctness] Check starting...');
 
@@ -1434,7 +1435,8 @@ async function checkToolCorrectness(
       const sectionEval = await evaluateToolCorrectnessWithLLM(
         violations,
         conversation,
-        llmConfig
+        llmConfig,
+        folderName
       );
 
       // Convert to ValidationResult format - Show ALL items with status
@@ -1540,7 +1542,8 @@ function identifyToolCorrectnessViolations(conversation: ConversationData): any[
  * Ensures logical message sequences and proper ordering
  */
 async function checkConversationFlow(
-  conversation: ConversationData | undefined
+  conversation: ConversationData | undefined,
+  folderName: string
 ): Promise<ValidationResult> {
   console.log('[LLMAJ Section 3: Conversation Flow] Check starting...');
 
@@ -1569,7 +1572,8 @@ async function checkConversationFlow(
       const sectionEval = await evaluateFlowWithLLM(
         violations,
         conversation,
-        llmConfig
+        llmConfig,
+        folderName
       );
 
       // Convert to ValidationResult format - Show ALL items with status
@@ -1686,7 +1690,8 @@ function identifyFlowViolations(conversation: ConversationData): any[] {
  * Ensures all information traces back to conversation context or tool outputs
  */
 async function checkTraceability(
-  conversation: ConversationData | undefined
+  conversation: ConversationData | undefined,
+  folderName: string
 ): Promise<ValidationResult> {
   console.log('[LLMAJ Section 1: Traceability] Check starting...');
 
@@ -1712,7 +1717,7 @@ async function checkTraceability(
 
   if (llmConfig.enabled && llmConfig.apiKey) {
     try {
-      const sectionEval = await evaluateTraceabilityWithLLM(violations, conversation, llmConfig);
+      const sectionEval = await evaluateTraceabilityWithLLM(violations, conversation, llmConfig, folderName);
 
       // Convert to ValidationResult format - Show ALL items with status
       const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
@@ -1806,7 +1811,8 @@ function identifyTraceabilityViolations(conversation: ConversationData): any[] {
  * Ensures grading guidance is turn-specific and matches actual components
  */
 async function checkGradingGuidanceQuality(
-  conversation: ConversationData | undefined
+  conversation: ConversationData | undefined,
+  folderName: string
 ): Promise<ValidationResult> {
   console.log('[LLMAJ Section 5: Grading Guidance] Check starting...');
 
@@ -1832,7 +1838,7 @@ async function checkGradingGuidanceQuality(
 
   if (llmConfig.enabled && llmConfig.apiKey) {
     try {
-      const sectionEval = await evaluateGradingGuidanceWithLLM(violations, conversation, llmConfig);
+      const sectionEval = await evaluateGradingGuidanceWithLLM(violations, conversation, llmConfig, folderName);
 
       const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
 
@@ -1919,7 +1925,8 @@ function identifyGradingGuidanceViolations(conversation: ConversationData): any[
  * Verifies responses contain no placeholders, false claims, or redundant info
  */
 async function checkAssistantResponse(
-  conversation: ConversationData | undefined
+  conversation: ConversationData | undefined,
+  folderName: string
 ): Promise<ValidationResult> {
   console.log('[LLMAJ Section 6: Assistant Response] Check starting...');
 
@@ -1945,7 +1952,7 @@ async function checkAssistantResponse(
 
   if (llmConfig.enabled && llmConfig.apiKey) {
     try {
-      const sectionEval = await evaluateAssistantResponseWithLLM(violations, conversation, llmConfig);
+      const sectionEval = await evaluateAssistantResponseWithLLM(violations, conversation, llmConfig, folderName);
 
       const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
 
@@ -2057,7 +2064,8 @@ function identifyAssistantResponseViolations(conversation: ConversationData): an
  * Verifies components are non-interactive, generalizable, grounded, relevant
  */
 async function checkComponentQuality(
-  conversation: ConversationData | undefined
+  conversation: ConversationData | undefined,
+  folderName: string
 ): Promise<ValidationResult> {
   console.log('[LLMAJ Section 4: Component Quality] Check starting...');
 
@@ -2083,7 +2091,7 @@ async function checkComponentQuality(
 
   if (llmConfig.enabled && llmConfig.apiKey) {
     try {
-      const sectionEval = await evaluateComponentQualityWithLLM(violations, conversation, llmConfig);
+      const sectionEval = await evaluateComponentQualityWithLLM(violations, conversation, llmConfig, folderName);
 
       const failedItems = sectionEval.checkItemResults.filter(r => !r.passed);
 

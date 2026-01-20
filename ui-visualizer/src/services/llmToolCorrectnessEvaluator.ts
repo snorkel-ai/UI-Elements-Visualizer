@@ -20,7 +20,8 @@ const CHECKLIST_ITEMS = [
 export async function evaluateToolCorrectnessWithLLM(
   violations: ToolCorrectnessViolation[],
   conversation: ConversationData,
-  config: LlmConfig
+  config: LlmConfig,
+  folderName: string
 ): Promise<SectionEvaluation> {
   console.log('[LLMAJ Section 2] Tool Correctness evaluation starting...');
   const client = new OpenAIClient(config.apiKey!, config.timeout);
@@ -72,7 +73,10 @@ export async function evaluateToolCorrectnessWithLLM(
               }
             ],
             temperature: 0.1,
-            max_tokens: 16000
+            max_tokens: 16000,
+            metadata: {
+              run_id: folderName
+            }
           });
 
           totalTokens += (response.usage?.total_tokens || 0);

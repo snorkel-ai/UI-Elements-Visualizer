@@ -116,10 +116,20 @@ export function extractComponentsFromMessage(message: any, messageIndex: number)
   if (Array.isArray(message.content)) {
     message.content.forEach((block: any) => {
       if (block.type === 'component' && block.component) {
+        // Extract nested components if present
+        let nestedComponents: Array<{name: string; props?: any}> | undefined;
+        if (block.component.components && Array.isArray(block.component.components)) {
+          nestedComponents = block.component.components.map((nested: any) => ({
+            name: nested.name || 'unknown',
+            props: nested.props ? truncateValue(nested.props, 1000) : undefined
+          }));
+        }
+
         components.push({
           name: block.component.name,
           props: truncateValue(block.component.props || {}, 1500),
-          messageIndex
+          messageIndex,
+          nestedComponents
         });
       }
     });

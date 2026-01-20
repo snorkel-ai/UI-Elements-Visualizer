@@ -37,7 +37,8 @@ export class OpenAIClient {
         temperature: request.temperature,
         max_tokens: request.max_tokens,
         metadata: {
-          _source: 'mistral-ui-visualizer'
+          _source: 'mistral-ui-visualizer',
+          ...(request.metadata || {})
         }
       } as any); // Type assertion needed for metadata field
 

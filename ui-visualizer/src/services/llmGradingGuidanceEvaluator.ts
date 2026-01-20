@@ -19,7 +19,8 @@ const CHECKLIST_ITEMS = [
 export async function evaluateGradingGuidanceWithLLM(
   violations: GradingGuidanceViolation[],
   conversation: ConversationData,
-  config: LlmConfig
+  config: LlmConfig,
+  folderName: string
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
   console.log('[LLMAJ Section 5: Grading Guidance] Evaluation starting...');
@@ -64,7 +65,10 @@ export async function evaluateGradingGuidanceWithLLM(
               }
             ],
             temperature: 0.1,
-            max_tokens: 16000
+            max_tokens: 16000,
+            metadata: {
+              run_id: folderName
+            }
           });
 
           totalTokens += (response.usage?.total_tokens || 0);

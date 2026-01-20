@@ -18,7 +18,8 @@ const CHECKLIST_ITEMS = [
 export async function evaluateFlowWithLLM(
   violations: FlowViolation[],
   conversation: ConversationData,
-  config: LlmConfig
+  config: LlmConfig,
+  folderName: string
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
   console.log('[LLMAJ Section 3: Conversation Flow] Evaluation starting...');
@@ -66,7 +67,10 @@ export async function evaluateFlowWithLLM(
               }
             ],
             temperature: 0.1,
-            max_tokens: 16000
+            max_tokens: 16000,
+            metadata: {
+              run_id: folderName
+            }
           });
 
           totalTokens += (response.usage?.total_tokens || 0);

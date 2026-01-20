@@ -67,6 +67,7 @@ export interface OpenAIRequest {
   messages: OpenAIMessage[];
   temperature: number;
   max_tokens: number;
+  metadata?: Record<string, string>;
 }
 
 /**
@@ -202,4 +203,8 @@ export interface ComponentSummary {
   name: string;
   props: any;
   messageIndex: number;
+  nestedComponents?: Array<{
+    name: string;
+    props?: any;
+  }>;
 }

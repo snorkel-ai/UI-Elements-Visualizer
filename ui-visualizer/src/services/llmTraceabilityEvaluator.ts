@@ -19,7 +19,8 @@ const CHECKLIST_ITEMS = [
 export async function evaluateTraceabilityWithLLM(
   violations: TraceabilityViolation[],
   conversation: ConversationData,
-  config: LlmConfig
+  config: LlmConfig,
+  folderName: string
 ): Promise<SectionEvaluation> {
   const client = new OpenAIClient(config.apiKey!, config.timeout);
   console.log('[LLMAJ Section 1: Traceability] Evaluation starting...');
@@ -68,7 +69,10 @@ export async function evaluateTraceabilityWithLLM(
               }
             ],
             temperature: 0.1,
-            max_tokens: 16000
+            max_tokens: 16000,
+            metadata: {
+              run_id: folderName
+            }
           });
 
           totalTokens += (response.usage?.total_tokens || 0);
@@ -148,9 +152,22 @@ function buildTraceabilityPrompt(
         } else if (block.type === 'component') {
           const componentName = block.component?.name || 'unknown';
           const componentProps = block.component?.props ? JSON.stringify(block.component.props, null, 2) : '{}';
+
+          // Extract nested components if present
+          let nestedComponentsInfo = '';
+          if (block.component?.components && Array.isArray(block.component.components)) {
+            nestedComponentsInfo = `\n    Nested Components (${block.component.components.length}):\n`;
+            block.component.components.forEach((nested: any, idx: number) => {
+              const nestedName = nested.name || 'unknown';
+              const nestedProps = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
+              nestedComponentsInfo += `      ${idx + 1}. ${nestedName}\n`;
+              nestedComponentsInfo += `         Props: ${nestedProps.substring(0, 500)}${nestedProps.length > 500 ? '...' : ''}\n`;
+            });
+          }
+
           componentParts.push(`
     *** UI COMPONENT GENERATED: ${componentName} ***
-    Props: ${componentProps.substring(0, 2000)}${componentProps.length > 2000 ? '...' : ''}
+    Props: ${componentProps.substring(0, 2000)}${componentProps.length > 2000 ? '...' : ''}${nestedComponentsInfo}
     (This is a visual artifact/UI element that was generated and displayed to the user)
 `);
         }
@@ -193,6 +210,15 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
    Content: ${v.content}
    ${v.context ? `Additional context: ${JSON.stringify(v.context)}` : ''}
 `).join('\n') : '(No violations pre-detected - perform comprehensive validation)'}
+
+CRITICAL NOTE ON COMPONENT STRUCTURE:
+- Components can contain nested child components in a "components" array
+- When you see "Nested Components (N):" in the conversation history, this means the component has child components
+- Parent components typically provide configuration/labels (e.g., title, description, group labels)
+- Child components provide the actual data content (e.g., issue cards, list items, detailed information)
+- A component with nested children is NOT missing data - the data is in the nested components
+- Example: IssueProgressView (parent with labels) → IssueProgressCard[] (children with issue details)
+- ALWAYS check for "Nested Components" section before flagging a component as incomplete or missing data
 `;
 
   prompt += `\n\nEVALUATION CRITERIA:
@@ -208,6 +234,11 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
   * Conversation context (established facts)
 - IMPORTANT: If a message includes "*** UI COMPONENT GENERATED ***", the assistant HAS provided a visual artifact
 - Text claims like "Here's a board" or "The matrix shows" are NOT hallucinations when accompanied by actual UI components
+- CRITICAL: Components can have NESTED CHILD COMPONENTS containing the actual data
+  * Parent components typically contain configuration/labels
+  * Child components (in "Nested Components" section) contain actual data requested by user
+  * Example: IssueProgressView parent with nested IssueProgressCard[] children containing issue details
+  * Check BOTH top-level props AND nested components before flagging as missing data
 - Very minor/timeless knowledge is acceptable (e.g., common date formats, standard units)
 - Placeholder data (example@mail.com) is a violation
 - Specific details (dates, names, numbers) must come from context`;
@@ -227,7 +258,8 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
   * User provides data in their message → component can IMMEDIATELY use it (NO TOOL REQUIRED)
   * Tool returns data in message N → component in message > N can use it
   * Component in message N using data from message N+1 = timing violation
-- IMPORTANT: Components using data from the current or prior user messages do NOT violate this rule`;
+- IMPORTANT: Components using data from the current or prior user messages do NOT violate this rule
+- IMPORTANT: Check nested child components for data - data in nested components is still valid`;
       break;
     case 3: // No hallucinated content
       prompt += `- ALL component content must be pulled from conversation:
@@ -236,7 +268,12 @@ ${i + 1}. Message ${v.messageIndex} (${v.violationType}):
   * No invented/assumed data
   * Check specific values like dates, names, IDs, status values
   * Generic/default values (e.g., "placeholder") are violations
-- IMPORTANT: If user provides chore names/schedules in their message, components showing those chores are NOT hallucinations`;
+- IMPORTANT: If user provides chore names/schedules in their message, components showing those chores are NOT hallucinations
+- CRITICAL: Check nested child components for actual data content
+  * Parent components may only have labels/configuration props
+  * Nested child components contain the actual requested data (e.g., issue details, card content)
+  * Data in nested components counts as provided - NOT hallucinated if grounded in context
+  * Example: IssueProgressView parent (labels only) + nested IssueProgressCard[] (issue data) = complete and grounded`;
       break;
   }
 
