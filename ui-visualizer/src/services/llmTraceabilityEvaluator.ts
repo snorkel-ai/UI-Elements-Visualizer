@@ -153,16 +153,28 @@ function buildTraceabilityPrompt(
           const componentName = block.component?.name || 'unknown';
           const componentProps = block.component?.props ? JSON.stringify(block.component.props, null, 2) : '{}';
 
-          // Extract nested components if present
+          // Recursively extract nested components at all levels
+          function formatNestedComponentsRecursive(components: any[], indent: string): string {
+            let result = '';
+            components.forEach((nested: any, idx: number) => {
+              const nestedName = nested.name || 'unknown';
+              const nestedProps = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
+              result += `${indent}${idx + 1}. ${nestedName}\n`;
+              result += `${indent}   Props: ${nestedProps}\n`;
+
+              // Recursively format deeper nested components
+              if (nested.components && Array.isArray(nested.components) && nested.components.length > 0) {
+                result += `${indent}   Nested Components (${nested.components.length}):\n`;
+                result += formatNestedComponentsRecursive(nested.components, indent + '     ');
+              }
+            });
+            return result;
+          }
+
           let nestedComponentsInfo = '';
           if (block.component?.components && Array.isArray(block.component.components)) {
             nestedComponentsInfo = `\n    Nested Components (${block.component.components.length}):\n`;
-            block.component.components.forEach((nested: any, idx: number) => {
-              const nestedName = nested.name || 'unknown';
-              const nestedProps = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
-              nestedComponentsInfo += `      ${idx + 1}. ${nestedName}\n`;
-              nestedComponentsInfo += `         Props: ${nestedProps}\n`;
-            });
+            nestedComponentsInfo += formatNestedComponentsRecursive(block.component.components, '      ');
           }
 
           componentParts.push(`

@@ -307,15 +307,27 @@ function extractComponentsInfo(conversation: ConversationData): string {
             ? `Expected (natural language): ${expectedComponents.join(' | ')}`
             : 'Expected: (none)';
 
-          // Format nested components if present
+          // Recursively format nested components at all levels
+          function formatNestedComponents(components: any[], indent: string, level: number): string {
+            let result = '';
+            components.forEach((nested, idx) => {
+              const nestedPropsJson = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
+              result += `${indent}${idx + 1}. ${nested.name}\n`;
+              result += `${indent}   Props: ${nestedPropsJson}\n`;
+
+              // Recursively format deeper nested components
+              if (nested.components && nested.components.length > 0) {
+                result += `${indent}   Nested components (${nested.components.length}):\n`;
+                result += formatNestedComponents(nested.components, indent + '     ', level + 1);
+              }
+            });
+            return result;
+          }
+
           let nestedComponentsInfo = '';
           if (comp.nestedComponents && comp.nestedComponents.length > 0) {
             nestedComponentsInfo = `\n  Nested components (${comp.nestedComponents.length}):\n`;
-            comp.nestedComponents.forEach((nested, idx) => {
-              const nestedPropsJson = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
-              nestedComponentsInfo += `    ${idx + 1}. ${nested.name}\n`;
-              nestedComponentsInfo += `       Props: ${nestedPropsJson}\n`;
-            });
+            nestedComponentsInfo += formatNestedComponents(comp.nestedComponents, '    ', 1);
           }
 
           info += `\nComponent: ${comp.name} (Message ${i})

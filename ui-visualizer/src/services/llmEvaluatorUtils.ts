@@ -110,20 +110,38 @@ export function buildWindowedContext(
  * Extract component summaries from a message
  * Returns simplified component info (no code, just props and names)
  */
+/**
+ * Recursively extract all nested components from a component tree
+ */
+function extractNestedComponentsRecursive(component: any): Array<{name: string; props?: any; components?: any}> | undefined {
+  if (!component.components || !Array.isArray(component.components) || component.components.length === 0) {
+    return undefined;
+  }
+
+  return component.components.map((nested: any) => {
+    const result: any = {
+      name: nested.name || 'unknown',
+      props: nested.props || undefined
+    };
+
+    // Recursively extract nested components
+    const deeperNested = extractNestedComponentsRecursive(nested);
+    if (deeperNested) {
+      result.components = deeperNested;
+    }
+
+    return result;
+  });
+}
+
 export function extractComponentsFromMessage(message: any, messageIndex: number): ComponentSummary[] {
   const components: ComponentSummary[] = [];
 
   if (Array.isArray(message.content)) {
     message.content.forEach((block: any) => {
       if (block.type === 'component' && block.component) {
-        // Extract nested components if present
-        let nestedComponents: Array<{name: string; props?: any}> | undefined;
-        if (block.component.components && Array.isArray(block.component.components)) {
-          nestedComponents = block.component.components.map((nested: any) => ({
-            name: nested.name || 'unknown',
-            props: nested.props || undefined
-          }));
-        }
+        // Recursively extract all nested components at all levels
+        const nestedComponents = extractNestedComponentsRecursive(block.component);
 
         components.push({
           name: block.component.name,

@@ -199,12 +199,15 @@ export interface ToolCallSummary {
   messageIndex: number;
 }
 
+export interface NestedComponent {
+  name: string;
+  props?: any;
+  components?: NestedComponent[];
+}
+
 export interface ComponentSummary {
   name: string;
   props: any;
   messageIndex: number;
-  nestedComponents?: Array<{
-    name: string;
-    props?: any;
-  }>;
+  nestedComponents?: NestedComponent[];
 }
