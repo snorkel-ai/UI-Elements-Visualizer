@@ -161,13 +161,13 @@ function buildTraceabilityPrompt(
               const nestedName = nested.name || 'unknown';
               const nestedProps = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
               nestedComponentsInfo += `      ${idx + 1}. ${nestedName}\n`;
-              nestedComponentsInfo += `         Props: ${nestedProps.substring(0, 500)}${nestedProps.length > 500 ? '...' : ''}\n`;
+              nestedComponentsInfo += `         Props: ${nestedProps}\n`;
             });
           }
 
           componentParts.push(`
     *** UI COMPONENT GENERATED: ${componentName} ***
-    Props: ${componentProps.substring(0, 2000)}${componentProps.length > 2000 ? '...' : ''}${nestedComponentsInfo}
+    Props: ${componentProps}${nestedComponentsInfo}
     (This is a visual artifact/UI element that was generated and displayed to the user)
 `);
         }
@@ -182,11 +182,10 @@ function buildTraceabilityPrompt(
       : '';
 
     const textContent = textParts.join('\n');
-    const textDisplay = textContent.substring(0, 1000) + (textContent.length > 1000 ? '...' : '');
 
     return `
 Message ${idx} (${msg.role}):${toolCallInfo}
-  Text: ${textDisplay || '(no text)'}
+  Text: ${textContent || '(no text)'}
 ${componentParts.length > 0 ? componentParts.join('\n') : ''}
 `;
   }).join('\n');
@@ -201,7 +200,7 @@ ${conversationHistory}
 
 TOOL RESULTS AVAILABLE:
 ${toolResults.size > 0 ? Array.from(toolResults.entries()).map(([id, result]) => `
-  ${id}: ${JSON.stringify(result).substring(0, 500)}
+  ${id}: ${JSON.stringify(result)}
 `).join('\n') : '(No tool results)'}
 
 POTENTIAL VIOLATIONS DETECTED:

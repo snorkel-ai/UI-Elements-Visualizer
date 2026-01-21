@@ -291,7 +291,7 @@ function extractComponentsInfo(conversation: ConversationData): string {
             const content = typeof priorMsg.content === 'string'
               ? priorMsg.content
               : JSON.stringify(priorMsg.content);
-            priorUserRequest = content.substring(0, 500) + (content.length > 500 ? '...' : '');
+            priorUserRequest = content;
             expectedComponents = getExpectedComponents(priorMsg);
             break;
           }
@@ -314,12 +314,12 @@ function extractComponentsInfo(conversation: ConversationData): string {
             comp.nestedComponents.forEach((nested, idx) => {
               const nestedPropsJson = nested.props ? JSON.stringify(nested.props, null, 2) : '(no props)';
               nestedComponentsInfo += `    ${idx + 1}. ${nested.name}\n`;
-              nestedComponentsInfo += `       Props: ${nestedPropsJson.substring(0, 500)}${nestedPropsJson.length > 500 ? '...' : ''}\n`;
+              nestedComponentsInfo += `       Props: ${nestedPropsJson}\n`;
             });
           }
 
           info += `\nComponent: ${comp.name} (Message ${i})
-  Props: ${propsJson.substring(0, 1000)}${propsJson.length > 1000 ? '...' : ''}${nestedComponentsInfo}
+  Props: ${propsJson}${nestedComponentsInfo}
   ${expectedDescriptions}
   Exact name match: ${exactMatch ? 'YES' : 'NO (requires semantic match)'}
   Has schema definition: ${componentSchema ? 'YES' : 'NO'}

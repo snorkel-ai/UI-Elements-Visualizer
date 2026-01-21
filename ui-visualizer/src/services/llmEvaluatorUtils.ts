@@ -121,13 +121,13 @@ export function extractComponentsFromMessage(message: any, messageIndex: number)
         if (block.component.components && Array.isArray(block.component.components)) {
           nestedComponents = block.component.components.map((nested: any) => ({
             name: nested.name || 'unknown',
-            props: nested.props ? truncateValue(nested.props, 1000) : undefined
+            props: nested.props || undefined
           }));
         }
 
         components.push({
           name: block.component.name,
-          props: truncateValue(block.component.props || {}, 1500),
+          props: block.component.props || {},
           messageIndex,
           nestedComponents
         });
